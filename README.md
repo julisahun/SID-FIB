@@ -16,9 +16,3 @@ while facing, or not, other teams.
 This game is initally inspired by the famous "Hunt the Wumpus"  of [Gregory Yob](https://en.wikipedia.org/wiki/Gregory_Yob).
 
 For more details, see Dedale's website : https://dedale.gitlab.io/
-
-
----------------------------------------------------------------------
-
-Add the .jar libraries from /libraries to project 
-Set src/main/java/ as source root directory (Right click -> set Mark directory as -> Sources Root)
