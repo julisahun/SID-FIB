@@ -52,6 +52,7 @@ public class LabExplorerAgent extends AbstractDedaleAgent {
                 myAgent.send(msg);
             } catch (FIPAException fe) {
                 fe.printStackTrace();
+
             }
         }
     }

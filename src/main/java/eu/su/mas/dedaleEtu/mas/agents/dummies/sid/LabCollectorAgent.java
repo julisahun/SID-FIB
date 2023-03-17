@@ -36,17 +36,23 @@ public class LabCollectorAgent extends AbstractDedaleAgent {
         }
     }
 
-    class read extends TickerBehaviour {
-        public read(Agent agent, long period) { super(agent, period); }
+    class read extends Behaviour {
+        public read(Agent agent) { super(agent); }
 
         @Override
-        public void onTick() {
+        public void action() {
             ACLMessage msg = receive();
             if (msg != null) {
-                System.out.println("I am " + myAgent.getLocalName() + " and I received " + msg.getContent());
+                System.out.println("I am " + myAgent.getLocalName() + " and I received " + msg.getSender().getLocalName());
             } else {
                 System.out.println("I am " + myAgent.getLocalName() + " and I received nothing");
+                block();
             }
+        }
+
+        @Override
+        public boolean done() {
+            return false;
         }
     }
 
@@ -64,7 +70,7 @@ public class LabCollectorAgent extends AbstractDedaleAgent {
 
         // ADD the initial behaviours
         lb.add(new service(this));
-        lb.add(new read(this, 1000));
+        lb.add(new read(this));
 
 
         // MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
