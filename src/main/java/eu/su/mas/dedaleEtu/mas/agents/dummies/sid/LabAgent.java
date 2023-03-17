@@ -5,25 +5,41 @@ import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours
 import eu.su.mas.dedaleEtu.mas.behaviours.RandomWalkBehaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.SayHelloBehaviour;
 import jade.core.Agent;
-import jade.core.behaviours.Behaviour;
+import jade.core.behaviours.*;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class LabAgent extends AbstractDedaleAgent {
-    static class HelloWorldBehaviour extends Behaviour {
-        public HelloWorldBehaviour(Agent agent) {
-            super(agent);
-        }
+
+    class laVidaEsUnCiclo1 extends OneShotBehaviour {
+        public laVidaEsUnCiclo1(Agent agent) { super(agent); }
 
         @Override
         public void action() {
-            System.out.println("Lab agent says: \"Hello world!\"");
+            addBehaviour(new laVidaEsUnCiclo1(myAgent));
+        }
+    }
+    static class laVidaEsUnCiclo2 extends OneShotBehaviour {
+        public laVidaEsUnCiclo2(Agent agent) { super(agent); }
+
+        @Override
+        public void action() {
+            System.out.println("maria guapa2");
+        }
+    }
+
+    static class timer extends TickerBehaviour {
+        public timer(Agent agent, long perdiod) { super(agent, perdiod); }
+
+        @Override
+        public void onStart() {
+            System.out.println("onStart");
         }
 
         @Override
-        public boolean done() {
-            return true;
+        public void onTick() {
+            System.out.println("onTick");
         }
     }
 
@@ -39,7 +55,8 @@ public class LabAgent extends AbstractDedaleAgent {
         List<Behaviour> lb = new ArrayList<>();
 
         // ADD the initial behaviours
-        lb.add(new HelloWorldBehaviour(this));
+        lb.add(new laVidaEsUnCiclo1(this));
+
 
         // MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
         addBehaviour(new startMyBehaviours(this, lb));
