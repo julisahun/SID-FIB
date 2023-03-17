@@ -4,7 +4,6 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
@@ -200,7 +199,9 @@ public class Principal {
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
                 newAgent("Lab", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabAgent.class),
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabExplorerAgent.class),
+                newAgent("Lab2", new String[] {},
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabCollectorAgent.class),
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
                 newGolem("Golem2"),
