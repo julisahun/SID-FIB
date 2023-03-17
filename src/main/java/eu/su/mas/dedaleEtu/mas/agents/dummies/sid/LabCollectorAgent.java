@@ -5,10 +5,12 @@ import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,23 +36,16 @@ public class LabCollectorAgent extends AbstractDedaleAgent {
         }
     }
 
-    static class search extends OneShotBehaviour {
-        public search(Agent agent) { super(agent); }
+    class read extends TickerBehaviour {
+        public read(Agent agent, long period) { super(agent, period); }
 
         @Override
-        public void action() {
-            DFAgentDescription template = new DFAgentDescription();
-            ServiceDescription sd = new ServiceDescription();
-            sd.setType("explorer");
-            template.addServices(sd);
-            try {
-                DFAgentDescription[] result = DFService.search(myAgent, template);
-                System.out.println("I'm collector and I found the following agents:");
-                for (DFAgentDescription dfAgentDescription : result) {
-                    System.out.println(dfAgentDescription.getName());
-                }
-            } catch (FIPAException fe) {
-                fe.printStackTrace();
+        public void onTick() {
+            ACLMessage msg = receive();
+            if (msg != null) {
+                System.out.println("I am " + myAgent.getLocalName() + " and I received " + msg.getContent());
+            } else {
+                System.out.println("I am " + myAgent.getLocalName() + " and I received nothing");
             }
         }
     }
@@ -69,7 +64,7 @@ public class LabCollectorAgent extends AbstractDedaleAgent {
 
         // ADD the initial behaviours
         lb.add(new service(this));
-        lb.add(new search(this));
+        lb.add(new read(this, 1000));
 
 
         // MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY

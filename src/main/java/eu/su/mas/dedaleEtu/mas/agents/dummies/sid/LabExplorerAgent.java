@@ -8,6 +8,7 @@ import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.domain.FIPAException;
+import jade.lang.acl.ACLMessage;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -33,22 +34,22 @@ public class LabExplorerAgent extends AbstractDedaleAgent {
         }
     }
 
-    static class search extends OneShotBehaviour {
-        public search(Agent agent) { super(agent); }
+    static class wasat extends TickerBehaviour {
+        public wasat(Agent agent, long period) { super(agent, period); }
 
         @Override
-        public void action() {
+        public void onTick() {
             DFAgentDescription template = new DFAgentDescription();
             ServiceDescription sd = new ServiceDescription();
             sd.setType("collector");
             template.addServices(sd);
             try {
-
                 DFAgentDescription[] result = DFService.search(myAgent, template);
-                System.out.println("I'm explorer and I found the following agents:");
-                for (DFAgentDescription dfAgentDescription : result) {
-                    System.out.println(dfAgentDescription.getName());
-                }
+                DFAgentDescription target = result[0];
+                ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
+                msg.addReceiver(target.getName());
+                msg.setContent("I was at " + myAgent.getLocalName());
+                myAgent.send(msg);
             } catch (FIPAException fe) {
                 fe.printStackTrace();
             }
@@ -69,7 +70,7 @@ public class LabExplorerAgent extends AbstractDedaleAgent {
 
         // ADD the initial behaviours
         lb.add(new service(this));
-        lb.add(new search(this));
+        lb.add(new wasat(this, 2000));
 
 
         // MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
