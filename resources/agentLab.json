@@ -1,7 +1,7 @@
 [
   { 
     "agentType":"agentExplo",
-    "agentName": "Lab",
+    "agentName": "AgentB",
     "communicationRange": 3,
     "initialLocation": "free",
     "backPackCapacityGold": -1,
@@ -11,8 +11,8 @@
     "lockPickingExpertise":1
   },
   {
-    "agentType":"agentCollect",
-    "agentName": "Lab2",
+    "agentType":"agentExplo",
+    "agentName": "AgentA",
     "communicationRange": 3,
     "initialLocation": "free",
     "backPackCapacityGold": -1,
