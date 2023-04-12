@@ -53,11 +53,11 @@ public class AgentB extends AbstractDedaleAgent {
     @Override
     public void action() {
       Location position = (Location) ((AbstractDedaleAgent) this.myAgent).getCurrentPosition();
-      Behaviour wasat = new wasat(this.myAgent, 1000, position);
+      Behaviour wasat = new wasat(this.myAgent, "Position: " + position.toString());
       Behaviour walker = new randomWalk(this.myAgent);
       this.myAgent.addBehaviour(wasat);
       this.myAgent.addBehaviour(walker);
-      this.myAgent.addBehaviour(new watcher(this.myAgent, new ArrayList<>(Arrays.asList(walker))));
+      this.myAgent.addBehaviour(new watcher(this.myAgent, new ArrayList<>(Arrays.asList(walker, wasat))));
     }
   }
 
@@ -71,7 +71,7 @@ public class AgentB extends AbstractDedaleAgent {
 
     public randomWalk(Agent agent, String position) {
       super(agent);
-      System.out.println("Target position: " + position);
+      System.out.println("AgentB Target position: " + position);
       this.targetPosition = position.trim();
     }
 
@@ -103,6 +103,11 @@ public class AgentB extends AbstractDedaleAgent {
         return ((AbstractDedaleAgent) this.myAgent).getCurrentPosition().toString().equals(this.targetPosition);
       }
     }
+
+    public int onEnd() {
+      System.out.println("AgentB reached target position");
+      return 0;
+    }
   }
 
   static class watcher extends CyclicBehaviour {
@@ -127,10 +132,14 @@ public class AgentB extends AbstractDedaleAgent {
           System.out.println("AgentB received: " + msg.getContent());
           AgentB agent = (AgentB) this.myAgent;
           agent.myPosition = content.split(" ")[1];
+          Behaviour ack = new wasat(this.myAgent, "ACK: " + agent.myPosition);
+          this.victim.add(ack);
+          this.myAgent.addBehaviour(ack);
+          this.myAgent.addBehaviour(new randomWalk(this.myAgent, ((AgentB) this.myAgent).myPosition));
+          this.myAgent.removeBehaviour(victim.get(0));
         } 
         if (content.contains("ACK:") && ((AgentB) this.myAgent).myPosition != null) {
-          System.out.println("ACK received, stopping behaviour");
-          this.myAgent.addBehaviour(new randomWalk(this.myAgent, ((AgentB) this.myAgent).myPosition));
+          System.out.println("AgentB ACK received, stopping behaviour");
           for (Behaviour b : this.victim) {
             this.myAgent.removeBehaviour(b);
           }
@@ -140,17 +149,18 @@ public class AgentB extends AbstractDedaleAgent {
     }
   }
 
-  static class wasat extends TickerBehaviour {
-    private final Location initialPosition;
+  static class wasat extends CyclicBehaviour {
+    private final String message;
     private DFAgentDescription to = null;
 
-    public wasat(Agent agent, long period, Location position) {
-      super(agent, period);
-      this.initialPosition = position;
+    public wasat(Agent agent, String message) {
+      super(agent);
+      System.out.println("AgentB Sending: " + message);
+      this.message = message;
     }
 
     @Override
-    public void onTick() {
+    public void action() {
       DFAgentDescription template = new DFAgentDescription();
       ServiceDescription sd = new ServiceDescription();
       sd.setType("Explo");
@@ -167,10 +177,7 @@ public class AgentB extends AbstractDedaleAgent {
         }
         ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
         msg.addReceiver(this.to.getName());
-        String content = "Position: " + this.initialPosition;
-        if (((AgentB) this.myAgent).myPosition != null) {
-          content += " ACK: " + ((AgentB) this.myAgent).myPosition;
-        }
+        String content = this.message;
         msg.setContent(content);
         msg.setSender(this.myAgent.getAID());
         AbstractDedaleAgent agent = (AbstractDedaleAgent) this.myAgent;
