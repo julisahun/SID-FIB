@@ -56,7 +56,6 @@ public class AgentB extends AbstractDedaleAgent {
       Behaviour wasat = new wasat(this.myAgent, "Position: " + position.toString());
       Behaviour walker = new randomWalk(this.myAgent);
       this.myAgent.addBehaviour(wasat);
-      this.myAgent.addBehaviour(walker);
       this.myAgent.addBehaviour(new watcher(this.myAgent, new ArrayList<>(Arrays.asList(walker, wasat))));
     }
   }
