@@ -7,7 +7,6 @@ import org.apache.jena.ontology.OntModel;
 
 public class IndividualAdder extends OneShotBehaviour {
   final String BASE_URI = "http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#";
-  final String FILE_NAME = "problema2";
   private String className;
   private String instance;
 

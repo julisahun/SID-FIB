@@ -16,15 +16,14 @@ import org.apache.jena.rdf.model.ModelFactory;
 import java.net.URL;
 
 public class OntologyLoader extends OneShotBehaviour {
-    final String BASE_URI = "http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#";
-    final String FILE_NAME = "problema2";
+    final String FILE_NAME = "problema22";
     public OntologyLoader(Agent a) {
         super(a);
     }
     private Model loadOntology() {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
         OntDocumentManager dm = model.getDocumentManager();
-        URL fileAsResource = getClass().getClassLoader().getResource(FILE_NAME + ".rdf");
+        URL fileAsResource = getClass().getClassLoader().getResource(FILE_NAME + ".owl");
         dm.addAltEntry(FILE_NAME, fileAsResource.toString());
         model.read(FILE_NAME);
         return model;

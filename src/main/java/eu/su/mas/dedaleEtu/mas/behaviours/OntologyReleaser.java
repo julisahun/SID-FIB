@@ -26,7 +26,6 @@ import eu.su.mas.dedaleEtu.mas.behaviours.OntologyLoader;
 import java.net.URL;
 
 public class OntologyReleaser extends OneShotBehaviour {
-    final String BASE_URI = "http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#";
     final String FILE_NAME = "problema2";
     public OntologyReleaser(Agent a) {
         super(a);

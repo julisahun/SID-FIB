@@ -9,7 +9,6 @@ import org.apache.jena.rdf.model.*;
 
 public class PropertyAdder extends OneShotBehaviour {
   final String BASE_URI = "http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#";
-  final String FILE_NAME = "problema2";
   private String property;
   private String to;
   private String from;
