@@ -5,6 +5,8 @@ import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.AgentTest;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.BDIAgent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -199,9 +201,7 @@ public class Principal {
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[]{
                 newAgent("Lab", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabExplorerAgent.class),
-                newAgent("Lab2", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.LabCollectorAgent.class),
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.AgentTest.class),
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
                 newGolem("Golem2"),
@@ -211,7 +211,7 @@ public class Principal {
                 newExploreSoloAgent("Explo2"),
                 newDummyMovingAgent("Explo3"),
                 newCollectorAgent("Collect1"),
-                newTankerAgent("Tanker1")
+                newTankerAgent("Tanker1"),
         };
 
         for(AgentController ac: agentsToAdd) {
@@ -219,6 +219,15 @@ public class Principal {
                 // We don't start the agents that are NOT in the entities file
                 agentList.add(ac);
             }
+        }
+
+        try {
+            AgentController nonDedaleAgent =
+                    containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS).createNewAgent(
+                            "BDI1", AgentTest.class.getName(), new Object[] {});
+            //agentList.add(nonDedaleAgent);
+        } catch (StaleProxyException e) {
+            e.printStackTrace();
         }
 
         // All agents created
