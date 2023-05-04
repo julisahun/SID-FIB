@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.List;
 import eu.su.mas.dedaleEtu.mas.behaviours.*;
 
+
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.ONTOLOGY;
 
 public class AgentTest extends AbstractDedaleAgent {
@@ -42,16 +43,32 @@ public class AgentTest extends AbstractDedaleAgent {
         super.setup();
         String name = this.getLocalName();
         //use them as parameters for your behaviours is you want
-        List<Behaviour> lb = new ArrayList<>();
+        Behaviour ontologyLoader = new OntologyLoader(this);
 
-        lb.add(new OntologyLoader(this));
+        String type = this.getAgentType();
+        Behaviour addMyself = new IndividualAdder(this, type, name);
 
-        lb.add(new IndividualAdder(this, "Agent", name));
         List<Behaviour> callbacks = new ArrayList<>();
         callbacks.add(new OntologyReleaser(this));
-        lb.add(new ExplorerAndUpdaterBehaviour(this, null, callbacks));
+        Behaviour walker = new ExplorerAndUpdaterBehaviour(this, null, callbacks);
+
+        List<Behaviour> lb = new ArrayList<>();
+        lb.add(ontologyLoader);
+        lb.add(addMyself);
+        lb.add(walker);     
+
         // MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
         addBehaviour(new startMyBehaviours(this, lb));
+    }
+
+    private String getAgentType() {
+        String field = this.getArguments()[0].toString().split(";")[1].trim();
+        String rawType = field.split(" ")[1].trim();
+
+        if (rawType.equals("AgentExplo")) return "Explorer";
+        if (rawType.equals("AgentCollect")) return "Collector";
+        if (rawType.equals("AgentTanker")) return "Tanker";
+        return "Agent";
     }
 
     public void setOntology(Belief ontology) {
