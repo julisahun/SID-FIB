@@ -1,0 +1,457 @@
+<?xml version="1.0"?>
+<rdf:RDF xmlns="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#"
+     xml:base="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2"
+     xmlns:owl="http://www.w3.org/2002/07/owl#"
+     xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+     xmlns:xml="http://www.w3.org/XML/1998/namespace"
+     xmlns:xsd="http://www.w3.org/2001/XMLSchema#"
+     xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#">
+    <owl:Ontology rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2"/>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Object Properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#carries -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#carries">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#has -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#has">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#hasResource -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#hasResource">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#hasTraceFrom -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#hasTraceFrom">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isAt -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isAt">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isFrom -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isFrom">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isNextTo -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isNextTo">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#SymmetricProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#sends -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#sends">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#stores -->
+
+    <owl:ObjectProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#stores">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topObjectProperty"/>
+    </owl:ObjectProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Data properties
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#LockIsOpen -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#LockIsOpen">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#LockPicking -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#LockPicking">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Strength -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Strength">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#capacity -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#capacity">
+        <rdfs:subPropertyOf rdf:resource="http://www.w3.org/2002/07/owl#topDataProperty"/>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#level -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#level">
+        <rdfs:domain>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#location"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedInt"/>
+            </owl:Restriction>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#location -->
+
+    <owl:DatatypeProperty rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#location">
+        <rdfs:domain>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#location"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedInt"/>
+            </owl:Restriction>
+        </rdfs:domain>
+    </owl:DatatypeProperty>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // Classes
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Agent -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Agent">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#has"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Goal"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Entity"/>
+        <owl:disjointWith rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Golem"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Collector -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Collector">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#stores"/>
+                        <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#capacity"/>
+                        <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                        <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedInt"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#level"/>
+                        <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                        <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedInt"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Agent"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Diamond -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Diamond">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#DropableNode -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#DropableNode">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isNextTo"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#TankerNode"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Entity -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Entity">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Agent"/>
+                            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Golem"/>
+                            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Well"/>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isAt"/>
+                        <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+        <owl:disjointWith rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Explorer -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Explorer">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#level"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#unsignedInt"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Agent"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Goal -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Goal">
+        <owl:disjointWith rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Gold -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Gold">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Golem -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Golem">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#carries"/>
+                <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Entity"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Message -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Message">
+        <owl:disjointWith rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#hasResource"/>
+                        <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#hasTraceFrom"/>
+                        <owl:someValuesFrom rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Entity"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isNextTo"/>
+                        <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+                    </owl:Restriction>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#location"/>
+                        <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                        <owl:onDataRange rdf:resource="http://www.w3.org/2001/XMLSchema#integer"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Plan -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Plan"/>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource">
+        <owl:equivalentClass>
+            <owl:Class>
+                <owl:intersectionOf rdf:parseType="Collection">
+                    <owl:Class>
+                        <owl:unionOf rdf:parseType="Collection">
+                            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Diamond"/>
+                            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Gold"/>
+                        </owl:unionOf>
+                    </owl:Class>
+                    <owl:Restriction>
+                        <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#isAt"/>
+                        <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                        <owl:onClass rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+                    </owl:Restriction>
+                </owl:intersectionOf>
+            </owl:Class>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.w3.org/2002/07/owl#Thing"/>
+        <owl:disjointWith rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Well"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Tanker -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Tanker">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#stores"/>
+                <owl:minQualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:minQualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Agent"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#TankerNode -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#TankerNode">
+        <owl:equivalentClass>
+            <owl:Restriction>
+                <owl:onProperty rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#has"/>
+                <owl:qualifiedCardinality rdf:datatype="http://www.w3.org/2001/XMLSchema#nonNegativeInteger">1</owl:qualifiedCardinality>
+                <owl:onClass rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Tanker"/>
+            </owl:Restriction>
+        </owl:equivalentClass>
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+    </owl:Class>
+    
+
+
+    <!-- http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Well -->
+
+    <owl:Class rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Well">
+        <rdfs:subClassOf rdf:resource="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Entity"/>
+    </owl:Class>
+    
+
+
+    <!-- 
+    ///////////////////////////////////////////////////////////////////////////////////////
+    //
+    // General axioms
+    //
+    ///////////////////////////////////////////////////////////////////////////////////////
+     -->
+
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Collector"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Explorer"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Tanker"/>
+        </owl:members>
+    </rdf:Description>
+    <rdf:Description>
+        <rdf:type rdf:resource="http://www.w3.org/2002/07/owl#AllDisjointClasses"/>
+        <owl:members rdf:parseType="Collection">
+            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Node"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Plan"/>
+            <rdf:Description rdf:about="http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#Resource"/>
+        </owl:members>
+    </rdf:Description>
+</rdf:RDF>
+
+
+
+<!-- Generated by the OWL API (version 4.5.9.2019-02-01T07:24:44Z) https://github.com/owlcs/owlapi -->
+
