@@ -4,13 +4,14 @@ import jade.core.Agent;
 import jade.core.behaviours.*;
 import jade.lang.acl.ACLMessage;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
 public class Listener extends CyclicBehaviour {
-  private HashMap<String, Consumer> actions;
+  private HashMap<String, Consumer<String>> actions;
 
-  public Listener(Agent agent, HashMap<String, Consumer> actions) {
+  public Listener(Agent agent, HashMap<String, Consumer<String>> actions) {
     super(agent);
     this.actions = actions;
   }
@@ -22,12 +23,12 @@ public class Listener extends CyclicBehaviour {
       block();
       return;
     }
-
     if (msg.getPerformative() == ACLMessage.INFORM) {
       String content = msg.getContent();
-      String header = content.split(":")[0];
-      String body = content.split(":")[1];
-      this.actions.get(header).accept(body);
+      String[] contentArray = content.split(":");
+      String key = contentArray[0];
+      String body = String.join(":", Arrays.copyOfRange(contentArray, 1, contentArray.length));
+      this.actions.get(key).accept(body);
     }
   }
 }

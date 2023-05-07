@@ -2,41 +2,36 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
-import jade.core.Agent;
+import eu.su.mas.dedaleEtu.mas.behaviours.MessageMapper;
+import eu.su.mas.dedaleEtu.mas.behaviours.RegisterToDF;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import jade.core.behaviours.Behaviour;
-import jade.core.behaviours.OneShotBehaviour;
-import jade.domain.DFService;
-import jade.domain.FIPAAgentManagement.DFAgentDescription;
-import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.domain.FIPAException;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class SituatedAgent extends AbstractDedaleAgent {
+
+    private MapRepresentation map;
+
     @Override
     protected void setup() {
         super.setup();
         List<Behaviour> lb = new ArrayList<>();
-        lb.add(new OneShotBehaviour() {
-            @Override
-            public void action() {
-                Agent agent = this.myAgent;
-                DFAgentDescription dfd = new DFAgentDescription();
-                dfd.setName(agent.getAID());
-                ServiceDescription sd = new ServiceDescription();
-                sd.setName("situated-agent");
-                sd.setType("dedale");
-                dfd.addServices(sd);
-                try {
-                    DFService.register(this.myAgent, dfd);
-                    System.out.println("Situated agent registered!");
-                } catch (FIPAException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
+        lb.add(new RegisterToDF(this, "situated-agent", "dedale"));
+        lb.add(new MessageMapper(this));
         addBehaviour(new startMyBehaviours(this, lb));
+    }
+
+    public void setMap(MapRepresentation newMap) {
+        if (this.map == null)
+            this.map = newMap;
+        else
+            this.map.mergeMap(newMap.getSerializableGraph());
+    }
+
+    public MapRepresentation getMap() {
+        return this.map;
     }
 }

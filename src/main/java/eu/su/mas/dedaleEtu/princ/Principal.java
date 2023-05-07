@@ -225,7 +225,7 @@ public class Principal {
         // bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[] {
-                newAgent("Lab", new String[] {},
+                newAgent("Slave", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent.class),
                 newDummyMovingAgent("ImHere"),
                 newGolem("Golem1"),
