@@ -17,6 +17,7 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.impl.StatementImpl;
 
 import java.net.URL;
 import java.util.Set;
@@ -123,7 +124,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.addGoalListener(new GoalListener() {
             @Override
             public void goalPerformed(GoalEvent goalEvent) {
-                if(goalEvent.getStatus() == GoalStatus.ACHIEVED) {
+                if (goalEvent.getStatus() == GoalStatus.ACHIEVED) {
                     System.out.println("BDI: " + goalEvent.getGoal() + " " +
                             "fulfilled!");
                 }
