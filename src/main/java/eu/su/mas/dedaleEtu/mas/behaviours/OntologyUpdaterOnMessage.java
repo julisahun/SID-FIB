@@ -10,7 +10,7 @@ import java.util.function.Consumer;
 import java.util.HashMap;
 
 public class OntologyUpdaterOnMessage extends OneShotBehaviour {
-  HashMap<String, Consumer> actions = new HashMap<String, Consumer>();
+  HashMap<String, Consumer<String>> actions = new HashMap<String, Consumer<String>>();
 
   public OntologyUpdaterOnMessage(Agent a) {
     super(a);
@@ -22,8 +22,8 @@ public class OntologyUpdaterOnMessage extends OneShotBehaviour {
       String type = object.get("type").toString();
       String name = object.get("name").toString();
       String position = object.get("position").toString();
-      Behaviour EntityAdder =  new IndividualAdder(this.myAgent, type, name);
-      Behaviour PositionAdder = new PropertyAdder(this.myAgent, name ,"isAt", position, false);
+      Behaviour EntityAdder = new IndividualAdder(this.myAgent, type, name);
+      Behaviour PositionAdder = new PropertyAdder(this.myAgent, name, "isAt", position, false);
       AbstractDedaleAgent agent = (AbstractDedaleAgent) this.myAgent;
       agent.addBehaviour(EntityAdder);
       agent.addBehaviour(PositionAdder);
@@ -40,11 +40,11 @@ public class OntologyUpdaterOnMessage extends OneShotBehaviour {
       String lockIsOpen = object.get("lockIsOpen").toString();
       String lockPicking = object.get("lockPicking").toString();
 
-      Behaviour ResourceAdder =  new IndividualAdder(this.myAgent, type, name);
-      Behaviour PositionAdder = new PropertyAdder(this.myAgent, name ,"isAt", position, false);
-      Behaviour StrenghtAdder = new PropertyAdder(this.myAgent, name ,"Strength", strength);
-      Behaviour LockIsOpenAdder = new PropertyAdder(this.myAgent, name ,"LockIsOpen", lockIsOpen);
-      Behaviour LockPickingAdder = new PropertyAdder(this.myAgent, name ,"LockPicking", lockPicking);
+      Behaviour ResourceAdder = new IndividualAdder(this.myAgent, type, name);
+      Behaviour PositionAdder = new PropertyAdder(this.myAgent, name, "isAt", position, false);
+      Behaviour StrenghtAdder = new PropertyAdder(this.myAgent, name, "Strength", strength);
+      Behaviour LockIsOpenAdder = new PropertyAdder(this.myAgent, name, "LockIsOpen", lockIsOpen);
+      Behaviour LockPickingAdder = new PropertyAdder(this.myAgent, name, "LockPicking", lockPicking);
 
       AbstractDedaleAgent agent = (AbstractDedaleAgent) this.myAgent;
       agent.addBehaviour(ResourceAdder);
