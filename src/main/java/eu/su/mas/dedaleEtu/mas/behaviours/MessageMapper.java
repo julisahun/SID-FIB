@@ -23,7 +23,10 @@ public class MessageMapper extends OneShotBehaviour {
     try {
       JSONObject json = new JSONObject(body);
       String position = json.getString("position");
-      this.agent.addBehaviour(new WalkTo(this.agent, position, ((SituatedAgent) this.agent).getMap()));
+      Behaviour action = new Composer(
+          new WalkTo(this.agent, position, getSituatedAgent().getMap()),
+          new TestBehaviour());
+      this.agent.addBehaviour(action);
     } catch (Exception e) {
       System.out.println("Error parsing JSON message");
     }
@@ -39,6 +42,10 @@ public class MessageMapper extends OneShotBehaviour {
     actions.put("position", this::updatePosition);
     actions.put("map", this::updateMap);
     this.myAgent.addBehaviour(new Listener(this.myAgent, actions));
+  }
+
+  private SituatedAgent getSituatedAgent() {
+    return (SituatedAgent) this.agent;
   }
 
 }

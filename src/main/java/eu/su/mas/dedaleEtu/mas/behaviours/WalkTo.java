@@ -55,7 +55,7 @@ public class WalkTo extends SimpleBehaviour {
           sendErrorMessage();
           return;
         }
-          this.moveToOpenNode();
+        this.moveToOpenNode();
         return;
       }
     }
@@ -64,8 +64,7 @@ public class WalkTo extends SimpleBehaviour {
   }
 
   private void sendErrorMessage() {
-    this.agent.addBehaviour(new MessageSender(this.agent, "cant reach requested position (" + target + ")"));
-    this.agent.removeBehaviour(this);
+    this.onEnd();
   }
 
   private void exploreAround() {
