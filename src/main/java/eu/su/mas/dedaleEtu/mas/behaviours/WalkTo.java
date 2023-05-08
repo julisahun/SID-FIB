@@ -51,12 +51,21 @@ public class WalkTo extends SimpleBehaviour {
         this.route = new LinkedList<>(route);
       } catch (Exception e) {
         this.exploreAround();
-        this.moveToOpenNode();
+        if (!this.map.hasOpenNode()) {
+          sendErrorMessage();
+          return;
+        }
+          this.moveToOpenNode();
         return;
       }
     }
     String nextNode = this.route.poll();
     this.move(nextNode);
+  }
+
+  private void sendErrorMessage() {
+    this.agent.addBehaviour(new MessageSender(this.agent, "cant reach requested position (" + target + ")"));
+    this.agent.removeBehaviour(this);
   }
 
   private void exploreAround() {

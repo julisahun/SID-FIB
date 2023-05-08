@@ -14,6 +14,7 @@ import java.util.List;
 public class SituatedAgent extends AbstractDedaleAgent {
 
     private MapRepresentation map;
+    private HashMap<String, List<String>> messages;
 
     @Override
     protected void setup() {
@@ -22,6 +23,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
         lb.add(new RegisterToDF(this, "situated-agent", "dedale"));
         lb.add(new MessageMapper(this));
         addBehaviour(new startMyBehaviours(this, lb));
+        this.messages = new HashMap<>();
     }
 
     public void setMap(MapRepresentation newMap) {
@@ -33,5 +35,16 @@ public class SituatedAgent extends AbstractDedaleAgent {
 
     public MapRepresentation getMap() {
         return this.map;
+    }
+
+    public void addMesssage(String header, String message) {
+        if (!this.messages.containsKey(header)) {
+            this.messages.put(header, new ArrayList<>());
+        }
+        this.messages.get(header).add(message);
+    }
+
+    public boolean getResponse(String header) {
+        return this.messages.containsKey(header) && !this.messages.get(header).isEmpty();
     }
 }

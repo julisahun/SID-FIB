@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
+import jade.core.behaviours.Behaviour;
 import org.json.JSONObject;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
@@ -37,7 +38,7 @@ public class MessageMapper extends OneShotBehaviour {
     HashMap<String, Consumer<String>> actions = new HashMap<>();
     actions.put("position", this::updatePosition);
     actions.put("map", this::updateMap);
-    ((AbstractDedaleAgent) this.myAgent).addBehaviour(new Listener(this.myAgent, actions));
+    this.myAgent.addBehaviour(new Listener(this.myAgent, actions));
   }
 
 }
