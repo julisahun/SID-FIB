@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.mas.behaviours;
+package eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours;
 
 import jade.core.Agent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.AgentTest;

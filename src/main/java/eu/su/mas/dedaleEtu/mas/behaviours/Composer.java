@@ -1,9 +1,13 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
+import java.util.HashMap;
 import java.util.List;
 
+import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.SequentialBehaviour;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
 
 public class Composer extends SequentialBehaviour {
   private List<Behaviour> behaviours;
@@ -14,10 +18,11 @@ public class Composer extends SequentialBehaviour {
     this.start();
   }
 
-  public Composer(Behaviour main, Behaviour callback) {
-    super();
-    this.behaviours = List.of(main, callback);
-    this.start();
+  public Composer(Agent a, Behaviour main, Behaviour callbacks) {
+    super(a);
+    this.addSubBehaviour(main);
+    this.addSubBehaviour(callbacks);
+
   }
 
   public void start() {

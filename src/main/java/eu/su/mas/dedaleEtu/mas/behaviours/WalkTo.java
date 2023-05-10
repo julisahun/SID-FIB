@@ -9,6 +9,7 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedale.env.Location;
@@ -21,16 +22,22 @@ public class WalkTo extends SimpleBehaviour {
   private MapRepresentation map;
   private Queue<String> route;
   private String currentPosition;
+  private boolean unreachable = false;
+  private boolean fullExplored = false;
+  private String id;
 
-  public WalkTo(Agent a, String position, MapRepresentation map) {
+  public WalkTo(Agent a, String position, MapRepresentation map, String id) {
     super(a);
     this.target = position;
     this.agent = (AbstractDedaleAgent) a;
     this.map = map;
+    this.fullExplored = !this.map.hasOpenNode();
+    this.id = id;
   }
 
-  public WalkTo(Agent a, String position) {
+  public WalkTo(Agent a, String position, String id) {
     super(a);
+    this.id = id;
     this.target = position;
     this.agent = (AbstractDedaleAgent) a;
   }
@@ -51,8 +58,8 @@ public class WalkTo extends SimpleBehaviour {
         this.route = new LinkedList<>(route);
       } catch (Exception e) {
         this.exploreAround();
-        if (!this.map.hasOpenNode()) {
-          sendErrorMessage();
+        if (this.fullExplored) {
+          this.unreachable = true;
           return;
         }
         this.moveToOpenNode();
@@ -61,10 +68,6 @@ public class WalkTo extends SimpleBehaviour {
     }
     String nextNode = this.route.poll();
     this.move(nextNode);
-  }
-
-  private void sendErrorMessage() {
-    this.onEnd();
   }
 
   private void exploreAround() {
@@ -84,6 +87,7 @@ public class WalkTo extends SimpleBehaviour {
       this.map.addNewNode(nodeId);
       if (!currentPosition.equals(nodeId))
         this.map.addEdge(currentPosition, nodeId);
+      this.fullExplored = !this.map.hasOpenNode();
     }
   }
 
@@ -102,6 +106,12 @@ public class WalkTo extends SimpleBehaviour {
     if (done) {
       ((SituatedAgent) this.agent).setMap(this.map);
     }
-    return done;
+    return done || this.unreachable;
+  }
+
+  @Override
+  public int onEnd() {
+    BehaviourUtils.finishBehaviour(this.myAgent, this.id, this.unreachable ? 1 : 0);
+    return 0;
   }
 }

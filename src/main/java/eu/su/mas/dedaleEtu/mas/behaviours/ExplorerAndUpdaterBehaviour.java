@@ -6,6 +6,9 @@ import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.IndividualAdder;
+import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.PropertyAdder;
+import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.PropertyRemover;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.Property;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
@@ -158,7 +161,7 @@ public class ExplorerAndUpdaterBehaviour extends SimpleBehaviour {
                 String resourceId = resource + position;
                 this.myAgent.addBehaviour(new IndividualAdder(this.myAgent, resource, resourceId));
                 this.myAgent.addBehaviour(new PropertyAdder(this.myAgent, position, "hasResource", resource));
-                properties.add(new Property(resourceId, "isAt",position, false));
+                properties.add(new Property(resourceId, "isAt", position, false));
             } else {
                 String name = ob.getLeft().getName();
                 Integer value = ob.getRight();

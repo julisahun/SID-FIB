@@ -19,6 +19,9 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import jade.core.behaviours.Behaviour;
 import eu.su.mas.dedaleEtu.mas.behaviours.*;
+import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.IndividualAdder;
+import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.OntologyLoader;
+import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.OntologyReleaser;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
 
 import java.io.File;
@@ -31,7 +34,6 @@ import java.util.ArrayList;
 import java.util.List;
 import eu.su.mas.dedaleEtu.mas.behaviours.*;
 
-
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.ONTOLOGY;
 
 public class AgentTest extends AbstractDedaleAgent {
@@ -40,7 +42,7 @@ public class AgentTest extends AbstractDedaleAgent {
     protected void setup() {
         super.setup();
         String name = this.getLocalName();
-        //use them as parameters for your behaviours is you want
+        // use them as parameters for your behaviours is you want
         Behaviour ontologyLoader = new OntologyLoader(this);
 
         String type = this.getAgentType();
@@ -53,7 +55,7 @@ public class AgentTest extends AbstractDedaleAgent {
         List<Behaviour> lb = new ArrayList<>();
         lb.add(ontologyLoader);
         lb.add(addMyself);
-        lb.add(walker);     
+        lb.add(walker);
 
         // MANDATORY TO ALLOW YOUR AGENT TO BE DEPLOYED CORRECTLY
         addBehaviour(new startMyBehaviours(this, lb));
@@ -63,9 +65,12 @@ public class AgentTest extends AbstractDedaleAgent {
         String field = this.getArguments()[0].toString().split(";")[1].trim();
         String rawType = field.split(" ")[1].trim();
 
-        if (rawType.equals("AgentExplo")) return "Explorer";
-        if (rawType.equals("AgentCollect")) return "Collector";
-        if (rawType.equals("AgentTanker")) return "Tanker";
+        if (rawType.equals("AgentExplo"))
+            return "Explorer";
+        if (rawType.equals("AgentCollect"))
+            return "Collector";
+        if (rawType.equals("AgentTanker"))
+            return "Tanker";
         return "Agent";
     }
 
