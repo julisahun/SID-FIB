@@ -26,15 +26,15 @@ public class Listener extends CyclicBehaviour {
     }
     if (msg.getPerformative() == ACLMessage.REQUEST) {
       String content = msg.getContent();
-      // String[] contentArray = content.split(":");
-      // String key = contentArray[0];
-      // String body = String.join(":", Arrays.copyOfRange(contentArray, 1,
-      // contentArray.length));
+      String[] contentArray = content.split(":");
+      String key = contentArray[0];
+      String body = String.join(":", Arrays.copyOfRange(contentArray, 1,
+      contentArray.length));
       this.actions.get("position").accept("");
-      // if (actions.containsKey(key))
-      // this.actions.get(key).accept(body);
-      // else
-      // ((SituatedAgent) this.myAgent).addMesssage(key, body);
+      if (actions.containsKey(key))
+      this.actions.get(key).accept(body);
+      else
+      ((SituatedAgent) this.myAgent).addMesssage(key, body);
     }
   }
 }

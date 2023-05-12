@@ -10,6 +10,15 @@ import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.proto.AchieveREResponder;
+import jade.core.AID;
+import jade.lang.acl.ACLMessage;
+import jade.lang.acl.MessageTemplate;
+import jade.domain.FIPANames;
+import jade.domain.FIPAAgentManagement.NotUnderstoodException;
+import jade.domain.FIPAAgentManagement.RefuseException;
+import jade.domain.FIPAAgentManagement.FailureException;
+
 
 public class MessageMapper extends OneShotBehaviour {
   private final AbstractDedaleAgent agent;

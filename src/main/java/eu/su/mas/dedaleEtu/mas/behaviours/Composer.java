@@ -12,8 +12,8 @@ import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
 public class Composer extends SequentialBehaviour {
   private List<Behaviour> behaviours;
 
-  public Composer(List<Behaviour> behaviours) {
-    super();
+  public Composer(Agent a, List<Behaviour> behaviours) {
+    super(a);
     this.behaviours = behaviours;
     this.start();
   }
@@ -22,7 +22,6 @@ public class Composer extends SequentialBehaviour {
     super(a);
     this.addSubBehaviour(main);
     this.addSubBehaviour(callbacks);
-
   }
 
   public void start() {

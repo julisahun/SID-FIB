@@ -9,5 +9,27 @@
     "detectionRadius": 0,
     "strengthExpertise": 1,
     "lockPickingExpertise":1
+  },
+  { 
+    "agentType":"agentExplo",
+    "agentName": "AgentA",
+    "communicationRange": 3,
+    "initialLocation": "23",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1, 
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  { 
+    "agentType":"agentExplo",
+    "agentName": "AgentB",
+    "communicationRange": 3,
+    "initialLocation": "34",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1, 
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
   }
 ]
