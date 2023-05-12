@@ -17,7 +17,6 @@ import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
-import org.apache.jena.rdf.model.impl.StatementImpl;
 
 import java.net.URL;
 import java.util.Set;
@@ -25,6 +24,8 @@ import java.util.Set;
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
 public class BDIAgent extends SingleCapabilityAgent {
+
+    private final String FILE_NAME = "ontology";
     public BDIAgent() {
         // Create initial beliefs
         Belief iAmRegistered = new TransientPredicate(I_AM_REGISTERED, false);
@@ -144,9 +145,10 @@ public class BDIAgent extends SingleCapabilityAgent {
     private Model loadOntology() {
         OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
         OntDocumentManager dm = model.getDocumentManager();
-        URL fileAsResource = getClass().getClassLoader().getResource("example.owl");
-        dm.addAltEntry("example", fileAsResource.toString());
-        model.read("example");
+        URL fileAsResource = getClass().getClassLoader().getResource(FILE_NAME + ".owl");
+        dm.addAltEntry(FILE_NAME, fileAsResource.toString());
+        model.read(FILE_NAME);
+        System.out.println("Ontology loaded");
         return model;
     }
 }

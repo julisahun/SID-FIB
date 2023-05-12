@@ -12,9 +12,9 @@ public class ConditionalBehaviour extends OneShotBehaviour {
   private HashMap<Integer, Behaviour> behaviours;
   private String dependant;
 
-  public ConditionalBehaviour(Agent a, String id, HashMap<Integer, Behaviour> behaviours) {
+  public ConditionalBehaviour(Agent a, String dependant, HashMap<Integer, Behaviour> behaviours) {
     super(a);
-    this.dependant = id;
+    this.dependant = dependant;
     this.behaviours = behaviours;
   }
 

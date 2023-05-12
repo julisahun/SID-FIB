@@ -25,7 +25,7 @@ public class RegisterPlanBody extends BeliefGoalPlanBody {
             getBeliefBase().updateBelief(I_AM_REGISTERED, true);
             // This is valid but redundant
             // (because the goal implementation will check the belief anyway):
-            // setEndState(Plan.EndState.SUCCESSFUL);
+            setEndState(Plan.EndState.SUCCESSFUL);
         } catch (FIPAException e) {
             setEndState(Plan.EndState.FAILED);
             e.printStackTrace();
