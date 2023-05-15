@@ -1,15 +1,16 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
-import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
+import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
-import jade.core.behaviours.SimpleBehaviour;
+import jade.lang.acl.ACLMessage;
 
 public class MessageSender extends OneShotBehaviour {
 
     private final String message;
-
+    private int performative = ACLMessage.INFORM;
     private final String[] receivers;
 
     public MessageSender(Agent a, String message, String[] receivers) {
@@ -18,12 +19,30 @@ public class MessageSender extends OneShotBehaviour {
         this.receivers = receivers;
     }
 
-    @Override
-    public void action() {
-        System.out.println(this.message);
+    public MessageSender(Agent a, String message) {
+        super(a);
+        this.message = message;
+        this.receivers = new String[] { "master" };
     }
 
-    private SituatedAgent getLocalAgent() {
-        return (SituatedAgent) this.myAgent;
+    public MessageSender(Agent a, int performative, String message) {
+        super(a);
+        this.message = message;
+        this.receivers = new String[] { "master" };
+        this.performative = performative;
+    }
+
+    public MessageSender(Agent a, int performative, String message, String[] receivers) {
+        super(a);
+        this.message = message;
+        this.receivers = receivers;
+        this.performative = performative;
+    }
+
+    @Override
+    public void action() {
+        for (String receiver : this.receivers) {
+            BehaviourUtils.sendMessage(this.myAgent, this.performative, this.message, receiver);
+        }
     }
 }

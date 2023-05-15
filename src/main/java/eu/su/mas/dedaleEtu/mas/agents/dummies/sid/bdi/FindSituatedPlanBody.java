@@ -5,10 +5,13 @@ import bdi4jade.core.SingleCapabilityAgent;
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
+import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
 import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
+import jade.lang.acl.ACLMessage;
+
 import jade.domain.FIPAException;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.impl.StatementImpl;

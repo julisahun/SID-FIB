@@ -3,6 +3,8 @@ package eu.su.mas.dedaleEtu.mas.behaviours;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
+import org.json.JSONObject;
+
 import jade.core.behaviours.Behaviour;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
@@ -10,6 +12,7 @@ import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
+import jade.lang.acl.ACLMessage;
 
 public class MessageMapper extends OneShotBehaviour {
   private final AbstractDedaleAgent agent;
@@ -20,28 +23,29 @@ public class MessageMapper extends OneShotBehaviour {
   }
 
   private void updatePosition(String body) {
+    JSONObject parsedJson = new JSONObject(body);
+    ;
     try {
-      // JSONObject json = new JSONObject(body);
-      // String position = json.getString("position");
+      // JSONObject data = parsedJson.getJSONObject("data");
+      // String position = data.getString("position");
       String position = "12";
 
       String id = BehaviourUtils.uuid();
       Behaviour walk = new WalkTo(this.agent, position, getSituatedAgent().getMap(), id);
       BehaviourUtils.registerBehaviour(this.agent, walk, id);
 
-      Behaviour okSender = new MessageSender(this.agent, "ok", new String[] { "1" });
-      Behaviour errorSender = new MessageSender(this.agent, "error", new String[] { "1" });
+      HashMap<Integer, Behaviour> responses = BehaviourUtils.exitMsgMapper(this.agent, "Ok", "Error");
+      Behaviour action = new Composer(this.agent, walk, new ConditionalBehaviour(this.agent, id, responses));
 
-      Behaviour action = new Composer(this.agent, walk, new ConditionalBehaviour(this.agent, id,
-          new HashMap<Integer, Behaviour>() {
-            {
-              put(0, okSender);
-              put(1, errorSender);
-            }
-          }));
       this.agent.addBehaviour(action);
     } catch (Exception e) {
       e.printStackTrace();
+      this.agent.addBehaviour(
+          new MessageSender(
+              this.agent,
+              ACLMessage.NOT_UNDERSTOOD,
+              "Error parsing JSON message",
+              new String[] { parsedJson.get("sender").toString() }));
       System.out.println("Error parsing JSON message");
     }
   }
@@ -50,11 +54,18 @@ public class MessageMapper extends OneShotBehaviour {
     System.out.println("Updating map");
   }
 
+  private void pong(String body) {
+    System.out.println(body);
+    Behaviour pong = new MessageSender(this.agent, "pong");
+    this.agent.addBehaviour(pong);
+  }
+
   @Override
   public void action() {
     HashMap<String, Consumer<String>> actions = new HashMap<>();
     actions.put("position", this::updatePosition);
     actions.put("map", this::updateMap);
+    actions.put("ping", this::pong);
     this.myAgent.addBehaviour(new Listener(this.myAgent, actions));
   }
 

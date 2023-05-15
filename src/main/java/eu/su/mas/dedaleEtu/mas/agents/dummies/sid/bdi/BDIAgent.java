@@ -26,21 +26,26 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 public class BDIAgent extends SingleCapabilityAgent {
 
     private final String FILE_NAME = "ontology";
+
     public BDIAgent() {
         // Create initial beliefs
+        System.out.println("Is_slave_alive: " + IS_SLAVE_ALIVE);
         Belief iAmRegistered = new TransientPredicate(I_AM_REGISTERED, false);
         Belief ontology = new TransientBelief(ONTOLOGY, loadOntology());
+        Belief isSlaveAlive = new TransientPredicate(IS_SLAVE_ALIVE, false);
 
         // Add initial desires
         Goal registerGoal = new PredicateGoal(I_AM_REGISTERED, true);
         Goal findSituatedGoal = new SPARQLGoal(ONTOLOGY, QUERY_SITUATED_AGENT);
+        Goal situatedListeningGoal = new PredicateGoal(IS_SLAVE_ALIVE, true);
+
         addGoal(registerGoal);
         addGoal(findSituatedGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
         GoalTemplate findSituatedTemplate = matchesGoal(findSituatedGoal);
-
+        GoalTemplate situatedListeningTemplate = matchesGoal(situatedListeningGoal);
         // Assign plan bodies to goals
         Plan registerPlan = new DefaultPlan(
                 registerGoalTemplate, RegisterPlanBody.class);
@@ -48,15 +53,19 @@ public class BDIAgent extends SingleCapabilityAgent {
                 findSituatedTemplate, FindSituatedPlanBody.class);
         Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
                 KeepMailboxEmptyPlanBody.class);
+        Plan situatedListeningPlan = new DefaultPlan(
+                situatedListeningTemplate, SituatedListeningPlanBody.class);
 
         // Init plan library
         getCapability().getPlanLibrary().addPlan(registerPlan);
+        getCapability().getPlanLibrary().addPlan(situatedListeningPlan);
         getCapability().getPlanLibrary().addPlan(findSituatedPlan);
         getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
 
         // Init belief base
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
+        getCapability().getBeliefBase().addBelief(isSlaveAlive);
 
         // Add a goal listener to track events
         enableGoalMonitoring();

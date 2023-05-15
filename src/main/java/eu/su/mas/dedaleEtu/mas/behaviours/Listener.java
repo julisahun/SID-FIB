@@ -9,12 +9,43 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
+import org.json.JSONObject;
+
+import dataStructures.tuple.Couple;
+
 public class Listener extends CyclicBehaviour {
   private HashMap<String, Consumer<String>> actions;
 
   public Listener(Agent agent, HashMap<String, Consumer<String>> actions) {
     super(agent);
     this.actions = actions;
+  }
+
+  private Couple<String, String> getKeyValue(ACLMessage msg) {
+    String[] contentArray = msg.getContent().split(":");
+    String key = contentArray[0];
+    String message = String.join(":", Arrays.copyOfRange(contentArray, 1,
+        contentArray.length));
+    return new Couple(key, message);
+  }
+
+  private Couple<String, JSONObject> mapMessage(ACLMessage msg) {
+    try {
+      Couple<String, String> keyValue = getKeyValue(msg);
+
+      JSONObject content = new JSONObject(keyValue.getRight());
+      String protocol = msg.getProtocol();
+      String sender = msg.getSender().getLocalName();
+      JSONObject body = new JSONObject();
+      body.put("protocol", protocol);
+      body.put("sender", sender);
+      body.put("content", content);
+
+      return new Couple<String, JSONObject>(keyValue.getLeft(), body);
+    } catch (Exception e) {
+      e.printStackTrace();
+      return null;
+    }
   }
 
   @Override
@@ -25,11 +56,9 @@ public class Listener extends CyclicBehaviour {
       return;
     }
     if (msg.getPerformative() == ACLMessage.REQUEST) {
-      String content = msg.getContent();
-      // String[] contentArray = content.split(":");
-      // String key = contentArray[0];
-      // String body = String.join(":", Arrays.copyOfRange(contentArray, 1,
-      // contentArray.length));
+      Couple<String, JSONObject> mappedMessage = mapMessage(msg);
+      String key = mappedMessage.getLeft();
+      JSONObject body = mappedMessage.getRight();
       this.actions.get("position").accept("");
       // if (actions.containsKey(key))
       // this.actions.get(key).accept(body);

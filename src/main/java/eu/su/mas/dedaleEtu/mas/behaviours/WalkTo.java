@@ -31,7 +31,8 @@ public class WalkTo extends SimpleBehaviour {
     this.target = position;
     this.agent = (AbstractDedaleAgent) a;
     this.map = map;
-    this.fullExplored = !this.map.hasOpenNode();
+    if (map != null)
+      this.fullExplored = !this.map.hasOpenNode();
     this.id = id;
   }
 
@@ -111,7 +112,8 @@ public class WalkTo extends SimpleBehaviour {
 
   @Override
   public int onEnd() {
-    BehaviourUtils.finishBehaviour(this.myAgent, this.id, this.unreachable ? 1 : 0);
-    return 0;
+    int status = this.unreachable ? 1 : 0;
+    BehaviourUtils.finishBehaviour(this.myAgent, this.id, status);
+    return status;
   }
 }
