@@ -58,7 +58,6 @@ public class BehaviourUtils {
     msg.setSender(a.getAID());
     msg.addReceiver(new AID(to, AID.ISLOCALNAME));
     msg.setContent(content);
-    System.out.println("Sending message to " + to + ": " + content);
     a.send(msg);
   }
 }

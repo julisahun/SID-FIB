@@ -25,7 +25,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
     protected void setup() {
         super.setup();
         List<Behaviour> lb = new ArrayList<>();
-        lb.add(new RegisterToDF(this, "situated-agent", "dedale"));
+        lb.add(new RegisterToDF(this, "Slave", "dedale"));
         lb.add(new MessageMapper(this));
         addBehaviour(new startMyBehaviours(this, lb));
         this.messages = new HashMap<>();

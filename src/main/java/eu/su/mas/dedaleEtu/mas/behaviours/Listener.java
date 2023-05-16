@@ -30,9 +30,8 @@ public class Listener extends CyclicBehaviour {
   }
 
   private Couple<String, JSONObject> mapMessage(ACLMessage msg) {
+    Couple<String, String> keyValue = getKeyValue(msg);
     try {
-      Couple<String, String> keyValue = getKeyValue(msg);
-
       JSONObject content = new JSONObject(keyValue.getRight());
       String protocol = msg.getProtocol();
       String sender = msg.getSender().getLocalName();
@@ -43,8 +42,7 @@ public class Listener extends CyclicBehaviour {
 
       return new Couple<String, JSONObject>(keyValue.getLeft(), body);
     } catch (Exception e) {
-      e.printStackTrace();
-      return null;
+      return new Couple<String, JSONObject>(keyValue.getLeft(), new JSONObject("{}"));
     }
   }
 
@@ -59,9 +57,8 @@ public class Listener extends CyclicBehaviour {
       Couple<String, JSONObject> mappedMessage = mapMessage(msg);
       String key = mappedMessage.getLeft();
       JSONObject body = mappedMessage.getRight();
-      this.actions.get("position").accept("");
-      // if (actions.containsKey(key))
-      // this.actions.get(key).accept(body);
+      if (actions.containsKey(key))
+        this.actions.get(key).accept(body.toString());
       // else
       // ((SituatedAgent) this.myAgent).addMesssage(key, body);
     }

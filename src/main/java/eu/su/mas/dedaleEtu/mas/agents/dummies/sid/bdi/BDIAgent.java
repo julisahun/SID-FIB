@@ -41,6 +41,7 @@ public class BDIAgent extends SingleCapabilityAgent {
 
         addGoal(registerGoal);
         addGoal(findSituatedGoal);
+        addGoal(situatedListeningGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
@@ -51,8 +52,8 @@ public class BDIAgent extends SingleCapabilityAgent {
                 registerGoalTemplate, RegisterPlanBody.class);
         Plan findSituatedPlan = new DefaultPlan(
                 findSituatedTemplate, FindSituatedPlanBody.class);
-        Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
-                KeepMailboxEmptyPlanBody.class);
+        // Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
+        //         KeepMailboxEmptyPlanBody.class);
         Plan situatedListeningPlan = new DefaultPlan(
                 situatedListeningTemplate, SituatedListeningPlanBody.class);
 
@@ -60,7 +61,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getPlanLibrary().addPlan(registerPlan);
         getCapability().getPlanLibrary().addPlan(situatedListeningPlan);
         getCapability().getPlanLibrary().addPlan(findSituatedPlan);
-        getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
+        // getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
 
         // Init belief base
         getCapability().getBeliefBase().addBelief(iAmRegistered);

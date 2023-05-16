@@ -55,7 +55,6 @@ public class MessageMapper extends OneShotBehaviour {
   }
 
   private void pong(String body) {
-    System.out.println(body);
     Behaviour pong = new MessageSender(this.agent, "pong");
     this.agent.addBehaviour(pong);
   }
