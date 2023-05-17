@@ -5,7 +5,7 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
-import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils.BehaviourStatus;;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils.BehaviourStatus;;
 
 public class TestBehaviour extends OneShotBehaviour {
 

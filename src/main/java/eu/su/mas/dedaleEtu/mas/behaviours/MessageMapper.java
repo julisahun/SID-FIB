@@ -9,7 +9,7 @@ import jade.core.behaviours.Behaviour;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
@@ -30,11 +30,11 @@ public class MessageMapper extends OneShotBehaviour {
       // String position = data.getString("position");
       String position = "12";
 
-      String id = BehaviourUtils.uuid();
+      String id = Utils.uuid();
       Behaviour walk = new WalkTo(this.agent, position, getSituatedAgent().getMap(), id);
-      BehaviourUtils.registerBehaviour(this.agent, walk, id);
+      Utils.registerBehaviour(this.agent, walk, id);
 
-      HashMap<Integer, Behaviour> responses = BehaviourUtils.exitMsgMapper(this.agent, "Ok", "Error");
+      HashMap<Integer, Behaviour> responses = Utils.exitMsgMapper(this.agent, "Ok", "Error");
       Behaviour action = new Composer(this.agent, walk, new ConditionalBehaviour(this.agent, id, responses));
 
       this.agent.addBehaviour(action);

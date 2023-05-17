@@ -5,7 +5,7 @@ import bdi4jade.core.SingleCapabilityAgent;
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
-import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
@@ -29,9 +29,10 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
         DFAgentDescription[] results;
         try {
             results = DFService.search(this.myAgent, template);
-            if (results.length > 0) {
-                DFAgentDescription dfd = results[0];
-                AID provider = dfd.getName();
+            for (DFAgentDescription agent : results) {
+                AID provider = agent.getName();
+                if (!provider.getName().equals("slave"))
+                    continue;
                 System.out.println("Found situated! " + provider.getName());
                 updateOntology(provider.getLocalName());
             }

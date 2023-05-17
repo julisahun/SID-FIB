@@ -1,7 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
@@ -42,7 +42,7 @@ public class MessageSender extends OneShotBehaviour {
     @Override
     public void action() {
         for (String receiver : this.receivers) {
-            BehaviourUtils.sendMessage(this.myAgent, this.performative, this.message, receiver);
+            Utils.sendMessage(this.myAgent, this.performative, this.message, receiver);
         }
     }
 }

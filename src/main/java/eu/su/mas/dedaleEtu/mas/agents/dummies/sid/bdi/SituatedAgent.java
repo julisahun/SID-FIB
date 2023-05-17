@@ -5,7 +5,7 @@ import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageMapper;
 import eu.su.mas.dedaleEtu.mas.behaviours.RegisterToDF;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils.BehaviourStatus;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils.BehaviourStatus;
 import jade.core.behaviours.Behaviour;
 import dataStructures.tuple.Couple;
 
@@ -25,7 +25,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
     protected void setup() {
         super.setup();
         List<Behaviour> lb = new ArrayList<>();
-        lb.add(new RegisterToDF(this, "Slave", "dedale"));
+        lb.add(new RegisterToDF(this, "slave", "dedale"));
         lb.add(new MessageMapper(this));
         addBehaviour(new startMyBehaviours(this, lb));
         this.messages = new HashMap<>();

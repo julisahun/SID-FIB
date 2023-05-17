@@ -225,18 +225,8 @@ public class Principal {
         // bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[] {
-                newAgent("Slave", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent.class),
-                newDummyMovingAgent("ImHere"),
-                newGolem("Golem1"),
-                newGolem("Golem2"),
-                newExploreCoopAgent("1stAgent", new String[] { "2ndAgent" }),
-                newExploreCoopAgent("2ndAgent", new String[] { "1stAgent" }),
-                newDummyMovingAgent("Explo1"),
-                newExploreSoloAgent("Explo2"),
-                newDummyMovingAgent("Explo3"),
-                newCollectorAgent("Collect1"),
-                newTankerAgent("Tanker1"),
+                newAgent("slave", new String[] {},
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent.class)
         };
 
         for (AgentController ac : agentsToAdd) {
@@ -247,10 +237,10 @@ public class Principal {
         }
 
         try {
-            AgentController nonDedaleAgent = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS)
+            AgentController nonDedaleAgent = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
                     .createNewAgent(
-                            "BDI1", BDIAgent.class.getName(), new Object[] {});
-            // agentList.add(nonDedaleAgent);
+                            "master", BDIAgent.class.getName(), new Object[] {});
+            agentList.add(nonDedaleAgent);
         } catch (StaleProxyException e) {
             e.printStackTrace();
         }

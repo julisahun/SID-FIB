@@ -11,6 +11,7 @@ import bdi4jade.goal.*;
 import bdi4jade.plan.DefaultPlan;
 import bdi4jade.plan.Plan;
 import bdi4jade.reasoning.*;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.lang.acl.MessageTemplate;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
@@ -29,19 +30,19 @@ public class BDIAgent extends SingleCapabilityAgent {
 
     public BDIAgent() {
         // Create initial beliefs
-        System.out.println("Is_slave_alive: " + IS_SLAVE_ALIVE);
-        Belief iAmRegistered = new TransientPredicate(I_AM_REGISTERED, false);
-        Belief ontology = new TransientBelief(ONTOLOGY, loadOntology());
-        Belief isSlaveAlive = new TransientPredicate(IS_SLAVE_ALIVE, false);
+        Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
+        Belief<String, OntModel> ontology = new TransientBelief<String, OntModel>(ONTOLOGY, Utils.loadOntology());
+        Belief<String, Boolean> isSlaveAlive = new TransientPredicate<String>(IS_SLAVE_ALIVE, false);
 
         // Add initial desires
-        Goal registerGoal = new PredicateGoal(I_AM_REGISTERED, true);
-        Goal findSituatedGoal = new SPARQLGoal(ONTOLOGY, QUERY_SITUATED_AGENT);
-        Goal situatedListeningGoal = new PredicateGoal(IS_SLAVE_ALIVE, true);
+        Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
+        Goal findSituatedGoal = new SPARQLGoal<String>(ONTOLOGY, QUERY_SITUATED_AGENT);
+        Goal situatedListeningGoal = new PredicateGoal<String>(IS_SLAVE_ALIVE, true);
 
-        addGoal(registerGoal);
-        addGoal(findSituatedGoal);
+        // addGoal(registerGoal);
+        // addGoal(findSituatedGoal);
         addGoal(situatedListeningGoal);
+        addGoal(findSituatedGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
@@ -53,7 +54,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         Plan findSituatedPlan = new DefaultPlan(
                 findSituatedTemplate, FindSituatedPlanBody.class);
         // Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
-        //         KeepMailboxEmptyPlanBody.class);
+        // KeepMailboxEmptyPlanBody.class);
         Plan situatedListeningPlan = new DefaultPlan(
                 situatedListeningTemplate, SituatedListeningPlanBody.class);
 
@@ -93,6 +94,9 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setOptionGenerationFunction(new DefaultOptionGenerationFunction() {
             @Override
             public void generateGoals(GoalUpdateSet agentGoalUpdateSet) {
+                agentGoalUpdateSet.getCurrentGoals().forEach(goal -> {
+                    System.out.println("Current goal: " + goal);
+                });
                 // A GoalUpdateSet contains the goal status for the agent:
                 // - Current goals (.getCurrentGoals)
                 // - Generated goals, existing but not adopted yet (.getGeneratedGoals)
@@ -126,6 +130,7 @@ public class BDIAgent extends SingleCapabilityAgent {
                 // valid (ordered) plans for fulfilling a particular goal.
                 // The default implementation just chooses
                 // the first plan of the list.
+                System.out.println("Plan selection strategy");
                 return super.selectPlan(goal, capabilityPlans);
             }
         });
@@ -150,15 +155,5 @@ public class BDIAgent extends SingleCapabilityAgent {
                 return goal == goalToMatch;
             }
         };
-    }
-
-    private Model loadOntology() {
-        OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
-        OntDocumentManager dm = model.getDocumentManager();
-        URL fileAsResource = getClass().getClassLoader().getResource(FILE_NAME + ".owl");
-        dm.addAltEntry(FILE_NAME, fileAsResource.toString());
-        model.read(FILE_NAME);
-        System.out.println("Ontology loaded");
-        return model;
     }
 }

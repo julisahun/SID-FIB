@@ -9,7 +9,7 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
-import eu.su.mas.dedaleEtu.mas.knowledge.BehaviourUtils;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedale.env.Location;
@@ -113,7 +113,7 @@ public class WalkTo extends SimpleBehaviour {
   @Override
   public int onEnd() {
     int status = this.unreachable ? 1 : 0;
-    BehaviourUtils.finishBehaviour(this.myAgent, this.id, status);
+    Utils.finishBehaviour(this.myAgent, this.id, status);
     return status;
   }
 }
