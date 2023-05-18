@@ -1,6 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.knowledge;
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
+import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageSender;
 
 import java.util.HashMap;
@@ -24,6 +25,9 @@ import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
 import org.apache.jena.rdf.model.Property;
+
+import bdi4jade.belief.Belief;
+import bdi4jade.core.SingleCapabilityAgent;
 
 public class Utils {
   public static enum BehaviourStatus {
@@ -76,25 +80,31 @@ public class Utils {
     msg.setSender(a.getAID());
     msg.addReceiver(new AID(to, AID.ISLOCALNAME));
     msg.setContent(content);
+    System.out.println("Sending message: " + msg.getContent());
     a.send(msg);
   }
 
   public static OntModel loadOntology() {
     OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
     OntDocumentManager dm = model.getDocumentManager();
-    URL fileAsResource = getClass().getClassLoader().getResource(FILE_NAME + ".owl");
+    URL fileAsResource = Utils.class.getClassLoader().getResource(FILE_NAME + ".owl");
     dm.addAltEntry(FILE_NAME, fileAsResource.toString());
     model.read(FILE_NAME);
     return model;
   }
 
-  public static void saveOntology(Model ont) throws FileNotFoundException {
-    if (!ont.isClosed()) {
-      String sep = File.separator;
-      Path resourcePath = Paths.get(this.getClass().getResource(sep).getPath());
-      ont.write(new FileOutputStream(resourcePath + sep + FILE_NAME +
-          "-modified.owl", false));
-      ont.close();
+  public static void saveOntology(Model ont) {
+    try {
+      System.out.println("Saving ontology..." + ont.isClosed());
+      if (!ont.isClosed()) {
+        String sep = File.separator;
+        Path resourcePath = Paths.get(Utils.class.getResource(sep).getPath());
+        ont.write(new FileOutputStream(resourcePath + sep + FILE_NAME +
+            "-modified.owl", false));
+        ont.close();
+      }
+    } catch (Exception e) {
+      e.printStackTrace();
     }
   }
 
@@ -104,6 +114,11 @@ public class Utils {
     fromEntity.addProperty(nameProperty, to);
   }
 
+  public static void addProperty(Agent a, String from, String property, String to) {
+    OntModel ont = getOntology(a);
+    addProperty(ont, from, property, to);
+  }
+
   public static void addRelation(OntModel ont, String from, String property, String to) {
     Individual fromEntity = ont.getIndividual(BASE_URI + from);
     Property nameProperty = ont.getProperty(BASE_URI + property);
@@ -111,7 +126,24 @@ public class Utils {
     fromEntity.addProperty(nameProperty, toEntity);
   }
 
+  public static void addRelation(Agent a, String from, String property, String to) {
+    OntModel ont = getOntology(a);
+    addRelation(ont, from, property, to);
+  }
+
   public static void addIndividual(OntModel ont, String className, String instance) {
     ont.createIndividual(BASE_URI + instance, ont.getOntClass(BASE_URI + className));
+  }
+
+  public static void addIndividual(Agent a, String className, String instance) {
+    OntModel ont = getOntology(a);
+    addIndividual(ont, className, instance);
+  }
+
+  public static OntModel getOntology(Agent a) {
+    SingleCapabilityAgent agent = (SingleCapabilityAgent) a;
+    Belief b = agent.getCapability().getBeliefBase().getBelief(ONTOLOGY);
+    Model model = (Model) b.getValue();
+    return (OntModel) model;
   }
 }

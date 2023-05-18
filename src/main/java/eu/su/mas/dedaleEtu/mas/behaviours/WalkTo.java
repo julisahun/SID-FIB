@@ -86,8 +86,10 @@ public class WalkTo extends SimpleBehaviour {
       if (!safeNeighbor)
         continue;
       this.map.addNewNode(nodeId);
-      if (!currentPosition.equals(nodeId))
+      if (!currentPosition.equals(nodeId)) {
+        ((SituatedAgent) this.myAgent).addNode(currentPosition, nodeId);
         this.map.addEdge(currentPosition, nodeId);
+      }
       this.fullExplored = !this.map.hasOpenNode();
     }
   }
@@ -112,8 +114,16 @@ public class WalkTo extends SimpleBehaviour {
 
   @Override
   public int onEnd() {
-    int status = this.unreachable ? 1 : 0;
+    int status;
+    if (this.fullExplored) {
+      status = 1;
+    } else if (this.unreachable) {
+      status = 2;
+    } else {
+      status = 0;
+    }
     Utils.finishBehaviour(this.myAgent, this.id, status);
+    ((SituatedAgent) this.agent).printNodes();
     return status;
   }
 }

@@ -21,6 +21,9 @@ import org.apache.jena.rdf.model.ModelFactory;
 
 import java.net.URL;
 import java.util.Set;
+import java.util.HashMap;
+import java.util.List;
+import java.util.HashSet;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
@@ -33,21 +36,26 @@ public class BDIAgent extends SingleCapabilityAgent {
         Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
         Belief<String, OntModel> ontology = new TransientBelief<String, OntModel>(ONTOLOGY, Utils.loadOntology());
         Belief<String, Boolean> isSlaveAlive = new TransientPredicate<String>(IS_SLAVE_ALIVE, false);
+        Belief<String, HashMap<String, List<String>>> map = new TransientBelief<String, HashMap<String, List<String>>>(
+                MAP, new HashMap<>());
+        Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
 
         // Add initial desires
         Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
         Goal findSituatedGoal = new SPARQLGoal<String>(ONTOLOGY, QUERY_SITUATED_AGENT);
         Goal situatedListeningGoal = new PredicateGoal<String>(IS_SLAVE_ALIVE, true);
+        Goal exploreMapGoal = new PredicateGoal<String>(IS_FULL_EXPLORED, true);
 
-        // addGoal(registerGoal);
-        // addGoal(findSituatedGoal);
-        addGoal(situatedListeningGoal);
+        addGoal(registerGoal);
         addGoal(findSituatedGoal);
+        addGoal(situatedListeningGoal);
+        addGoal(exploreMapGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
         GoalTemplate findSituatedTemplate = matchesGoal(findSituatedGoal);
         GoalTemplate situatedListeningTemplate = matchesGoal(situatedListeningGoal);
+        GoalTemplate exploreMapTemplate = matchesGoal(exploreMapGoal);
         // Assign plan bodies to goals
         Plan registerPlan = new DefaultPlan(
                 registerGoalTemplate, RegisterPlanBody.class);
@@ -57,17 +65,22 @@ public class BDIAgent extends SingleCapabilityAgent {
         // KeepMailboxEmptyPlanBody.class);
         Plan situatedListeningPlan = new DefaultPlan(
                 situatedListeningTemplate, SituatedListeningPlanBody.class);
+        Plan exploreMapPlan = new DefaultPlan(
+                exploreMapTemplate, ExploreMapPlanBody.class);
 
         // Init plan library
         getCapability().getPlanLibrary().addPlan(registerPlan);
         getCapability().getPlanLibrary().addPlan(situatedListeningPlan);
         getCapability().getPlanLibrary().addPlan(findSituatedPlan);
+        getCapability().getPlanLibrary().addPlan(exploreMapPlan);
         // getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
 
         // Init belief base
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
         getCapability().getBeliefBase().addBelief(isSlaveAlive);
+        getCapability().getBeliefBase().addBelief(map);
+        getCapability().getBeliefBase().addBelief(isFullExplored);
 
         // Add a goal listener to track events
         enableGoalMonitoring();
@@ -112,11 +125,22 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setDeliberationFunction(new DefaultDeliberationFunction() {
             @Override
             public Set<Goal> filter(Set<GoalUpdateSet.GoalDescription> agentGoals) {
-                // This method should choose which of the current goal
-                // of the agent should become intentions in this iteration
-                // of the BDI cycle.
-                // The default implementation chooses all goals with no
-                // actual filtering.
+                Boolean iAmRegistered = (Boolean) getCapability().getBeliefBase().getBelief(I_AM_REGISTERED).getValue();
+                Boolean isSlaveAlive = (Boolean) getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
+                for (GoalUpdateSet.GoalDescription goalDescription : agentGoals) {
+                    System.out.println("Goal description: " + goalDescription);
+                    Goal goal = goalDescription.getGoal();
+                    if (goal.equals(new PredicateGoal<String>(I_AM_REGISTERED, true))) {
+                        if (!iAmRegistered)
+                            return Set.of(goal);
+                    } else if (goal.equals(new PredicateGoal<String>(IS_SLAVE_ALIVE, true))) {
+                        if (!isSlaveAlive)
+                            return Set.of(goal);
+                    } else if (goal.equals(new PredicateGoal<String>(IS_FULL_EXPLORED, true))) {
+                        if (isSlaveAlive)
+                            return Set.of(goal);
+                    }
+                }
                 return super.filter(agentGoals);
             }
         });

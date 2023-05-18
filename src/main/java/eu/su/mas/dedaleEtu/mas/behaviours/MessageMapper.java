@@ -13,6 +13,7 @@ import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
+import javafx.beans.binding.IntegerExpression;
 
 public class MessageMapper extends OneShotBehaviour {
   private final AbstractDedaleAgent agent;
@@ -26,15 +27,15 @@ public class MessageMapper extends OneShotBehaviour {
     JSONObject parsedJson = new JSONObject(body);
     ;
     try {
-      // JSONObject data = parsedJson.getJSONObject("data");
-      // String position = data.getString("position");
-      String position = "12";
+      JSONObject data = parsedJson.getJSONObject("data");
+      String position = data.getString("position");
 
       String id = Utils.uuid();
       Behaviour walk = new WalkTo(this.agent, position, getSituatedAgent().getMap(), id);
       Utils.registerBehaviour(this.agent, walk, id);
 
-      HashMap<Integer, Behaviour> responses = Utils.exitMsgMapper(this.agent, "Ok", "Error");
+      HashMap<Integer, Runnable> responses = mapResponses();
+
       Behaviour action = new Composer(this.agent, walk, new ConditionalBehaviour(this.agent, id, responses));
 
       this.agent.addBehaviour(action);
@@ -48,6 +49,23 @@ public class MessageMapper extends OneShotBehaviour {
               new String[] { parsedJson.get("sender").toString() }));
       System.out.println("Error parsing JSON message");
     }
+  }
+
+  private HashMap<Integer, Runnable> mapResponses() {
+    HashMap<Integer, Runnable> responses = new HashMap<>();
+    JSONObject body = new JSONObject();
+    body.put("status", "success");
+    body.put("map", getSituatedAgent().stringifyNodes());
+    responses.put(0, () -> {
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
+    });
+    responses.put(1, () -> {
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, "{\"status\": \"finished\"}"));
+    });
+    responses.put(2, () -> {
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, "{\"status\": \"error\"}"));
+    });
+    return responses;
   }
 
   private void updateMap(String body) {

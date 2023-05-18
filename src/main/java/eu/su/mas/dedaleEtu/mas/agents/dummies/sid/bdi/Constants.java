@@ -9,4 +9,6 @@ public class Constants {
             " ?Agent a example:Agent ." +
             "}";
     public static String IS_SLAVE_ALIVE = "isSlaveAlive";
+    public static String MAP = "map";
+    public static String IS_FULL_EXPLORED = "isFullExplored";
 }

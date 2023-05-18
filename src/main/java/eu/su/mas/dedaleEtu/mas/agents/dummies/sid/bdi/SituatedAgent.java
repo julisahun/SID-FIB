@@ -13,9 +13,15 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import org.json.JSONObject;
+import org.json.JSONArray;
+
+import java.util.HashSet;
+
 public class SituatedAgent extends AbstractDedaleAgent {
 
     private MapRepresentation map;
+    private HashMap<String, HashSet<String>> nodes;
     private HashMap<String, List<String>> messages;
 
     private HashMap<String, Couple<BehaviourStatus, Integer>> behavioursStatus = new HashMap<>();
@@ -29,6 +35,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
         lb.add(new MessageMapper(this));
         addBehaviour(new startMyBehaviours(this, lb));
         this.messages = new HashMap<>();
+        this.nodes = new HashMap<>();
     }
 
     public void setMap(MapRepresentation newMap) {
@@ -40,6 +47,35 @@ public class SituatedAgent extends AbstractDedaleAgent {
 
     public MapRepresentation getMap() {
         return this.map;
+    }
+
+    public HashMap<String, HashSet<String>> getNodes() {
+        return this.nodes;
+    }
+
+    public void printNodes() {
+        // System.out.println("Nodes:");
+        // for (String node : this.nodes.keySet()) {
+        // System.out.println(node + ": " + this.nodes.get(node));
+        // }
+        System.out.println(this.stringifyNodes());
+    }
+
+    public void addNode(String node1, String node2) {
+        HashSet<String> neighbors = this.nodes.get(node1);
+        if (neighbors == null) {
+            neighbors = new HashSet<String>();
+        }
+        for (String neighbor : neighbors) {
+            if (neighbor.equals(node2) && this.nodes.containsKey(node2)) {
+                return;
+            }
+        }
+        neighbors.add(node2);
+        this.nodes.put(node1, neighbors);
+        if (!this.nodes.containsKey(node2)) {
+            this.nodes.put(node2, new HashSet<String>());
+        }
     }
 
     public void addMesssage(String header, String message) {
@@ -72,5 +108,17 @@ public class SituatedAgent extends AbstractDedaleAgent {
 
     public Behaviour getBehaviour(String id) {
         return this.behaviours.get(id);
+    }
+
+    public String stringifyNodes() {
+        JSONObject json = new JSONObject();
+        for (String node : this.nodes.keySet()) {
+            JSONArray neighbors = new JSONArray();
+            for (String neighbor : this.nodes.get(node)) {
+                neighbors.put(neighbor);
+            }
+            json.put(node, neighbors);
+        }
+        return json.toString();
     }
 }

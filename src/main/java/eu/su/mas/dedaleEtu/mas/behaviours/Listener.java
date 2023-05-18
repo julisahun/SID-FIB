@@ -38,7 +38,7 @@ public class Listener extends CyclicBehaviour {
       JSONObject body = new JSONObject();
       body.put("protocol", protocol);
       body.put("sender", sender);
-      body.put("content", content);
+      body.put("data", content);
 
       return new Couple<String, JSONObject>(keyValue.getLeft(), body);
     } catch (Exception e) {

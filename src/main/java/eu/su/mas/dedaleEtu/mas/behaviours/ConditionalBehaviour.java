@@ -9,21 +9,21 @@ import jade.core.behaviours.OneShotBehaviour;
 
 public class ConditionalBehaviour extends OneShotBehaviour {
 
-  private HashMap<Integer, Behaviour> behaviours;
+  private HashMap<Integer, Runnable> actions;
   private String dependant;
 
-  public ConditionalBehaviour(Agent a, String dependant, HashMap<Integer, Behaviour> behaviours) {
+  public ConditionalBehaviour(Agent a, String dependant, HashMap<Integer, Runnable> actions) {
     super(a);
     this.dependant = dependant;
-    this.behaviours = behaviours;
+    this.actions = actions;
   }
 
   @Override
   public void action() {
     SituatedAgent agent = (SituatedAgent) this.myAgent;
     Integer status = agent.getStatus(dependant).getRight();
-    if (behaviours.containsKey(status)) {
-      agent.addBehaviour(behaviours.get(status));
+    if (actions.containsKey(status)) {
+      actions.get(status).run();
     }
   }
 

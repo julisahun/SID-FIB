@@ -1,23 +1,14 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
 
-import bdi4jade.belief.Belief;
-import bdi4jade.core.SingleCapabilityAgent;
 import bdi4jade.plan.Plan;
-import bdi4jade.plan.planbody.AbstractPlanBody;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.AID;
 import jade.domain.DFService;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
-import jade.lang.acl.ACLMessage;
 
 import jade.domain.FIPAException;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.impl.StatementImpl;
-
-import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.ONTOLOGY;
-import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.ONTOLOGY_URI;
 
 public class FindSituatedPlanBody extends BeliefGoalPlanBody {
     @Override
@@ -31,10 +22,10 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
             results = DFService.search(this.myAgent, template);
             for (DFAgentDescription agent : results) {
                 AID provider = agent.getName();
-                if (!provider.getName().equals("slave"))
+                if (!provider.getName().contains("slave"))
                     continue;
-                System.out.println("Found situated! " + provider.getName());
                 updateOntology(provider.getLocalName());
+                setEndState(Plan.EndState.SUCCESSFUL);
             }
             // if results.length == 0, no endState is set,
             // so the plan body will run again (if the goal still holds)
@@ -45,12 +36,6 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
     }
 
     private void updateOntology(String situatedAgentName) {
-        SingleCapabilityAgent agent = (SingleCapabilityAgent) this.myAgent;
-        Belief b = agent.getCapability().getBeliefBase().getBelief(ONTOLOGY);
-        Model model = (Model) b.getValue();
-        model.add(new StatementImpl(
-                model.createResource("http://example#" + situatedAgentName),
-                model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-                model.getResource("http://example#Agent")));
+        Utils.addIndividual(myAgent, "Agent", situatedAgentName);
     }
 }
