@@ -1,16 +1,19 @@
 package eu.su.mas.dedaleEtu.mas.behaviours;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.json.JSONObject;
 
+import dataStructures.tuple.Couple;
 import jade.core.behaviours.Behaviour;
-
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.Agent;
+import eu.su.mas.dedale.env.Location;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 import javafx.beans.binding.IntegerExpression;
@@ -73,7 +76,15 @@ public class MessageMapper extends OneShotBehaviour {
   }
 
   private void pong(String body) {
-    Behaviour pong = new MessageSender(this.agent, "pong");
+    String currentPosition = getSituatedAgent().getCurrentPosition().getLocationId();
+    getSituatedAgent().addNode(currentPosition);
+    for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : getSituatedAgent().observe()) {
+      String neighborId = neighbor.getLeft().getLocationId();
+      if (currentPosition == neighborId)
+        continue;
+      getSituatedAgent().addNode(currentPosition, neighbor.getLeft().getLocationId());
+    }
+    Behaviour pong = new MessageSender(this.agent, getSituatedAgent().stringifyNodes());
     this.agent.addBehaviour(pong);
   }
 

@@ -13,11 +13,9 @@ import java.util.HashSet;
 
 import org.json.JSONObject;
 
-public class ExploreMapPlanBody extends BeliefGoalPlanBody {
+public class CommandSentPlanBody extends BeliefGoalPlanBody {
 
-  private boolean commandSent = false;
   private String commandedNode = "";
-  private boolean commandAccepted = false;
   private HashSet<String> rejectedNodes = new HashSet<>();
   private HashMap map = new HashMap();
 
@@ -34,7 +32,6 @@ public class ExploreMapPlanBody extends BeliefGoalPlanBody {
     body.put("position", this.commandedNode);
     System.out.println("Commanding node " + this.commandedNode);
     Utils.sendMessage(myAgent, ACLMessage.REQUEST, "position:" + body.toString(), "slave");
-    this.commandSent = true;
   }
 
   private String getPotentialNode(HashMap map) {

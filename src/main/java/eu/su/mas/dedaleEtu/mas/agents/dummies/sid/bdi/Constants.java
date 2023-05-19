@@ -11,4 +11,6 @@ public class Constants {
     public static String IS_SLAVE_ALIVE = "isSlaveAlive";
     public static String MAP = "map";
     public static String IS_FULL_EXPLORED = "isFullExplored";
+    public static String COMMAND_SENT = "commandSent";
+    public static String REJECTED_NODES = "rejectedNodes";
 }

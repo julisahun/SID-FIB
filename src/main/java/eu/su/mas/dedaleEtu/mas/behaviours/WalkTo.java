@@ -55,10 +55,10 @@ public class WalkTo extends SimpleBehaviour {
     this.map.addNode(currentPosition, MapAttribute.closed);
     if (this.route == null) {
       try {
+        this.exploreAround();
         List<String> route = this.map.getShortestPath(currentPosition, target);
         this.route = new LinkedList<>(route);
       } catch (Exception e) {
-        this.exploreAround();
         if (this.fullExplored) {
           this.unreachable = true;
           return;
@@ -69,6 +69,7 @@ public class WalkTo extends SimpleBehaviour {
     }
     String nextNode = this.route.poll();
     this.move(nextNode);
+    this.exploreAround();
   }
 
   private void exploreAround() {
@@ -76,6 +77,7 @@ public class WalkTo extends SimpleBehaviour {
         .observe();
     for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : neighbors) {
       String nodeId = neighbor.getLeft().getLocationId();
+      System.out.println("Neighbor: " + nodeId);
       boolean safeNeighbor = true;
       for (Couple<Observation, Integer> observation : neighbor.getRight()) {
         if (observation.getLeft().getName().equals("WIND")) {
@@ -86,6 +88,7 @@ public class WalkTo extends SimpleBehaviour {
       if (!safeNeighbor)
         continue;
       this.map.addNewNode(nodeId);
+      ((SituatedAgent) this.myAgent).closeNode(currentPosition);
       if (!currentPosition.equals(nodeId)) {
         ((SituatedAgent) this.myAgent).addNode(currentPosition, nodeId);
         this.map.addEdge(currentPosition, nodeId);

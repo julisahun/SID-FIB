@@ -11,6 +11,9 @@ import bdi4jade.goal.*;
 import bdi4jade.plan.DefaultPlan;
 import bdi4jade.plan.Plan;
 import bdi4jade.reasoning.*;
+import dataStructures.tuple.Couple;
+import bdi4jade.core.Capability;
+import bdi4jade.core.GoalUpdateSet.GoalDescription;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.lang.acl.MessageTemplate;
 import org.apache.jena.ontology.OntDocumentManager;
@@ -23,6 +26,7 @@ import java.net.URL;
 import java.util.Set;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.HashSet;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
@@ -36,44 +40,51 @@ public class BDIAgent extends SingleCapabilityAgent {
         Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
         Belief<String, OntModel> ontology = new TransientBelief<String, OntModel>(ONTOLOGY, Utils.loadOntology());
         Belief<String, Boolean> isSlaveAlive = new TransientPredicate<String>(IS_SLAVE_ALIVE, false);
-        Belief<String, HashMap<String, List<String>>> map = new TransientBelief<String, HashMap<String, List<String>>>(
+        Belief<String, HashMap<String, Couple<Boolean, HashSet<String>>>> map = new TransientBelief<String, HashMap<String, Couple<Boolean, HashSet<String>>>>(
                 MAP, new HashMap<>());
         Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
+        Belief<String, Boolean> commandSent = new TransientPredicate<String>(COMMAND_SENT, false);
+        Belief<String, HashSet> rejectedNodes = new TransientBelief<String, HashSet>(REJECTED_NODES, new HashSet<>());
+
+        
 
         // Add initial desires
         Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
         Goal findSituatedGoal = new SPARQLGoal<String>(ONTOLOGY, QUERY_SITUATED_AGENT);
         Goal situatedListeningGoal = new PredicateGoal<String>(IS_SLAVE_ALIVE, true);
         Goal exploreMapGoal = new PredicateGoal<String>(IS_FULL_EXPLORED, true);
+        Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
 
         addGoal(registerGoal);
         addGoal(findSituatedGoal);
         addGoal(situatedListeningGoal);
         addGoal(exploreMapGoal);
+        addGoal(commandSentGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
         GoalTemplate findSituatedTemplate = matchesGoal(findSituatedGoal);
         GoalTemplate situatedListeningTemplate = matchesGoal(situatedListeningGoal);
-        GoalTemplate exploreMapTemplate = matchesGoal(exploreMapGoal);
+        GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
+
         // Assign plan bodies to goals
         Plan registerPlan = new DefaultPlan(
                 registerGoalTemplate, RegisterPlanBody.class);
         Plan findSituatedPlan = new DefaultPlan(
                 findSituatedTemplate, FindSituatedPlanBody.class);
-        // Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
-        // KeepMailboxEmptyPlanBody.class);
+        Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
+            KeepMailboxEmptyPlanBody.class);
         Plan situatedListeningPlan = new DefaultPlan(
                 situatedListeningTemplate, SituatedListeningPlanBody.class);
-        Plan exploreMapPlan = new DefaultPlan(
-                exploreMapTemplate, ExploreMapPlanBody.class);
+        Plan commandSentPlan = new DefaultPlan(
+                commandSentTemplate, CommandSentPlanBody.class);
 
         // Init plan library
         getCapability().getPlanLibrary().addPlan(registerPlan);
         getCapability().getPlanLibrary().addPlan(situatedListeningPlan);
         getCapability().getPlanLibrary().addPlan(findSituatedPlan);
-        getCapability().getPlanLibrary().addPlan(exploreMapPlan);
-        // getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
+        getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
+        getCapability().getPlanLibrary().addPlan(commandSentPlan);
 
         // Init belief base
         getCapability().getBeliefBase().addBelief(iAmRegistered);
@@ -81,6 +92,8 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(isSlaveAlive);
         getCapability().getBeliefBase().addBelief(map);
         getCapability().getBeliefBase().addBelief(isFullExplored);
+        getCapability().getBeliefBase().addBelief(commandSent);
+        getCapability().getBeliefBase().addBelief(rejectedNodes);
 
         // Add a goal listener to track events
         enableGoalMonitoring();
@@ -96,6 +109,17 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
+                Belief map = getCapability().getBeliefBase().getBelief(MAP);
+                HashMap<String, Couple<Boolean, HashSet<String>>> mapValue = (HashMap<String, Couple<Boolean, HashSet<String>>>) map.getValue();
+                for (String key : mapValue.keySet()) {
+                    Couple<Boolean, HashSet<String>> nodeInfo = mapValue.get(key);
+                    Boolean status = nodeInfo.getLeft();
+                    if (!status) {
+                       return;
+                    }
+                }
+                Belief isFullExplored = getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED);
+                isFullExplored.setValue(true);
                 // This method should check belief base consistency,
                 // make new inferences, etc.
                 // The default implementation does nothing
@@ -122,26 +146,28 @@ public class BDIAgent extends SingleCapabilityAgent {
     }
 
     private void overrideDeliberationFunction() {
-        this.getCapability().setDeliberationFunction(new DefaultDeliberationFunction() {
+        this.setDeliberationFunction(new DefaultAgentDeliberationFunction() {
             @Override
-            public Set<Goal> filter(Set<GoalUpdateSet.GoalDescription> agentGoals) {
+            public Set<Goal> filter(Set<GoalDescription> agentGoals, Map<Capability, Set<GoalDescription>> capabilityGoals) {
                 Boolean iAmRegistered = (Boolean) getCapability().getBeliefBase().getBelief(I_AM_REGISTERED).getValue();
                 Boolean isSlaveAlive = (Boolean) getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
+                Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
                 for (GoalUpdateSet.GoalDescription goalDescription : agentGoals) {
-                    System.out.println("Goal description: " + goalDescription);
                     Goal goal = goalDescription.getGoal();
+                    Set<Goal> goals = new HashSet<>();
                     if (goal.equals(new PredicateGoal<String>(I_AM_REGISTERED, true))) {
-                        if (!iAmRegistered)
+                        if (!iAmRegistered){
                             return Set.of(goal);
+                        }
                     } else if (goal.equals(new PredicateGoal<String>(IS_SLAVE_ALIVE, true))) {
                         if (!isSlaveAlive)
                             return Set.of(goal);
                     } else if (goal.equals(new PredicateGoal<String>(IS_FULL_EXPLORED, true))) {
-                        if (isSlaveAlive)
+                        if (isSlaveAlive && !commandSent)
                             return Set.of(goal);
                     }
                 }
-                return super.filter(agentGoals);
+                return super.filter(agentGoals, capabilityGoals);
             }
         });
     }
@@ -154,7 +180,6 @@ public class BDIAgent extends SingleCapabilityAgent {
                 // valid (ordered) plans for fulfilling a particular goal.
                 // The default implementation just chooses
                 // the first plan of the list.
-                System.out.println("Plan selection strategy");
                 return super.selectPlan(goal, capabilityPlans);
             }
         });
