@@ -19,10 +19,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 
 	@Override
 	public void action() {
-		ACLMessage msg = this.myAgent.receive();
-		if (msg == null)
-			return;
-		System.out.println("Received message");
+		ACLMessage msg = this.msgReceived;
 		if (msg.getPerformative() == ACLMessage.INFORM) {
 			handleInform(msg);
 		} else if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
@@ -34,6 +31,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		} else if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
 			handleReject(msg);
 		}
+		setEndState(Plan.EndState.SUCCESSFUL);
 	}
 
 	private void handleReject(ACLMessage msg) {
@@ -66,7 +64,21 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 				Belief isFullExplored = getBeliefBase().getBelief(IS_FULL_EXPLORED);
 				isFullExplored.setValue(true);
 			} else if (status == "pong") {
-				// not implemented
+				HashMap map = new HashMap<>();
+				JSONObject jsonMap = body.getJSONObject("map");
+				for (String node : jsonMap.keySet()) {
+					HashSet<String> neighbors = new HashSet<>();
+
+					for (Object neighbor : jsonMap.getJSONObject(node).getJSONArray("neighbors")) {
+						neighbors.add((String) neighbor);
+					}
+					Boolean closed = neighbors.size() > 0;
+					map.put(node, new Couple<Boolean, HashSet<String>>(closed, neighbors));
+				}
+				Belief mapBelief = getBeliefBase().getBelief(MAP);
+				mapBelief.setValue(map);
+				Belief b = getBeliefBase().getBelief(IS_SLAVE_ALIVE);
+				b.setValue(true);
 			}
 			Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
 			commandSent.setValue(false);
@@ -92,4 +104,11 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	private void updateMap(String newMap) {
 		HashMap<String, HashSet<String>> parsedMap = parseMap(newMap);
 	}
+
+	@Parameter(direction = Parameter.Direction.IN)
+	public void setMessage(ACLMessage msgReceived) {
+		System.out.println("Received message" + msgReceived.getContent());
+		this.msgReceived = msgReceived;
+	}
+
 }

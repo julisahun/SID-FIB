@@ -84,7 +84,8 @@ public class MessageMapper extends OneShotBehaviour {
         continue;
       getSituatedAgent().addNode(currentPosition, neighbor.getLeft().getLocationId());
     }
-    Behaviour pong = new MessageSender(this.agent, getSituatedAgent().stringifyNodes());
+    Behaviour pong = new MessageSender(this.agent,
+        "{\"status\": \"pong\", \"map\": " + getSituatedAgent().stringifyNodes() + "}");
     this.agent.addBehaviour(pong);
   }
 

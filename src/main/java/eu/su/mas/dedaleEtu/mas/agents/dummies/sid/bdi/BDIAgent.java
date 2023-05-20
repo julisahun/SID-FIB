@@ -45,6 +45,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
         Belief<String, Boolean> commandSent = new TransientPredicate<String>(COMMAND_SENT, false);
         Belief<String, HashSet> rejectedNodes = new TransientBelief<String, HashSet>(REJECTED_NODES, new HashSet<>());
+        Belief<String, Boolean> mailBoxEmpty = new TransientPredicate<String>(MAILBOX_EMPTY, false);
 
         // Add initial desires
         Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
@@ -52,18 +53,21 @@ public class BDIAgent extends SingleCapabilityAgent {
         Goal situatedListeningGoal = new PredicateGoal<String>(IS_SLAVE_ALIVE, true);
         Goal exploreMapGoal = new PredicateGoal<String>(IS_FULL_EXPLORED, true);
         Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
+        Goal keepMailboxEmptyGoal = new PredicateGoal<String>(MAILBOX_EMPTY, true);
 
         addGoal(registerGoal);
         addGoal(findSituatedGoal);
         addGoal(situatedListeningGoal);
         addGoal(exploreMapGoal);
         addGoal(commandSentGoal);
+        addGoal(keepMailboxEmptyGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
         GoalTemplate findSituatedTemplate = matchesGoal(findSituatedGoal);
         GoalTemplate situatedListeningTemplate = matchesGoal(situatedListeningGoal);
         GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
+        GoalTemplate keepMailboxEmptyTemplate = matchesGoal(keepMailboxEmptyGoal);
 
         // Assign plan bodies to goals
         Plan registerPlan = new DefaultPlan(
