@@ -50,10 +50,6 @@ public class SituatedAgent extends AbstractDedaleAgent {
     }
 
     public void printNodes() {
-        // System.out.println("Nodes:");
-        // for (String node : this.nodes.keySet()) {
-        // System.out.println(node + ": " + this.nodes.get(node));
-        // }
         System.out.println(this.stringifyNodes());
     }
 
@@ -69,7 +65,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
             }
         }
         neighbors.add(node2);
-        this.nodes.put(node1, new Couple<Boolean,HashSet<String>>(value.getLeft(), neighbors));
+        this.nodes.put(node1, new Couple<Boolean, HashSet<String>>(value.getLeft(), neighbors));
         if (!this.nodes.containsKey(node2)) {
             this.nodes.put(node2, new Couple(false, new HashSet<String>()));
         }

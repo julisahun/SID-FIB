@@ -56,10 +56,10 @@ public class MessageMapper extends OneShotBehaviour {
 
   private HashMap<Integer, Runnable> mapResponses() {
     HashMap<Integer, Runnable> responses = new HashMap<>();
-    JSONObject body = new JSONObject();
-    body.put("status", "success");
-    body.put("map", getSituatedAgent().stringifyNodes());
     responses.put(0, () -> {
+      JSONObject body = new JSONObject();
+      body.put("status", "success");
+      body.put("map", getSituatedAgent().stringifyNodes());
       this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
     });
     responses.put(1, () -> {

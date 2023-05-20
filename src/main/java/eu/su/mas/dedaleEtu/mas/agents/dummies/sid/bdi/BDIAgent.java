@@ -46,8 +46,6 @@ public class BDIAgent extends SingleCapabilityAgent {
         Belief<String, Boolean> commandSent = new TransientPredicate<String>(COMMAND_SENT, false);
         Belief<String, HashSet> rejectedNodes = new TransientBelief<String, HashSet>(REJECTED_NODES, new HashSet<>());
 
-        
-
         // Add initial desires
         Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
         Goal findSituatedGoal = new SPARQLGoal<String>(ONTOLOGY, QUERY_SITUATED_AGENT);
@@ -73,17 +71,17 @@ public class BDIAgent extends SingleCapabilityAgent {
         Plan findSituatedPlan = new DefaultPlan(
                 findSituatedTemplate, FindSituatedPlanBody.class);
         Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
-            KeepMailboxEmptyPlanBody.class);
+                KeepMailboxEmptyPlanBody.class);
         Plan situatedListeningPlan = new DefaultPlan(
                 situatedListeningTemplate, SituatedListeningPlanBody.class);
         Plan commandSentPlan = new DefaultPlan(
                 commandSentTemplate, CommandSentPlanBody.class);
 
         // Init plan library
+        getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
         getCapability().getPlanLibrary().addPlan(registerPlan);
         getCapability().getPlanLibrary().addPlan(situatedListeningPlan);
         getCapability().getPlanLibrary().addPlan(findSituatedPlan);
-        getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
         getCapability().getPlanLibrary().addPlan(commandSentPlan);
 
         // Init belief base
@@ -110,12 +108,13 @@ public class BDIAgent extends SingleCapabilityAgent {
             @Override
             public void reviewBeliefs() {
                 Belief map = getCapability().getBeliefBase().getBelief(MAP);
-                HashMap<String, Couple<Boolean, HashSet<String>>> mapValue = (HashMap<String, Couple<Boolean, HashSet<String>>>) map.getValue();
+                HashMap<String, Couple<Boolean, HashSet<String>>> mapValue = (HashMap<String, Couple<Boolean, HashSet<String>>>) map
+                        .getValue();
                 for (String key : mapValue.keySet()) {
                     Couple<Boolean, HashSet<String>> nodeInfo = mapValue.get(key);
                     Boolean status = nodeInfo.getLeft();
                     if (!status) {
-                       return;
+                        return;
                     }
                 }
                 Belief isFullExplored = getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED);
@@ -148,15 +147,15 @@ public class BDIAgent extends SingleCapabilityAgent {
     private void overrideDeliberationFunction() {
         this.setDeliberationFunction(new DefaultAgentDeliberationFunction() {
             @Override
-            public Set<Goal> filter(Set<GoalDescription> agentGoals, Map<Capability, Set<GoalDescription>> capabilityGoals) {
+            public Set<Goal> filter(Set<GoalDescription> agentGoals,
+                    Map<Capability, Set<GoalDescription>> capabilityGoals) {
                 Boolean iAmRegistered = (Boolean) getCapability().getBeliefBase().getBelief(I_AM_REGISTERED).getValue();
                 Boolean isSlaveAlive = (Boolean) getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
                 Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
                 for (GoalUpdateSet.GoalDescription goalDescription : agentGoals) {
                     Goal goal = goalDescription.getGoal();
-                    Set<Goal> goals = new HashSet<>();
                     if (goal.equals(new PredicateGoal<String>(I_AM_REGISTERED, true))) {
-                        if (!iAmRegistered){
+                        if (!iAmRegistered) {
                             return Set.of(goal);
                         }
                     } else if (goal.equals(new PredicateGoal<String>(IS_SLAVE_ALIVE, true))) {
