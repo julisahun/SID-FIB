@@ -26,11 +26,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		if (msg.getPerformative() == ACLMessage.INFORM) {
 			handleInform(msg);
 		} else if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-			// String sender = msg.getSender().getLocalName();
-			// if (sender.equals("slave") && !this.commandAccepted) {
-			// this.commandAccepted = true;
-			// return;
-			// }
+			// NO OP
 		} else if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
 			handleReject(msg);
 		} else {
@@ -51,6 +47,9 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			JSONObject body = new JSONObject(content);
 			String rejectedNode = body.getString("position");
 			addRejectedNode(rejectedNode);
+
+			Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
+			commandSent.setValue(false);
 		}
 	}
 

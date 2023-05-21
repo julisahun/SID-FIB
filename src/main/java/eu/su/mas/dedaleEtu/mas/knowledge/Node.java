@@ -61,6 +61,23 @@ public class Node {
     this.neighbors = neighbors;
   }
 
+  public void mergeObs(List<Couple<Observation, Integer>> observations) {
+    for (Couple<Observation, Integer> observation : observations) {
+      Observation obs = observation.getLeft();
+      boolean found = false;
+      for (Couple<Observation, Integer> thisObservation : this.observations) {
+        Observation thisObs = thisObservation.getLeft();
+        if (thisObs.getName().equals(obs.getName())) {
+          found = true;
+          break;
+        }
+      }
+      if (!found) {
+        this.observations.add(observation);
+      }
+    }
+  }
+
   public JSONObject toJson() {
     JSONObject json = new JSONObject();
     json.put("status", this.status.equals(Status.OPEN) ? "open" : "closed");

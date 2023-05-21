@@ -24,6 +24,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
 
     private MapRepresentation map;
     private HashMap<String, Node> nodes;
+    private HashSet<String> rejectedNodes = new HashSet<>();
     private HashMap<String, List<String>> messages;
 
     private HashMap<String, Couple<BehaviourStatus, Integer>> behavioursStatus = new HashMap<>();
@@ -86,7 +87,19 @@ public class SituatedAgent extends AbstractDedaleAgent {
         }
     }
 
-    public void addMesssage(String header, String message) {
+    public void updateObs(String node, List<Couple<Observation, Integer>> observations) {
+        if (this.nodes.containsKey(node)) {
+            Node nodeInfo = this.nodes.get(node);
+            nodeInfo.mergeObs(observations);
+            this.nodes.put(node, nodeInfo);
+        }
+    }
+
+    public Boolean isAlreadyRejected(String node) {
+        return this.rejectedNodes.contains(node);
+    }
+
+    public void addMessage(String header, String message) {
         if (!this.messages.containsKey(header)) {
             this.messages.put(header, new ArrayList<>());
         }

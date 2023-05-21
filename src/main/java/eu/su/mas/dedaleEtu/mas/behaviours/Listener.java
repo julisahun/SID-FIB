@@ -60,7 +60,7 @@ public class Listener extends CyclicBehaviour {
       if (actions.containsKey(key))
         this.actions.get(key).accept(body.toString());
       // else
-      // ((SituatedAgent) this.myAgent).addMesssage(key, body);
+      // ((SituatedAgent) this.myAgent).addMessage(key, body);
     }
   }
 }

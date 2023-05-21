@@ -16,7 +16,6 @@ import jade.core.Agent;
 import eu.su.mas.dedale.env.Location;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
-import javafx.beans.binding.IntegerExpression;
 
 public class MessageMapper extends OneShotBehaviour {
   private final AbstractDedaleAgent agent;
@@ -28,10 +27,15 @@ public class MessageMapper extends OneShotBehaviour {
 
   private void updatePosition(String body) {
     JSONObject parsedJson = new JSONObject(body);
-    ;
     try {
       JSONObject data = parsedJson.getJSONObject("data");
       String position = data.getString("position");
+      Boolean rejectNode = getSituatedAgent().isAlreadyRejected(position);
+      if (rejectNode) {
+        Utils.sendMessage(this.agent, ACLMessage.REJECT_PROPOSAL, body, "master");
+        return;
+      }
+      Utils.sendMessage(this.agent, ACLMessage.ACCEPT_PROPOSAL, body, "master");
 
       String id = Utils.uuid();
       Behaviour walk = new WalkTo(this.agent, position, getSituatedAgent().getMap(), id);

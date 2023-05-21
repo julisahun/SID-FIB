@@ -146,7 +146,9 @@ public class BDIAgent extends SingleCapabilityAgent {
                     System.out.println("Current goal: " + goal);
                 });
                 Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
-                if (!commandSent && agentGoalUpdateSet.getCurrentGoals().size() == 0) {
+                Boolean isSlaveAlive = (Boolean) getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
+                Boolean isFinished = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED).getValue();
+                if (isSlaveAlive && !commandSent && agentGoalUpdateSet.getCurrentGoals().size() == 0 && !isFinished) {
                     Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
                     GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
                     Plan commandSentPlan = new DefaultPlan(
@@ -171,6 +173,12 @@ public class BDIAgent extends SingleCapabilityAgent {
         body.put("timestamp", timestamp);
 
         this.messages.add(body.toString());
+    }
+
+    public void printMessages() {
+        for (String message : this.messages) {
+            System.out.println(message);
+        }
     }
 
     private void overrideDeliberationFunction() {

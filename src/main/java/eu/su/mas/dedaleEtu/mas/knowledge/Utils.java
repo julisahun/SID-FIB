@@ -81,7 +81,6 @@ public class Utils {
     msg.setSender(a.getAID());
     msg.addReceiver(new AID(to, AID.ISLOCALNAME));
     msg.setContent(content);
-    // System.out.println("Sending message: " + msg.getContent());
     a.send(msg);
     if (to.equals("slave"))
       ((BDIAgent) a).addMessage(msg);

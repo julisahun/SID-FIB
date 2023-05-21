@@ -1,5 +1,6 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
 
+import bdi4jade.belief.Belief;
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
 import dataStructures.tuple.Couple;
@@ -24,13 +25,15 @@ public class CommandSentPlanBody extends BeliefGoalPlanBody {
     this.map = (HashMap) getBeliefBase().getBelief(MAP).getValue();
     this.commandedNode = getPotentialNode(map);
     command();
+    Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
+    commandSent.setValue(true);
     setEndState(Plan.EndState.SUCCESSFUL);
   }
 
   private void command() {
     JSONObject body = new JSONObject();
     body.put("position", this.commandedNode);
-    System.out.println("Commanding node " + this.commandedNode);
+    System.out.println("Commanding " + this.commandedNode);
     Utils.sendMessage(myAgent, ACLMessage.REQUEST, "position:" + body.toString(), "slave");
   }
 
