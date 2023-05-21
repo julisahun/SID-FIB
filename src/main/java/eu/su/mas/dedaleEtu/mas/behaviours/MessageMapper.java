@@ -63,10 +63,16 @@ public class MessageMapper extends OneShotBehaviour {
       this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
     });
     responses.put(1, () -> {
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, "{\"status\": \"finished\"}"));
+      JSONObject body = new JSONObject();
+      body.put("status", "finished");
+      body.put("map", getSituatedAgent().stringifyNodes());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
     });
     responses.put(2, () -> {
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, "{\"status\": \"error\"}"));
+      JSONObject body = new JSONObject();
+      body.put("status", "error");
+      body.put("map", getSituatedAgent().stringifyNodes());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
     });
     return responses;
   }
@@ -84,8 +90,10 @@ public class MessageMapper extends OneShotBehaviour {
         continue;
       getSituatedAgent().addNode(currentPosition, neighbor.getLeft().getLocationId());
     }
-    Behaviour pong = new MessageSender(this.agent,
-        "{\"status\": \"pong\", \"map\": " + getSituatedAgent().stringifyNodes() + "}");
+    JSONObject response = new JSONObject();
+    response.put("status", "pong");
+    response.put("map", getSituatedAgent().stringifyNodes());
+    Behaviour pong = new MessageSender(this.agent, response.toString());
     this.agent.addBehaviour(pong);
   }
 

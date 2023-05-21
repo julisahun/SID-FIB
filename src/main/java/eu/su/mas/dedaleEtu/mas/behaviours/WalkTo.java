@@ -92,7 +92,11 @@ public class WalkTo extends SimpleBehaviour {
         ((SituatedAgent) this.myAgent).addNode(currentPosition, nodeId);
         this.map.addEdge(currentPosition, nodeId);
       }
-      this.fullExplored = !this.map.hasOpenNode();
+      Boolean noOpenNodes = !this.map.hasOpenNode();
+      Boolean noUnexploredNodes = this.map.getOpenNodes().size() == 1
+          && this.map.getOpenNodes().get(0).equals(currentPosition);
+
+      this.fullExplored = noOpenNodes || noUnexploredNodes;
     }
     ((SituatedAgent) this.myAgent).closeNode(currentPosition);
   }
@@ -126,7 +130,6 @@ public class WalkTo extends SimpleBehaviour {
       status = 0;
     }
     Utils.finishBehaviour(this.myAgent, this.id, status);
-    ((SituatedAgent) this.agent).printNodes();
     return status;
   }
 }

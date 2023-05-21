@@ -1,5 +1,6 @@
 package eu.su.mas.dedaleEtu.mas.knowledge;
 
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.BDIAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageSender;
@@ -82,6 +83,8 @@ public class Utils {
     msg.setContent(content);
     System.out.println("Sending message: " + msg.getContent());
     a.send(msg);
+    if (to.equals("slave"))
+      ((BDIAgent) a).addMessage(msg);
   }
 
   public static OntModel loadOntology() {

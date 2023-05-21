@@ -5,8 +5,10 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import bdi4jade.plan.DefaultPlan;
 import org.json.JSONObject;
 
+import bdi4jade.goal.*;
 import bdi4jade.annotation.Parameter;
 import bdi4jade.belief.Belief;
 import bdi4jade.plan.Plan;
@@ -20,6 +22,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	@Override
 	public void action() {
 		ACLMessage msg = this.msgReceived;
+		((BDIAgent) this.myAgent).addMessage(msg);
 		if (msg.getPerformative() == ACLMessage.INFORM) {
 			handleInform(msg);
 		} else if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
@@ -30,6 +33,13 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			// }
 		} else if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
 			handleReject(msg);
+		} else {
+			Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, false);
+			((BDIAgent) this.myAgent).addGoal(commandSentGoal);
+			GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
+			Plan commandSentPlan = new DefaultPlan(
+					commandSentTemplate, CommandSentPlanBody.class);
+			getCapability().getPlanLibrary().addPlan(commandSentPlan);
 		}
 		setEndState(Plan.EndState.SUCCESSFUL);
 	}
@@ -57,15 +67,16 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		JSONObject body = new JSONObject(content);
 		if (sender.equals("slave")) {
 			String status = body.getString("status");
-			if (status == "failure") {
+			if (status.equals("failure")) {
 				String rejectedNode = body.getString("position");
 				addRejectedNode(rejectedNode);
-			} else if (status == "finished") {
+			} else if (status.equals("finished")) {
 				Belief isFullExplored = getBeliefBase().getBelief(IS_FULL_EXPLORED);
 				isFullExplored.setValue(true);
-			} else if (status == "pong") {
+			} else if (status.equals("pong")) {
 				HashMap map = new HashMap<>();
-				JSONObject jsonMap = body.getJSONObject("map");
+				String stringMap = body.getString("map");
+				JSONObject jsonMap = new JSONObject(stringMap);
 				for (String node : jsonMap.keySet()) {
 					HashSet<String> neighbors = new HashSet<>();
 
@@ -79,6 +90,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 				mapBelief.setValue(map);
 				Belief b = getBeliefBase().getBelief(IS_SLAVE_ALIVE);
 				b.setValue(true);
+				return;
 			}
 			Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
 			commandSent.setValue(false);
@@ -86,8 +98,8 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		}
 	}
 
-	private HashMap parseMap(String stringifiedMap) {
-		JSONObject map = new JSONObject(stringifiedMap);
+	private HashMap parseMap(String stringMap) {
+		JSONObject map = new JSONObject(stringMap);
 		HashMap<String, Couple<Boolean, HashSet<String>>> parsedMap = new HashMap<>();
 		for (String node : map.keySet()) {
 			JSONObject nodeObject = map.getJSONObject(node);
@@ -96,19 +108,32 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			for (Object neighbor : nodeObject.getJSONArray("neighbors")) {
 				neighbors.add(neighbor.toString());
 			}
-			parsedMap.put(node, new Couple<Boolean, HashSet<String>>(status == "closed", neighbors));
+			parsedMap.put(node, new Couple<Boolean, HashSet<String>>(status.equals("closed"), neighbors));
 		}
 		return parsedMap;
 	}
 
 	private void updateMap(String newMap) {
 		HashMap<String, HashSet<String>> parsedMap = parseMap(newMap);
+		Belief mapBelief = getBeliefBase().getBelief(MAP);
+		HashMap<String, Couple<Boolean, HashSet<String>>> map = (HashMap<String, Couple<Boolean, HashSet<String>>>) mapBelief
+				.getValue();
+		mapBelief.setValue(parsedMap);
+
 	}
 
 	@Parameter(direction = Parameter.Direction.IN)
 	public void setMessage(ACLMessage msgReceived) {
-		System.out.println("Received message" + msgReceived.getContent());
 		this.msgReceived = msgReceived;
+	}
+
+	private GoalTemplate matchesGoal(Goal goalToMatch) {
+		return new GoalTemplate() {
+			@Override
+			public boolean match(Goal goal) {
+				return goal == goalToMatch;
+			}
+		};
 	}
 
 }

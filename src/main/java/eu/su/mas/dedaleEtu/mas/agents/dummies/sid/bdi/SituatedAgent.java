@@ -5,6 +5,7 @@ import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageMapper;
 import eu.su.mas.dedaleEtu.mas.behaviours.RegisterToDF;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils.BehaviourStatus;
 import jade.core.behaviours.Behaviour;
 import dataStructures.tuple.Couple;
@@ -21,7 +22,7 @@ import java.util.HashSet;
 public class SituatedAgent extends AbstractDedaleAgent {
 
     private MapRepresentation map;
-    private HashMap<String, Couple<Boolean, HashSet<String>>> nodes;
+    private HashMap<String, Node> nodes;
     private HashMap<String, List<String>> messages;
 
     private HashMap<String, Couple<BehaviourStatus, Integer>> behavioursStatus = new HashMap<>();
@@ -54,8 +55,8 @@ public class SituatedAgent extends AbstractDedaleAgent {
     }
 
     public void addNode(String node1, String node2) {
-        Couple<Boolean, HashSet<String>> value = this.nodes.get(node1);
-        HashSet<String> neighbors = value.getRight();
+        Node value = this.nodes.get(node1);
+        HashSet<String> neighbors = value.getNeighbors();
         if (neighbors == null) {
             neighbors = new HashSet<String>();
         }
@@ -65,21 +66,21 @@ public class SituatedAgent extends AbstractDedaleAgent {
             }
         }
         neighbors.add(node2);
-        this.nodes.put(node1, new Couple<Boolean, HashSet<String>>(value.getLeft(), neighbors));
+        this.nodes.put(node1, new Node(value.getStatus(), neighbors));
         if (!this.nodes.containsKey(node2)) {
-            this.nodes.put(node2, new Couple(false, new HashSet<String>()));
+            this.nodes.put(node2, new Node(Node.Status.OPEN, new HashSet<String>()));
         }
     }
 
     public void addNode(String node) {
         if (!this.nodes.containsKey(node)) {
-            this.nodes.put(node, new Couple(true, new HashSet<String>()));
+            this.nodes.put(node, new Node(Node.Status.CLOSED, new HashSet<String>()));
         }
     }
 
     public void closeNode(String node) {
         if (this.nodes.containsKey(node)) {
-            this.nodes.put(node, new Couple(true, this.nodes.get(node).getRight()));
+            this.nodes.put(node, new Node(Node.Status.CLOSED, this.nodes.get(node).getNeighbors()));
         }
     }
 
@@ -118,14 +119,8 @@ public class SituatedAgent extends AbstractDedaleAgent {
     public String stringifyNodes() {
         JSONObject json = new JSONObject();
         for (String node : this.nodes.keySet()) {
-            JSONObject nodeJson = new JSONObject();
-            nodeJson.put("status", this.nodes.get(node).getLeft() ? "closed" : "opened");
-            JSONArray neighbors = new JSONArray();
-            for (String neighbor : this.nodes.get(node).getRight()) {
-                neighbors.put(neighbor);
-            }
-            nodeJson.put("neighbors", neighbors);
-            json.put(node, nodeJson);
+            Node nodeInfo = this.nodes.get(node);
+            json.put(node, nodeInfo.toJson());
         }
         return json.toString();
     }

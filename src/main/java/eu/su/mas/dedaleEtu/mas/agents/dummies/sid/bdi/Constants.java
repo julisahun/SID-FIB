@@ -14,4 +14,5 @@ public class Constants {
     public static String COMMAND_SENT = "commandSent";
     public static String REJECTED_NODES = "rejectedNodes";
     public static String MAILBOX_EMPTY = "mailboxEmpty";
+    public static String SITUATED_PINGED = "situatedPinged";
 }

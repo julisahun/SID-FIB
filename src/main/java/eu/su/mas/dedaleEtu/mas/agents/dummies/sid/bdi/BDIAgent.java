@@ -14,16 +14,22 @@ import bdi4jade.reasoning.*;
 import dataStructures.tuple.Couple;
 import bdi4jade.core.Capability;
 import bdi4jade.core.GoalUpdateSet.GoalDescription;
+import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
+import jade.lang.acl.ACLMessage;
+
 import jade.lang.acl.MessageTemplate;
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.json.JSONObject;
 
+import java.sql.Timestamp;
 import java.net.URL;
 import java.util.Set;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,51 +39,45 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
 public class BDIAgent extends SingleCapabilityAgent {
 
-    private final String FILE_NAME = "ontology";
+    private ArrayList<String> messages = new ArrayList<>();
 
     public BDIAgent() {
         // Create initial beliefs
         Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
         Belief<String, OntModel> ontology = new TransientBelief<String, OntModel>(ONTOLOGY, Utils.loadOntology());
         Belief<String, Boolean> isSlaveAlive = new TransientPredicate<String>(IS_SLAVE_ALIVE, false);
-        Belief<String, HashMap<String, Couple<Boolean, HashSet<String>>>> map = new TransientBelief<String, HashMap<String, Couple<Boolean, HashSet<String>>>>(
+        Belief<String, HashMap<String, Node>> map = new TransientBelief<String, HashMap<String, Node>>(
                 MAP, new HashMap<>());
         Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
         Belief<String, Boolean> commandSent = new TransientPredicate<String>(COMMAND_SENT, false);
         Belief<String, HashSet> rejectedNodes = new TransientBelief<String, HashSet>(REJECTED_NODES, new HashSet<>());
-        Belief<String, Boolean> mailBoxEmpty = new TransientPredicate<String>(MAILBOX_EMPTY, false);
+        Belief<String, Boolean> situatedPinged = new TransientPredicate<String>(SITUATED_PINGED, false);
 
         // Add initial desires
         Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
         Goal findSituatedGoal = new SPARQLGoal<String>(ONTOLOGY, QUERY_SITUATED_AGENT);
         Goal situatedListeningGoal = new PredicateGoal<String>(IS_SLAVE_ALIVE, true);
-        Goal exploreMapGoal = new PredicateGoal<String>(IS_FULL_EXPLORED, true);
         Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
-        Goal keepMailboxEmptyGoal = new PredicateGoal<String>(MAILBOX_EMPTY, true);
+        Goal situatedPingedGoal = new PredicateGoal<String>(SITUATED_PINGED, true);
 
         addGoal(registerGoal);
         addGoal(findSituatedGoal);
         addGoal(situatedListeningGoal);
-        addGoal(exploreMapGoal);
         addGoal(commandSentGoal);
-        addGoal(keepMailboxEmptyGoal);
+        addGoal(situatedPingedGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
-        GoalTemplate findSituatedTemplate = matchesGoal(findSituatedGoal);
-        GoalTemplate situatedListeningTemplate = matchesGoal(situatedListeningGoal);
         GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
-        GoalTemplate keepMailboxEmptyTemplate = matchesGoal(keepMailboxEmptyGoal);
+        GoalTemplate situatedPingedTemplate = matchesGoal(situatedPingedGoal);
 
         // Assign plan bodies to goals
         Plan registerPlan = new DefaultPlan(
                 registerGoalTemplate, RegisterPlanBody.class);
-        Plan findSituatedPlan = new DefaultPlan(
-                findSituatedTemplate, FindSituatedPlanBody.class);
         Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
                 KeepMailboxEmptyPlanBody.class);
         Plan situatedListeningPlan = new DefaultPlan(
-                situatedListeningTemplate, SituatedListeningPlanBody.class);
+                situatedPingedTemplate, SituatedListeningPlanBody.class);
         Plan commandSentPlan = new DefaultPlan(
                 commandSentTemplate, CommandSentPlanBody.class);
 
@@ -85,7 +85,6 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
         getCapability().getPlanLibrary().addPlan(registerPlan);
         getCapability().getPlanLibrary().addPlan(situatedListeningPlan);
-        getCapability().getPlanLibrary().addPlan(findSituatedPlan);
         getCapability().getPlanLibrary().addPlan(commandSentPlan);
 
         // Init belief base
@@ -96,6 +95,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(isFullExplored);
         getCapability().getBeliefBase().addBelief(commandSent);
         getCapability().getBeliefBase().addBelief(rejectedNodes);
+        getCapability().getBeliefBase().addBelief(situatedPinged);
 
         // Add a goal listener to track events
         enableGoalMonitoring();
@@ -111,6 +111,11 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
+                Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
+                if (!commandSent) {
+
+                }
+
                 Belief map = getCapability().getBeliefBase().getBelief(MAP);
                 HashMap<String, Couple<Boolean, HashSet<String>>> mapValue = (HashMap<String, Couple<Boolean, HashSet<String>>>) map
                         .getValue();
@@ -121,8 +126,11 @@ public class BDIAgent extends SingleCapabilityAgent {
                         return;
                     }
                 }
+                if (mapValue.size() == 0)
+                    return;
                 Belief isFullExplored = getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED);
                 isFullExplored.setValue(true);
+
                 // This method should check belief base consistency,
                 // make new inferences, etc.
                 // The default implementation does nothing
@@ -137,15 +145,32 @@ public class BDIAgent extends SingleCapabilityAgent {
                 agentGoalUpdateSet.getCurrentGoals().forEach(goal -> {
                     System.out.println("Current goal: " + goal);
                 });
-                // A GoalUpdateSet contains the goal status for the agent:
-                // - Current goals (.getCurrentGoals)
-                // - Generated goals, existing but not adopted yet (.getGeneratedGoals)
-                // - Dropped goals, discarded forever (.getDroppedGoals)
-                // This method should update these three sets (current,
-                // generated, dropped).
-                // The default implementation does nothing
+                Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
+                if (!commandSent && agentGoalUpdateSet.getCurrentGoals().size() == 0) {
+                    Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
+                    GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
+                    Plan commandSentPlan = new DefaultPlan(
+                            commandSentTemplate, CommandSentPlanBody.class);
+                    getCapability().getPlanLibrary().addPlan(commandSentPlan);
+                    agentGoalUpdateSet.generateGoal((commandSentGoal));
+                }
             }
         });
+    }
+
+    public void addMessage(ACLMessage msg) {
+        String content = msg.getContent();
+        String sender = msg.getSender().getLocalName();
+        int performative = msg.getPerformative();
+        String timestamp = new Timestamp(System.currentTimeMillis()).toString();
+
+        JSONObject body = new JSONObject();
+        body.put("sender", sender);
+        body.put("performative", performative);
+        body.put("content", content);
+        body.put("timestamp", timestamp);
+
+        this.messages.add(body.toString());
     }
 
     private void overrideDeliberationFunction() {
@@ -155,22 +180,34 @@ public class BDIAgent extends SingleCapabilityAgent {
                     Map<Capability, Set<GoalDescription>> capabilityGoals) {
                 Boolean iAmRegistered = (Boolean) getCapability().getBeliefBase().getBelief(I_AM_REGISTERED).getValue();
                 Boolean isSlaveAlive = (Boolean) getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
+                Boolean pingSent = (Boolean) getCapability().getBeliefBase().getBelief(SITUATED_PINGED).getValue();
                 Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
+                Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED)
+                        .getValue();
+                Set<Goal> goals = new HashSet<>();
                 for (GoalUpdateSet.GoalDescription goalDescription : agentGoals) {
                     Goal goal = goalDescription.getGoal();
+                    if (goal.getClass().getName().contains("MessageGoal")) {
+                        goals.add(goal);
+                    }
                     if (goal.equals(new PredicateGoal<String>(I_AM_REGISTERED, true))) {
                         if (!iAmRegistered) {
-                            return Set.of(goal);
+                            goals.add(goal);
+                            return goals;
                         }
-                    } else if (goal.equals(new PredicateGoal<String>(IS_SLAVE_ALIVE, true))) {
-                        if (!isSlaveAlive)
-                            return Set.of(goal);
-                    } else if (goal.equals(new PredicateGoal<String>(IS_FULL_EXPLORED, true))) {
-                        if (isSlaveAlive && !commandSent)
-                            return Set.of(goal);
+                    } else if (goal.equals(new PredicateGoal<String>(SITUATED_PINGED, true))) {
+                        if (!pingSent) {
+                            goals.add(goal);
+                            return goals;
+                        }
+                    } else if (goal.equals(new PredicateGoal<String>(COMMAND_SENT, true))) {
+                        if (isSlaveAlive && !commandSent && !isFullExplored) {
+                            goals.add(goal);
+                            return goals;
+                        }
                     }
                 }
-                return super.filter(agentGoals, capabilityGoals);
+                return goals;
             }
         });
     }
@@ -179,10 +216,6 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setPlanSelectionStrategy(new DefaultPlanSelectionStrategy() {
             @Override
             public Plan selectPlan(Goal goal, Set<Plan> capabilityPlans) {
-                // This method should return a plan from a list of
-                // valid (ordered) plans for fulfilling a particular goal.
-                // The default implementation just chooses
-                // the first plan of the list.
                 return super.selectPlan(goal, capabilityPlans);
             }
         });
@@ -193,8 +226,8 @@ public class BDIAgent extends SingleCapabilityAgent {
             @Override
             public void goalPerformed(GoalEvent goalEvent) {
                 if (goalEvent.getStatus() == GoalStatus.ACHIEVED) {
-                    System.out.println("BDI: " + goalEvent.getGoal() + " " +
-                            "fulfilled!");
+                    // System.out.println("BDI: " + goalEvent.getGoal() + " " +
+                    // "fulfilled!");
                 }
             }
         });
