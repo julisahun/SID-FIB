@@ -88,7 +88,7 @@ public class MessageMapper extends OneShotBehaviour {
       String neighborId = neighbor.getLeft().getLocationId();
       if (currentPosition == neighborId)
         continue;
-      getSituatedAgent().addNode(currentPosition, neighbor.getLeft().getLocationId());
+      getSituatedAgent().addNode(currentPosition, neighbor.getLeft().getLocationId(), neighbor.getRight());
     }
     JSONObject response = new JSONObject();
     response.put("status", "pong");

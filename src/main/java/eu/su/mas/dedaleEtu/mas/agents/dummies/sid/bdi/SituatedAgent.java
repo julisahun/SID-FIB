@@ -1,5 +1,6 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
 
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
 import eu.su.mas.dedaleEtu.mas.behaviours.MessageMapper;
@@ -54,7 +55,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
         System.out.println(this.stringifyNodes());
     }
 
-    public void addNode(String node1, String node2) {
+    public void addNode(String node1, String node2, List<Couple<Observation, Integer>> observations) {
         Node value = this.nodes.get(node1);
         HashSet<String> neighbors = value.getNeighbors();
         if (neighbors == null) {
@@ -66,9 +67,9 @@ public class SituatedAgent extends AbstractDedaleAgent {
             }
         }
         neighbors.add(node2);
-        this.nodes.put(node1, new Node(value.getStatus(), neighbors));
+        this.nodes.put(node1, new Node(value.getStatus(), neighbors, value.getObservations()));
         if (!this.nodes.containsKey(node2)) {
-            this.nodes.put(node2, new Node(Node.Status.OPEN, new HashSet<String>()));
+            this.nodes.put(node2, new Node(Node.Status.OPEN, new HashSet<String>(), observations));
         }
     }
 
@@ -80,7 +81,8 @@ public class SituatedAgent extends AbstractDedaleAgent {
 
     public void closeNode(String node) {
         if (this.nodes.containsKey(node)) {
-            this.nodes.put(node, new Node(Node.Status.CLOSED, this.nodes.get(node).getNeighbors()));
+            this.nodes.put(node, new Node(Node.Status.CLOSED, this.nodes.get(node).getNeighbors(),
+                    this.nodes.get(node).getObservations()));
         }
     }
 

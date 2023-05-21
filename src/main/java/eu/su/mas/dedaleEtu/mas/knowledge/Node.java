@@ -1,9 +1,14 @@
 package eu.su.mas.dedaleEtu.mas.knowledge;
 
 import java.util.HashSet;
+import java.util.List;
+import java.util.ArrayList;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
+
+import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.env.Observation;
 
 public class Node {
 
@@ -12,8 +17,9 @@ public class Node {
     CLOSED
   }
 
-  private Status status;
-  private HashSet<String> neighbors;
+  private Status status = Status.OPEN;
+  private HashSet<String> neighbors = new HashSet<String>();
+  private List<Couple<Observation, Integer>> observations = new ArrayList<Couple<Observation, Integer>>();
 
   public Node(JSONObject json) {
     this.status = json.getString("status").equals("closed") ? Status.CLOSED : Status.OPEN;
@@ -22,6 +28,12 @@ public class Node {
     for (int i = 0; i < neighbors.length(); i++) {
       this.neighbors.add(neighbors.getString(i));
     }
+  }
+
+  public Node(Status status, HashSet<String> neighbors, List<Couple<Observation, Integer>> observations) {
+    this.status = status;
+    this.neighbors = neighbors;
+    this.observations = observations;
   }
 
   public Node(Status status, HashSet<String> neighbors) {
@@ -35,6 +47,10 @@ public class Node {
 
   public HashSet<String> getNeighbors() {
     return this.neighbors;
+  }
+
+  public List<Couple<Observation, Integer>> getObservations() {
+    return this.observations;
   }
 
   public void setStatus(Status status) {
@@ -53,6 +69,14 @@ public class Node {
       neighbors.put(neighbor);
     }
     json.put("neighbors", neighbors);
+    JSONArray observations = new JSONArray();
+    for (Couple<Observation, Integer> observation : this.observations) {
+      JSONObject observationJson = new JSONObject();
+      observationJson.put("observation", observation.getLeft().getName());
+      observationJson.put("value", observation.getRight());
+      observations.put(observationJson);
+    }
+    json.put("observations", observations);
     return json;
   }
 
