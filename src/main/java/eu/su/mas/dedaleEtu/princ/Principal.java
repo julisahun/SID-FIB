@@ -5,7 +5,7 @@ import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.BDIAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -226,7 +226,7 @@ public class Principal {
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[] {
                 newAgent("slave", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent.class)
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.ExplorerAgent.class)
         };
 
         for (AgentController ac : agentsToAdd) {

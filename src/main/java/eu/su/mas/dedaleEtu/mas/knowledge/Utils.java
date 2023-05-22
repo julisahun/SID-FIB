@@ -1,9 +1,10 @@
 package eu.su.mas.dedaleEtu.mas.knowledge;
 
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.BDIAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.ExplorerAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.MessageSender;
+
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
-import eu.su.mas.dedaleEtu.mas.behaviours.MessageSender;
 
 import java.util.HashMap;
 import java.util.UUID;
@@ -38,15 +39,14 @@ public class Utils {
     FAILED
   }
 
-  private final static String BASE_URI = "http://www.semanticweb.org/juli/ontologies/2023/3/untitled-ontology-2#";
-  private final static String FILE_NAME = "ontology";
+  private final static String FILE_NAME = "mapa";
 
   public static String uuid() {
     return UUID.randomUUID().toString();
   }
 
   public static String registerBehaviour(Agent a, Behaviour b, String id) {
-    SituatedAgent agent = (SituatedAgent) a;
+    ExplorerAgent agent = (ExplorerAgent) a;
     agent.registerBehaviour(id, b, BehaviourStatus.NOT_ACTIVE);
     return id;
   }
@@ -61,17 +61,17 @@ public class Utils {
   }
 
   public static void activateBehaviour(Agent a, String id) {
-    SituatedAgent agent = (SituatedAgent) a;
+    ExplorerAgent agent = (ExplorerAgent) a;
     agent.updateStatus(id, BehaviourStatus.ACTIVE);
   }
 
   public static void finishBehaviour(Agent a, String id, Integer code) {
-    SituatedAgent agent = (SituatedAgent) a;
+    ExplorerAgent agent = (ExplorerAgent) a;
     agent.updateStatus(id, code == 0 ? BehaviourStatus.SUCCEEDED : BehaviourStatus.FAILED, code);
   }
 
   public static Integer getStatusCode(Agent a, String id) {
-    SituatedAgent agent = (SituatedAgent) a;
+    ExplorerAgent agent = (ExplorerAgent) a;
     return agent.getStatus(id).getRight();
   }
 
@@ -86,13 +86,13 @@ public class Utils {
       ((BDIAgent) a).addMessage(msg);
   }
 
-  public static OntModel loadOntology() {
+  public static MapaModel loadOntology() {
     OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
     OntDocumentManager dm = model.getDocumentManager();
     URL fileAsResource = Utils.class.getClassLoader().getResource(FILE_NAME + ".owl");
     dm.addAltEntry(FILE_NAME, fileAsResource.toString());
     model.read(FILE_NAME);
-    return model;
+    return new MapaModel(model);
   }
 
   public static void saveOntology(Model ont) {
@@ -110,32 +110,38 @@ public class Utils {
     }
   }
 
-  public static void addProperty(OntModel ont, String from, String property, String to) {
-    Individual fromEntity = ont.getIndividual(BASE_URI + from);
-    Property nameProperty = ont.getProperty(BASE_URI + property);
-    fromEntity.addProperty(nameProperty, to);
-  }
+  // public static void addProperty(OntModel ont, String from, String property,
+  // String to) {
+  // Individual fromEntity = ont.getIndividual(BASE_URI + from);
+  // Property nameProperty = ont.getProperty(BASE_URI + property);
+  // fromEntity.addProperty(nameProperty, to);
+  // }
 
-  public static void addProperty(Agent a, String from, String property, String to) {
-    OntModel ont = getOntology(a);
-    addProperty(ont, from, property, to);
-  }
+  // public static void addProperty(Agent a, String from, String property, String
+  // to) {
+  // OntModel ont = getOntology(a);
+  // addProperty(ont, from, property, to);
+  // }
 
-  public static void addRelation(OntModel ont, String from, String property, String to) {
-    Individual fromEntity = ont.getIndividual(BASE_URI + from);
-    Property nameProperty = ont.getProperty(BASE_URI + property);
-    Individual toEntity = ont.getIndividual(BASE_URI + to);
-    fromEntity.addProperty(nameProperty, toEntity);
-  }
+  // public static void addRelation(OntModel ont, String from, String property,
+  // String to) {
+  // Individual fromEntity = ont.getIndividual(BASE_URI + from);
+  // Property nameProperty = ont.getProperty(BASE_URI + property);
+  // Individual toEntity = ont.getIndividual(BASE_URI + to);
+  // fromEntity.addProperty(nameProperty, toEntity);
+  // }
 
-  public static void addRelation(Agent a, String from, String property, String to) {
-    OntModel ont = getOntology(a);
-    addRelation(ont, from, property, to);
-  }
+  // public static void addRelation(Agent a, String from, String property, String
+  // to) {
+  // OntModel ont = getOntology(a);
+  // addRelation(ont, from, property, to);
+  // }
 
-  public static void addIndividual(OntModel ont, String className, String instance) {
-    ont.createIndividual(BASE_URI + instance, ont.getOntClass(BASE_URI + className));
-  }
+  // public static void addIndividual(OntModel ont, String className, String
+  // instance) {
+  // ont.createIndividual(BASE_URI + instance, ont.getOntClass(BASE_URI +
+  // className));
+  // }
 
   public static void addIndividual(Agent a, String className, String instance) {
     OntModel ont = getOntology(a);

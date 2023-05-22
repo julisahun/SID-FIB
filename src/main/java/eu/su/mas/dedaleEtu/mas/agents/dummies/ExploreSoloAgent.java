@@ -2,7 +2,7 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
-import eu.su.mas.dedaleEtu.mas.behaviours.ExploSoloBehaviour;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.ExploSoloBehaviour;
 import jade.core.behaviours.Behaviour;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.List;
  * ExploreSolo agent.
  * It explore the map using a DFS algorithm.
  * It stops when all nodes have been visited.
- *  </pre>
+ * </pre>
  *
  * @author hc
  */

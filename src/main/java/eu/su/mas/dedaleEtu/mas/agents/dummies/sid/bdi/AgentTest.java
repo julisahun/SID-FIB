@@ -18,11 +18,11 @@ import org.apache.jena.rdf.model.Property;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 import jade.core.behaviours.Behaviour;
-import eu.su.mas.dedaleEtu.mas.behaviours.*;
-import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.IndividualAdder;
-import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.OntologyLoader;
-import eu.su.mas.dedaleEtu.mas.behaviours.ontologyBehaviours.OntologyReleaser;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.*;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.ontologyBehaviours.IndividualAdder;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.ontologyBehaviours.OntologyLoader;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.ontologyBehaviours.OntologyReleaser;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -32,7 +32,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import eu.su.mas.dedaleEtu.mas.behaviours.*;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.ONTOLOGY;
 

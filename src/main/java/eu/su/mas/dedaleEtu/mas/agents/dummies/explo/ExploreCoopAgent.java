@@ -2,7 +2,7 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.explo;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
-import eu.su.mas.dedaleEtu.mas.behaviours.ExploCoopBehaviour;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.ExploCoopBehaviour;
 import jade.core.behaviours.Behaviour;
 
 import java.util.ArrayList;
@@ -23,7 +23,7 @@ import java.util.List;
  * It stops when all nodes have been visited.
  *
  *
- *  </pre>
+ * </pre>
  *
  * @author hc
  */
@@ -40,7 +40,7 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
     protected void setup() {
         super.setup();
 
-        //get the parameters added to the agent at creation (if any)
+        // get the parameters added to the agent at creation (if any)
         final Object[] args = getArguments();
         List<String> list_agentNames = new ArrayList<>();
 
@@ -48,7 +48,8 @@ public class ExploreCoopAgent extends AbstractDedaleAgent {
             System.err.println("Error while creating the agent, names of agent to contact expected");
             System.exit(-1);
         } else {
-            int i = 2;// WARNING YOU SHOULD ALWAYS START AT 2. This will be corrected in the next release.
+            int i = 2;// WARNING YOU SHOULD ALWAYS START AT 2. This will be corrected in the next
+                      // release.
             while (i < args.length) {
                 list_agentNames.add((String) args[i]);
                 i++;

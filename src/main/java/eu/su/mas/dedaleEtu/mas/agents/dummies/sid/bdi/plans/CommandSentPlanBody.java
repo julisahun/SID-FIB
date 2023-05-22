@@ -1,5 +1,6 @@
-package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi;
+package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans;
 
+import bdi4jade.belief.Belief;
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
 import dataStructures.tuple.Couple;
@@ -13,7 +14,7 @@ import java.util.HashSet;
 
 import org.json.JSONObject;
 
-public class ExploreMapPlanBody extends BeliefGoalPlanBody {
+public class CommandSentPlanBody extends BeliefGoalPlanBody {
 
   private String commandedNode = "";
   private HashSet<String> rejectedNodes = new HashSet<>();
@@ -24,15 +25,16 @@ public class ExploreMapPlanBody extends BeliefGoalPlanBody {
     this.map = (HashMap) getBeliefBase().getBelief(MAP).getValue();
     this.commandedNode = getPotentialNode(map);
     command();
+    Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
+    commandSent.setValue(true);
     setEndState(Plan.EndState.SUCCESSFUL);
   }
 
   private void command() {
     JSONObject body = new JSONObject();
     body.put("position", this.commandedNode);
-    System.out.println("Commanding node " + this.commandedNode);
-    // Utils.sendMessage(myAgent, ACLMessage.REQUEST, "position:" + body.toString(),
-    // "slave");
+    System.out.println("Commanding " + this.commandedNode);
+    Utils.sendMessage(myAgent, ACLMessage.REQUEST, "position:" + body.toString(), "slave");
   }
 
   private String getPotentialNode(HashMap map) {

@@ -2,8 +2,8 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
-import eu.su.mas.dedaleEtu.mas.behaviours.RandomWalkBehaviour;
-import eu.su.mas.dedaleEtu.mas.behaviours.SayHelloBehaviour;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.RandomWalkBehaviour;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.SayHelloBehaviour;
 import jade.core.behaviours.Behaviour;
 
 import java.util.ArrayList;
@@ -12,8 +12,8 @@ import java.util.List;
 /**
  * This example class start a Dummy agent that will possess two behaviours :
  * <ol>
- * <li> move randomly and test the API methods {@link RandomWalkBehaviour}.
- * <li> send a meaningless message to two other agents {@link SayHelloBehaviour}
+ * <li>move randomly and test the API methods {@link RandomWalkBehaviour}.
+ * <li>send a meaningless message to two other agents {@link SayHelloBehaviour}
  * </ol>
  *
  * @author hc
@@ -30,11 +30,11 @@ public class DummyMovingAgent extends AbstractDedaleAgent {
     protected void setup() {
         super.setup();
 
-        //get the parameters given into the object[]
+        // get the parameters given into the object[]
         final Object[] args = getArguments();
         System.out.println("Arg given by the user to " + this.getLocalName() + ": " + args[2]);
 
-        //use them as parameters for your behaviours is you want
+        // use them as parameters for your behaviours is you want
         List<Behaviour> lb = new ArrayList<>();
 
         // ADD the initial behaviours of the Dummy Moving Agent here
@@ -62,7 +62,8 @@ public class DummyMovingAgent extends AbstractDedaleAgent {
 
     /**
      * This method is automatically called after migration to reload.
-     * You can add here all the info regarding the state you want your agent to restart from
+     * You can add here all the info regarding the state you want your agent to
+     * restart from
      */
     protected void afterMove() {
         super.afterMove();
