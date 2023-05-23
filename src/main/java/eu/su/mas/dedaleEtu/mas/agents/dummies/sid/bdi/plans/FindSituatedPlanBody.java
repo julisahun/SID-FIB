@@ -36,6 +36,6 @@ public class FindSituatedPlanBody extends BeliefGoalPlanBody {
     }
 
     private void updateOntology(String situatedAgentName) {
-        Utils.addIndividual(myAgent, "Agent", situatedAgentName);
+        // Utils.addIndividual(myAgent, "Agent", situatedAgentName);
     }
 }

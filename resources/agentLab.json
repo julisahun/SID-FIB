@@ -1,7 +1,7 @@
 [
   { 
     "agentType":"agentExplo",
-    "agentName": "Slave",
+    "agentName": "explorer",
     "communicationRange": 3,
     "initialLocation": "free",
     "backPackCapacityGold": -1,

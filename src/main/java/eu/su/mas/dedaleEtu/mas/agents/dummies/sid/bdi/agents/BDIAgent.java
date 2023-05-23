@@ -14,11 +14,14 @@ import bdi4jade.reasoning.*;
 import dataStructures.tuple.Couple;
 import bdi4jade.core.Capability;
 import bdi4jade.core.GoalUpdateSet.GoalDescription;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.GoalTest;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.PlanBodyTest;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SPARQLGoal;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.CommandSentPlanBody;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.goals.PingAgentGoal;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.CommandExplorerPlanBody;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.KeepMailboxEmptyPlanBody;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.RegisterPlanBody;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.SituatedListeningPlanBody;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.AgentListeningPlanBody;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
@@ -47,35 +50,47 @@ public class BDIAgent extends SingleCapabilityAgent {
 
     private ArrayList<String> messages = new ArrayList<>();
 
+    private HashMap<String, Goal> pingGoals = new HashMap<>();
+
     public BDIAgent() {
         // Create initial beliefs
         Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
         Belief<String, MapaModel> ontology = new TransientBelief<String, MapaModel>(ONTOLOGY, Utils.loadOntology());
-        Belief<String, Boolean> isSlaveAlive = new TransientPredicate<String>(IS_SLAVE_ALIVE, false);
         Belief<String, HashMap<String, Node>> map = new TransientBelief<String, HashMap<String, Node>>(
                 MAP, new HashMap<>());
+        Belief<String, Boolean> isExplorerAlive = new TransientPredicate<String>(EXPLORER_ALIVE, false);
+        Belief<String, Boolean> isCollectorAlive = new TransientPredicate<String>(COLLECTOR_ALIVE, false);
+        Belief<String, Boolean> isTankerAlive = new TransientPredicate<String>(TANKER_ALIVE, false);
+
+        Belief<String, Boolean> explorerCommanded = new TransientPredicate<String>(EXPLORER_COMMANDED, false);
+        Belief<String, Boolean> collectorCommanded = new TransientPredicate<String>(COLLECTOR_COMMANDED, false);
+        Belief<String, Boolean> tankerCommanded = new TransientPredicate<String>(TANKER_COMMANDED, false);
+
         Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
-        Belief<String, Boolean> commandSent = new TransientPredicate<String>(COMMAND_SENT, false);
+
         Belief<String, HashSet> rejectedNodes = new TransientBelief<String, HashSet>(REJECTED_NODES, new HashSet<>());
-        Belief<String, Boolean> situatedPinged = new TransientPredicate<String>(SITUATED_PINGED, false);
+
+        Goal pingExplorerGoal = new PingAgentGoal("explorer");
+        Goal pingCollectorGoal = new PingAgentGoal("collector");
+        Goal pingTankerGoal = new PingAgentGoal("tanker");
+
+        this.pingGoals.put("explorer", pingExplorerGoal);
+        this.pingGoals.put("collector", pingCollectorGoal);
+        this.pingGoals.put("tanker", pingTankerGoal);
 
         // Add initial desires
         Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
-        Goal findSituatedGoal = new SPARQLGoal<String>(ONTOLOGY, QUERY_SITUATED_AGENT);
-        Goal situatedListeningGoal = new PredicateGoal<String>(IS_SLAVE_ALIVE, true);
         Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
         Goal situatedPingedGoal = new PredicateGoal<String>(SITUATED_PINGED, true);
 
         addGoal(registerGoal);
-        addGoal(findSituatedGoal);
-        addGoal(situatedListeningGoal);
-        addGoal(commandSentGoal);
-        addGoal(situatedPingedGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
         GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
         GoalTemplate situatedPingedTemplate = matchesGoal(situatedPingedGoal);
+
+        GoalTemplate pingAgentGoalTemplate = matchesGoals(List.of(pingExplorerGoal, pingCollectorGoal, pingTankerGoal));
 
         // Assign plan bodies to goals
         Plan registerPlan = new DefaultPlan(
@@ -83,25 +98,35 @@ public class BDIAgent extends SingleCapabilityAgent {
         Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
                 KeepMailboxEmptyPlanBody.class);
         Plan situatedListeningPlan = new DefaultPlan(
-                situatedPingedTemplate, SituatedListeningPlanBody.class);
+                situatedPingedTemplate, AgentListeningPlanBody.class);
         Plan commandSentPlan = new DefaultPlan(
-                commandSentTemplate, CommandSentPlanBody.class);
+                commandSentTemplate, CommandExplorerPlanBody.class);
+
+        Plan pingExplorerPlan = new DefaultPlan(
+                pingAgentGoalTemplate, AgentListeningPlanBody.class);
 
         // Init plan library
         getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
         getCapability().getPlanLibrary().addPlan(registerPlan);
         getCapability().getPlanLibrary().addPlan(situatedListeningPlan);
         getCapability().getPlanLibrary().addPlan(commandSentPlan);
+        getCapability().getPlanLibrary().addPlan(pingExplorerPlan);
 
         // Init belief base
+
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
-        getCapability().getBeliefBase().addBelief(isSlaveAlive);
         getCapability().getBeliefBase().addBelief(map);
         getCapability().getBeliefBase().addBelief(isFullExplored);
-        getCapability().getBeliefBase().addBelief(commandSent);
         getCapability().getBeliefBase().addBelief(rejectedNodes);
-        getCapability().getBeliefBase().addBelief(situatedPinged);
+
+        getCapability().getBeliefBase().addBelief(isExplorerAlive);
+        getCapability().getBeliefBase().addBelief(isCollectorAlive);
+        getCapability().getBeliefBase().addBelief(isTankerAlive);
+
+        getCapability().getBeliefBase().addBelief(explorerCommanded);
+        getCapability().getBeliefBase().addBelief(collectorCommanded);
+        getCapability().getBeliefBase().addBelief(tankerCommanded);
 
         // Add a goal listener to track events
         enableGoalMonitoring();
@@ -117,7 +142,8 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
-                Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
+                Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(EXPLORER_COMMANDED)
+                        .getValue();
                 if (!commandSent) {
 
                 }
@@ -148,20 +174,50 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setOptionGenerationFunction(new DefaultOptionGenerationFunction() {
             @Override
             public void generateGoals(GoalUpdateSet agentGoalUpdateSet) {
-                agentGoalUpdateSet.getCurrentGoals().forEach(goal -> {
-                    System.out.println("Current goal: " + goal);
-                });
-                Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
-                Boolean isSlaveAlive = (Boolean) getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
-                Boolean isFinished = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED).getValue();
-                if (isSlaveAlive && !commandSent && agentGoalUpdateSet.getCurrentGoals().size() == 0 && !isFinished) {
-                    Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
-                    GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
-                    Plan commandSentPlan = new DefaultPlan(
-                            commandSentTemplate, CommandSentPlanBody.class);
-                    getCapability().getPlanLibrary().addPlan(commandSentPlan);
-                    agentGoalUpdateSet.generateGoal((commandSentGoal));
+                Boolean imRegistered = (Boolean) getCapability().getBeliefBase().getBelief(I_AM_REGISTERED)
+                        .getValue();
+                Boolean isExplorerAlive = (Boolean) getCapability().getBeliefBase().getBelief(EXPLORER_ALIVE)
+                        .getValue();
+                Boolean isCollectorAlive = (Boolean) getCapability().getBeliefBase().getBelief(COLLECTOR_ALIVE)
+                        .getValue();
+                Boolean isTankerAlive = (Boolean) getCapability().getBeliefBase().getBelief(TANKER_ALIVE).getValue();
+
+                if (imRegistered) {
+                    if (!isExplorerAlive) {
+                        System.out.println("Explorer is dead");
+                        Goal ping = pingGoals.get("explorer");
+                        agentGoalUpdateSet.generateGoal(ping);
+                    }
+                    if (!isCollectorAlive) {
+                        System.out.println("Collector is dead");
+                        Goal ping = pingGoals.get("collector");
+                        agentGoalUpdateSet.generateGoal(ping);
+                    }
+                    if (!isTankerAlive) {
+                        System.out.println("Tanker is dead");
+                        Goal ping = pingGoals.get("tanker");
+                        agentGoalUpdateSet.generateGoal(ping);
+                    }
                 }
+
+                // agentGoalUpdateSet.getCurrentGoals().forEach(goal -> {
+                // System.out.println("Current goal: " + goal);
+                // });
+                // Boolean commandSent = (Boolean)
+                // getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
+                // Boolean isSlaveAlive = (Boolean)
+                // getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
+                // Boolean isFinished = (Boolean)
+                // getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED).getValue();
+                // if (isSlaveAlive && !commandSent &&
+                // agentGoalUpdateSet.getCurrentGoals().size() == 0 && !isFinished) {
+                // Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
+                // GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
+                // Plan commandSentPlan = new DefaultPlan(
+                // commandSentTemplate, CommandExplorerPlanBody.class);
+                // getCapability().getPlanLibrary().addPlan(commandSentPlan);
+                // agentGoalUpdateSet.generateGoal((commandSentGoal));
+                // }
             }
         });
     }
@@ -192,36 +248,9 @@ public class BDIAgent extends SingleCapabilityAgent {
             @Override
             public Set<Goal> filter(Set<GoalDescription> agentGoals,
                     Map<Capability, Set<GoalDescription>> capabilityGoals) {
-                Boolean iAmRegistered = (Boolean) getCapability().getBeliefBase().getBelief(I_AM_REGISTERED).getValue();
-                Boolean isSlaveAlive = (Boolean) getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
-                Boolean pingSent = (Boolean) getCapability().getBeliefBase().getBelief(SITUATED_PINGED).getValue();
-                Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
-                Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED)
-                        .getValue();
-                Set<Goal> goals = new HashSet<>();
-                for (GoalUpdateSet.GoalDescription goalDescription : agentGoals) {
-                    Goal goal = goalDescription.getGoal();
-                    if (goal.getClass().getName().contains("MessageGoal")) {
-                        goals.add(goal);
-                    }
-                    if (goal.equals(new PredicateGoal<String>(I_AM_REGISTERED, true))) {
-                        if (!iAmRegistered) {
-                            goals.add(goal);
-                            return goals;
-                        }
-                    } else if (goal.equals(new PredicateGoal<String>(SITUATED_PINGED, true))) {
-                        if (!pingSent) {
-                            goals.add(goal);
-                            return goals;
-                        }
-                    } else if (goal.equals(new PredicateGoal<String>(COMMAND_SENT, true))) {
-                        if (isSlaveAlive && !commandSent && !isFullExplored) {
-                            goals.add(goal);
-                            return goals;
-                        }
-                    }
+                for (GoalDescription a : agentGoals) {
                 }
-                return goals;
+                return agentGoals.stream().map(GoalDescription::getGoal).collect(java.util.stream.Collectors.toSet());
             }
         });
     }
@@ -252,6 +281,15 @@ public class BDIAgent extends SingleCapabilityAgent {
             @Override
             public boolean match(Goal goal) {
                 return goal == goalToMatch;
+            }
+        };
+    }
+
+    private GoalTemplate matchesGoals(List<Goal> goalsToMatch) {
+        return new GoalTemplate() {
+            @Override
+            public boolean match(Goal goal) {
+                return goalsToMatch.contains(goal);
             }
         };
     }

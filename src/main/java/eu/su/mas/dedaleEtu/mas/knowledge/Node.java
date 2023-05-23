@@ -18,6 +18,7 @@ public class Node {
   }
 
   private Status status = Status.OPEN;
+  private Integer timeVisited = 0;
   private HashSet<String> neighbors = new HashSet<String>();
   private List<Couple<Observation, Integer>> observations = new ArrayList<Couple<Observation, Integer>>();
 

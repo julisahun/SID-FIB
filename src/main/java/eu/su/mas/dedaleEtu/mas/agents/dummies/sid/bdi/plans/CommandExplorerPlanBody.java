@@ -1,7 +1,9 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans;
 
 import bdi4jade.belief.Belief;
+import bdi4jade.goal.Goal;
 import bdi4jade.plan.Plan;
+import bdi4jade.plan.planbody.AbstractPlanBody;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
@@ -14,14 +16,14 @@ import java.util.HashSet;
 
 import org.json.JSONObject;
 
-public class CommandSentPlanBody extends BeliefGoalPlanBody {
+public class CommandExplorerPlanBody extends AbstractPlanBody {
 
   private String commandedNode = "";
   private HashSet<String> rejectedNodes = new HashSet<>();
   private HashMap map = new HashMap();
 
   @Override
-  protected void execute() {
+  public void action() {
     this.map = (HashMap) getBeliefBase().getBelief(MAP).getValue();
     this.commandedNode = getPotentialNode(map);
     command();
@@ -34,7 +36,8 @@ public class CommandSentPlanBody extends BeliefGoalPlanBody {
     JSONObject body = new JSONObject();
     body.put("position", this.commandedNode);
     System.out.println("Commanding " + this.commandedNode);
-    Utils.sendMessage(myAgent, ACLMessage.REQUEST, "position:" + body.toString(), "slave");
+    // Utils.sendMessage(myAgent, ACLMessage.REQUEST, "position:" + body.toString(),
+    // "explorer");
   }
 
   private String getPotentialNode(HashMap map) {

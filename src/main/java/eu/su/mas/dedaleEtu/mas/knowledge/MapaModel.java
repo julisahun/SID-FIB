@@ -23,10 +23,15 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.apache.jena.rdf.model.Property;
+import org.apache.jena.rdf.model.RDFNode;
 import org.apache.jena.rdf.model.Resource;
+import org.apache.jena.rdf.model.Statement;
+import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 
 import dataStructures.tuple.Couple;
+import javafx.application.Platform;
 import javafx.util.Pair;
 
 public class MapaModel {
@@ -38,16 +43,53 @@ public class MapaModel {
 		Closed
 	}
 
-	public enum MineralType {
-		Gold,
-		Diamond,
-	}
-
 	public enum AgentType {
 		Explorer,
 		Storage,
 		Recollector,
 	}
+
+	public class AgentInfo {
+		public long goldAmount;
+		public long diamondAmount;
+
+		public AgentInfo(long goldAmount, long diamondAmount) {
+			this.goldAmount = goldAmount;
+			this.diamondAmount = diamondAmount;
+		}
+	};
+
+	public class NodeInfo {
+		public long goldAmount;
+		public long diamondAmount;
+		public long lockpickLevel;
+
+		public NodeInfo(long goldAmount, long diamondAmount, long lockpickLevel) {
+			this.goldAmount = goldAmount;
+			this.diamondAmount = diamondAmount;
+			this.lockpickLevel = lockpickLevel;
+		}
+	};
+
+	public class AgentConstantInfo {
+		public AgentType type;
+		public long goldCapacity;
+		public long diamondCapacity;
+		public long lockpickLevel;
+
+		public AgentConstantInfo(AgentType type, long goldCapacity, long diamondCapacity, long lockpickLevel) {
+			this.type = type;
+			this.goldCapacity = goldCapacity;
+			this.diamondCapacity = diamondCapacity;
+			this.lockpickLevel = lockpickLevel;
+		}
+	};
+
+	HashSet<String> adjacencyCache = new HashSet<String>();
+	HashMap<String, NodeType> nodeCache = new HashMap<String, NodeType>();
+	HashSet<String> windyCache = new HashSet<String>();
+	HashMap<String, AgentConstantInfo> agentCache = new HashMap<String, AgentConstantInfo>();
+	HashMap<String, String> agentPosCache = new HashMap<String, String>();
 
 	public MapaModel(Model model) {
 		this.model = model;
@@ -55,15 +97,10 @@ public class MapaModel {
 	}
 
 	static Pattern patternIdCell = Pattern.compile("^http://mapa#Instance_(.+?)_cell$");
-	static Pattern patternIdResource = Pattern.compile("^http://mapa#Instance_(.+?)_resource$");
 	static Pattern patternIdAgent = Pattern.compile("^http://mapa#Instance_(.+?)_agent$");
 
 	private String mapa(String hastag) {
 		return "http://mapa#" + hastag;
-	}
-
-	private Resource getMineral(String id) {
-		return model.createResource(mapa("Instance_" + id + "_resource"));
 	}
 
 	private Resource getAgent(String id) {
@@ -82,7 +119,30 @@ public class MapaModel {
 		}
 	}
 
+	private long getLong(Resource res, String literalName) {
+		StmtIterator it = model.listStatements(res, model.getProperty(mapa(literalName)), (RDFNode) null);
+		if (it.hasNext()) {
+			Statement entry = it.next();
+			long v = entry.getObject().asLiteral().getLong();
+			it.close();
+			return v;
+		}
+		it.close();
+		System.out.println(res.getURI() + " does not have " + literalName);
+		Platform.exit();
+		// System.out.println(getOntology());
+		Integer i = null;
+		i = i + 1;
+		return 0;
+	}
+
 	private void updateEntityTime(Resource resource, long time) {
+		StmtIterator it = model.listStatements(resource, model.getProperty(mapa("lastUpdate")), (RDFNode) null);
+		ArrayList<Statement> rm = new ArrayList<Statement>();
+		while (it.hasNext())
+			rm.add(it.next());
+		it.close();
+		model.remove(rm);
 		model.addLiteral(resource, model.getProperty(mapa("lastUpdate")), time);
 		// System.out.println("Updating: " + resource);
 	}
@@ -98,127 +158,11 @@ public class MapaModel {
 		return this.revision;
 	}
 
-	public void addMineral(String id, MineralType mineral) {
-		addCheckStmt(new StatementImpl(
-				getMineral(id),
-				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-				mineral == MineralType.Gold ? model.getResource(mapa("Gold")) : model.getResource(mapa("Diamond"))));
-
-	}
-
-	public void addMineralPos(String idMineral, String idNode) {
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Position where {" +
-							"  mapa:Instance_" + idMineral + "_resource mapa:LocatedAt ?Position ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			ArrayList<StatementImpl> toRemove = new ArrayList<StatementImpl>();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-				if (matcher.find()) {
-					if (!matcher.group(1).equals(idNode))
-						toRemove.add(new StatementImpl(getMineral(idMineral), model.getProperty(mapa("LocatedAt")),
-								getCell(matcher.group(1))));
-					else {
-						updateEntityTime(getMineral(idMineral));
-						return;
-					}
-				}
-			}
-			qe.close();
-			for (StatementImpl toRemoveStmt : toRemove) {
-				model.remove(toRemoveStmt);
-			}
-		}
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Agent where {" +
-							"  mapa:Instance_" + idMineral + "_resource mapa:CarriedBy ?Agent ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			ArrayList<StatementImpl> toRemove = new ArrayList<StatementImpl>();
-			while (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdAgent.matcher(entry.get("Agent").toString());
-				if (matcher.find()) {
-					toRemove.add(new StatementImpl(getMineral(idMineral), model.getProperty(mapa("CarriedBy")),
-							getAgent(matcher.group(1))));
-				}
-			}
-			qe.close();
-			for (StatementImpl toRemoveStmt : toRemove) {
-				model.remove(toRemoveStmt);
-			}
-		}
-		addCheckStmt(new StatementImpl(getMineral(idMineral), model.getProperty(mapa("LocatedAt")), getCell(idNode)));
-		updateEntityTime(getMineral(idMineral));
-	}
-
-	public void addMineralCarried(String idMineral, String idAgent) {
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Position where {" +
-							"  mapa:Instance_" + idMineral + "_resource mapa:LocatedAt ?Position ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			ArrayList<StatementImpl> toRemove = new ArrayList<StatementImpl>();
-			while (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-				if (matcher.find()) {
-					toRemove.add(new StatementImpl(getMineral(idMineral), model.getProperty(mapa("LocatedAt")),
-							getCell(matcher.group(1))));
-				}
-			}
-			qe.close();
-			for (StatementImpl toRemoveStmt : toRemove) {
-				model.remove(toRemoveStmt);
-			}
-		}
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Agent where {" +
-							"  mapa:Instance_" + idMineral + "_resource mapa:CarriedBy ?Agent ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			ArrayList<StatementImpl> toRemove = new ArrayList<StatementImpl>();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdAgent.matcher(entry.get("Agent").toString());
-				if (matcher.find()) {
-					if (!matcher.group(1).equals(idAgent))
-						toRemove.add(new StatementImpl(getMineral(idMineral), model.getProperty(mapa("CarriedBy")),
-								getAgent(matcher.group(1))));
-					else {
-						updateEntityTime(getMineral(idMineral));
-						return;
-					}
-				}
-			}
-			qe.close();
-			for (StatementImpl toRemoveStmt : toRemove) {
-				model.remove(toRemoveStmt);
-			}
-		}
-		addCheckStmt(new StatementImpl(getMineral(idMineral), model.getProperty(mapa("CarriedBy")), getAgent(idAgent)));
-		updateEntityTime(getMineral(idMineral));
-	}
-
 	public void addAdjancency(String node1id, String node2id) {
+		String cacheID = node1id + "-" + node2id;
+		if (adjacencyCache.contains(cacheID))
+			return;
+		adjacencyCache.add(cacheID);
 		Resource node1 = getCell(node1id);
 		Resource node2 = getCell(node2id);
 		addCheckStmt(new StatementImpl(node1, model.getProperty(mapa("Adjacent")), node2));
@@ -226,36 +170,42 @@ public class MapaModel {
 	}
 
 	public void addNode(String id, NodeType type) {
-		Resource cell = getCell(id);
-		boolean alreadyOpen = model.contains(new StatementImpl(cell,
-				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), model.getResource(mapa("Open"))));
-		boolean alreadyClosed = model.contains(new StatementImpl(cell,
-				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), model.getResource(mapa("Closed"))));
-
-		if (type == NodeType.Open && (alreadyClosed || alreadyOpen)) {
+		NodeType cachedType = nodeCache.get(id);
+		boolean alreadyClosed = cachedType != null && cachedType == NodeType.Closed;
+		boolean alreadyOpen = cachedType != null && cachedType == NodeType.Open;
+		if (alreadyClosed)
 			return;
-		} else if (type == NodeType.Closed && alreadyClosed) {
+		if (type == NodeType.Open && alreadyOpen) {
 			return;
-		} else if (type == NodeType.Closed && alreadyOpen) {
-			model.remove(new StatementImpl(
-					cell,
-					model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-					model.getResource(mapa("Open"))));
 		}
-		addCheckStmt(new StatementImpl(
-				cell,
-				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-				type == NodeType.Open ? model.getResource(mapa("Open")) : model.getResource(mapa("Closed"))));
+		Resource cell = getCell(id);
+		StatementImpl closedStmt = new StatementImpl(cell,
+				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), model.getResource(mapa("Closed")));
+		StatementImpl openStmt = new StatementImpl(cell,
+				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), model.getResource(mapa("Open")));
+
+		if (type == NodeType.Closed && alreadyOpen) {
+			model.remove(openStmt);
+		}
+		addCheckStmt(type == NodeType.Open ? openStmt : closedStmt);
+		nodeCache.put(id, type);
 	}
 
 	public void addNodeWindy(String id) {
+		if (windyCache.contains(id))
+			return;
+		windyCache.add(id);
 		addCheckStmt(new StatementImpl(
 				getCell(id),
 				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
 				model.getResource(mapa("Windy"))));
 	}
 
-	public void addAgent(String agentName, AgentType agent) {
+	public void addAgent(String agentName, AgentType agent, long goldCapacity, long diamondCapacity, long lockpickLevel) {
+		AgentConstantInfo cachedType = agentCache.get(agentName);
+		if (cachedType != null)
+			return;
+		agentCache.put(agentName, new AgentConstantInfo(agent, goldCapacity, diamondCapacity, lockpickLevel));
 		Resource classOfAgent = null;
 		switch (agent) {
 			case Explorer:
@@ -270,174 +220,248 @@ public class MapaModel {
 			default:
 				break;
 		}
-		StatementImpl stmt = new StatementImpl(
-				getAgent(agentName),
+		Resource agentRes = getAgent(agentName);
+		addCheckStmt(new StatementImpl(
+				agentRes,
 				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-				classOfAgent);
-		addCheckStmt(stmt);
-		updateEntityTime(getAgent(agentName));
+				classOfAgent));
+		addCheckStmt(new StatementImpl(
+				agentRes,
+				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+				model.getResource(mapa("Agent"))));
+		addCheckStmt(new StatementImpl(
+				agentRes,
+				model.getProperty(mapa("lockpickLevel")),
+				model.createTypedLiteral(lockpickLevel)));
+		addCheckStmt(new StatementImpl(
+				agentRes,
+				model.getProperty(mapa("goldCapacity")),
+				model.createTypedLiteral(goldCapacity)));
+		addCheckStmt(new StatementImpl(
+				agentRes,
+				model.getProperty(mapa("diamondCapacity")),
+				model.createTypedLiteral(diamondCapacity)));
+		updateEntityTime(agentRes);
 	}
 
-	public AgentType getAgentType(String agentName) {
+	public void addAgentInfo(String agentId, long goldAmount, long diamondAmount) {
+		Resource agent = getAgent(agentId);
+		ArrayList<Statement> stmtsGold;
+		ArrayList<Statement> stmtsDiamond;
+		{
+			StmtIterator it = model.listStatements(agent, model.getProperty(mapa("goldAmount")), (RDFNode) null);
+			stmtsGold = new ArrayList<Statement>();
+			while (it.hasNext())
+				stmtsGold.add(it.next());
+			it.close();
+		}
+		{
+			StmtIterator it = model.listStatements(agent, model.getProperty(mapa("diamondAmount")), (RDFNode) null);
+			stmtsDiamond = new ArrayList<Statement>();
+			while (it.hasNext())
+				stmtsDiamond.add(it.next());
+			it.close();
+		}
+		if (stmtsDiamond.size() == 1 && stmtsGold.size() == 1
+				&& stmtsDiamond.get(0).getObject().asLiteral().getLong() == diamondAmount
+				&& stmtsGold.get(0).getObject().asLiteral().getLong() == goldAmount) {
+			return;
+		}
+		model.remove(stmtsGold);
+		model.remove(stmtsDiamond);
+		addCheckStmt(new StatementImpl(
+				agent,
+				model.getProperty(mapa("goldAmount")),
+				model.createTypedLiteral(goldAmount)));
+		addCheckStmt(new StatementImpl(
+				agent,
+				model.getProperty(mapa("diamondAmount")),
+				model.createTypedLiteral(diamondAmount)));
+		updateEntityTime(agent);
+	}
+
+	public void addNodeInfo(String nodeId, long goldAmount, long diamondAmount, long lockpickLevel) {
+		Resource node = getCell(nodeId);
+		ArrayList<Statement> stmtsLvl;
+		ArrayList<Statement> stmtsGold;
+		ArrayList<Statement> stmtsDiamond;
+		{
+			StmtIterator it = model.listStatements(node, model.getProperty(mapa("lockpickLevel")), (RDFNode) null);
+			stmtsLvl = new ArrayList<Statement>();
+			while (it.hasNext())
+				stmtsLvl.add(it.next());
+			it.close();
+		}
+		{
+			StmtIterator it = model.listStatements(node, model.getProperty(mapa("goldAmount")), (RDFNode) null);
+			stmtsGold = new ArrayList<Statement>();
+			while (it.hasNext())
+				stmtsGold.add(it.next());
+			it.close();
+		}
+		{
+			StmtIterator it = model.listStatements(node, model.getProperty(mapa("diamondAmount")), (RDFNode) null);
+			stmtsDiamond = new ArrayList<Statement>();
+			while (it.hasNext())
+				stmtsDiamond.add(it.next());
+			it.close();
+		}
+		if (stmtsDiamond.size() == 1 && stmtsGold.size() == 1 && stmtsLvl.size() == 1
+				&& stmtsDiamond.get(0).getObject().asLiteral().getLong() == diamondAmount
+				&& stmtsGold.get(0).getObject().asLiteral().getLong() == goldAmount
+				&& stmtsLvl.get(0).getObject().asLiteral().getLong() == lockpickLevel) {
+			return;
+		}
+		model.remove(stmtsLvl);
+		model.remove(stmtsGold);
+		model.remove(stmtsDiamond);
+		addCheckStmt(new StatementImpl(
+				node,
+				model.getProperty(mapa("lockpickLevel")),
+				model.createTypedLiteral(lockpickLevel)));
+		addCheckStmt(new StatementImpl(
+				node,
+				model.getProperty(mapa("goldAmount")),
+				model.createTypedLiteral(goldAmount)));
+		addCheckStmt(new StatementImpl(
+				node,
+				model.getProperty(mapa("diamondAmount")),
+				model.createTypedLiteral(diamondAmount)));
+		updateEntityTime(node);
+	}
+
+	public AgentConstantInfo getAgentConstantInfo(String agentName) {
+		AgentConstantInfo cache = agentCache.get(agentName);
+		if (cache != null)
+			return cache;
+		AgentType type;
 		Resource agent = getAgent(agentName);
 		if (model.contains(new StatementImpl(agent, model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
 				model.getResource(mapa("Explorer"))))) {
-			return AgentType.Explorer;
+			type = AgentType.Explorer;
+		} else if (model
+				.contains(new StatementImpl(agent, model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
+						model.getResource(mapa("Recollector"))))) {
+			type = AgentType.Recollector;
+		} else {
+			type = AgentType.Storage;
 		}
-		if (model.contains(new StatementImpl(agent, model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-				model.getResource(mapa("Recollector"))))) {
-			return AgentType.Recollector;
-		}
-		return AgentType.Storage;
+		return new AgentConstantInfo(type, getLong(agent, "goldCapacity"), getLong(agent, "diamondCapacity"),
+				getLong(agent, "lockpickLevel"));
 	}
 
-	public MineralType getMineralType(String mineralName) {
-		Resource mineral = getMineral(mineralName);
-		if (model.contains(new StatementImpl(mineral, model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-				model.getResource(mapa("Gold"))))) {
-			return MineralType.Gold;
-		}
-		return MineralType.Diamond;
+	public AgentInfo getAgentInfo(String agentName) {
+		Resource agent = getAgent(agentName);
+		return new AgentInfo(getLong(agent, "goldAmount"), getLong(agent, "diamondAmount"));
+	}
+
+	public NodeInfo getCellInfo(String nodeId) {
+		Resource node = getCell(nodeId);
+		return new NodeInfo(getLong(node, "goldAmount"), getLong(node, "diamondAmount"), getLong(node, "lockpickLevel"));
 	}
 
 	public void addAgentPos(String agentName, String id) {
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Position where {" +
-							"  mapa:Instance_" + agentName + "_agent mapa:LocatedAt ?Position ." +
-							"}");
+		String cachedPos = agentPosCache.get(agentName);
+		if (cachedPos != null && cachedPos.equals(id)) {
+			updateEntityTime(getAgent(agentName));
+			return;
+		}
 
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			ArrayList<StatementImpl> toRemove = new ArrayList<StatementImpl>();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
+		Property locatedAt = model.getProperty(mapa("LocatedAt"));
+		{
+			StmtIterator statements = model.listStatements(getAgent(agentName), locatedAt, (RDFNode) null);
+
+			ArrayList<Statement> toRemove = new ArrayList<Statement>();
+			if (statements.hasNext()) {
+				Statement entry = statements.next();
+
+				Matcher matcher = patternIdCell.matcher(entry.getObject().asResource().getURI());
 				if (matcher.find()) {
-					if (!matcher.group(1).equals(id))
-						toRemove.add(new StatementImpl(getAgent(agentName), model.getProperty(mapa("LocatedAt")),
-								getCell(matcher.group(1))));
-					else {
+					if (!matcher.group(1).equals(id)) {
+						toRemove.add(entry);
+					} else {
 						updateEntityTime(getAgent(agentName));
 						return;
 					}
 				}
 			}
-			qe.close();
-			for (StatementImpl toRemoveStmt : toRemove) {
-				model.remove(toRemoveStmt);
-			}
+			statements.close();
+			model.remove(toRemove);
 		}
 		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Agent where {" +
-							"  ?Agent mapa:LocatedAt mapa:Instance_" + id + "_cell ;" +
-							"  a ?Type ." +
-							"  FILTER(?Type IN (mapa:Explorer, mapa:Recollector, mapa:Storage) )" +
-							"}");
+			StmtIterator statements = model.listStatements((Resource) null, locatedAt, getCell(id));
 
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			ArrayList<StatementImpl> toRemove = new ArrayList<StatementImpl>();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdAgent.matcher(entry.get("Agent").toString());
+			ArrayList<Statement> toRemove = new ArrayList<Statement>();
+			if (statements.hasNext()) {
+				Statement entry = statements.next();
+				Matcher matcher = patternIdAgent.matcher(entry.getSubject().getURI());
 				if (matcher.find()) {
-					toRemove
-							.add(new StatementImpl(getAgent(matcher.group(1)), model.getProperty(mapa("LocatedAt")), getCell(id)));
+					agentPosCache.clear();
+					toRemove.add(entry);
 				}
 			}
-			qe.close();
-			for (StatementImpl toRemoveStmt : toRemove) {
-				model.remove(toRemoveStmt);
-			}
+			statements.close();
+			model.remove(toRemove);
 		}
 		addCheckStmt(new StatementImpl(getAgent(agentName), model.getProperty(mapa("LocatedAt")), getCell(id)));
 		updateEntityTime(getAgent(agentName));
+		agentPosCache.put(agentName, id);
 	}
 
 	public void addObectiveLocation(String agentName, String id) {
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Position where {" +
-							"  mapa:Instance_" + agentName + "_agent mapa:IntendsToWalkTo ?Position ." +
-							"}");
+		StmtIterator statements = model.listStatements(getAgent(agentName), model.getProperty(mapa("IntendsToWalkTo")),
+				(RDFNode) null);
 
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			ArrayList<StatementImpl> toRemove = new ArrayList<StatementImpl>();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-				if (matcher.find()) {
-					if (!matcher.group(1).equals(id))
-						toRemove.add(new StatementImpl(getAgent(agentName), model.getProperty(mapa("IntendsToWalkTo")),
-								getCell(matcher.group(1))));
-					else {
-						updateEntityTime(getAgent(agentName));
-						return;
-					}
+		ArrayList<Statement> toRemove = new ArrayList<Statement>();
+		if (statements.hasNext()) {
+			Statement entry = statements.next();
+
+			Matcher matcher = patternIdCell.matcher(entry.getObject().asResource().getURI());
+			if (matcher.find()) {
+				if (!matcher.group(1).equals(id)) {
+					toRemove.add(entry);
+				} else {
+					updateEntityTime(getAgent(agentName));
+					return;
 				}
 			}
-			qe.close();
-			for (StatementImpl toRemoveStmt : toRemove) {
-				model.remove(toRemoveStmt);
-			}
 		}
+		statements.close();
+		model.remove(toRemove);
 		addCheckStmt(new StatementImpl(getAgent(agentName), model.getProperty(mapa("IntendsToWalkTo")), getCell(id)));
 		updateEntityTime(getAgent(agentName));
 	}
 
 	public Map<String, Long> getUpdatetimesAgents() {
-		Query query = QueryFactory.create(
-				"PREFIX mapa: <http://mapa#> " +
-						"SELECT ?Agent ?Update where {" +
-						" ?Agent a ?Type ;" +
-						"  mapa:lastUpdate ?Update ." +
-						"  FILTER(?Type IN (mapa:Explorer, mapa:Recollector, mapa:Storage) )" +
-						"}");
-
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet result = qe.execSelect();
+		StmtIterator statements = model.listStatements((Resource) null, model.getProperty(mapa("lastUpdate")),
+				(RDFNode) null);
 		HashMap<String, Long> returnedList = new HashMap<String, Long>();
-		while (result.hasNext()) {
-			QuerySolution entry = result.next();
-			Matcher matcher1 = patternIdAgent.matcher(entry.get("Agent").toString());
-			if (matcher1.find() && entry.get("Update").isLiteral())
-				returnedList.put(matcher1.group(1), entry.get("Update").asLiteral().getLong());
+		while (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher1 = patternIdAgent.matcher(entry.getSubject().getURI());
+			if (matcher1.find() && entry.getObject().isLiteral())
+				returnedList.put(matcher1.group(1), entry.getObject().asLiteral().getLong());
 		}
-		qe.close();
+		statements.close();
 		return returnedList;
 	}
 
-	public Map<String, Long> getUpdatetimesMinerals() {
-		Query query = QueryFactory.create(
-				"PREFIX mapa: <http://mapa#> " +
-						"SELECT ?Mineral ?Update where {" +
-						" ?Mineral a ?Type ;" +
-						"  mapa:lastUpdate ?Update ." +
-						"  FILTER(?Type IN (mapa:Gold, mapa:Diamond) )" +
-						"}");
-
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet result = qe.execSelect();
+	public Map<String, Long> getUpdatetimesCells() {
+		StmtIterator statements = model.listStatements((Resource) null, model.getProperty(mapa("lastUpdate")),
+				(RDFNode) null);
 		HashMap<String, Long> returnedList = new HashMap<String, Long>();
-		while (result.hasNext()) {
-			QuerySolution entry = result.next();
-			Matcher matcher1 = patternIdResource.matcher(entry.get("Mineral").toString());
-			Long time = entry.get("Update").asLiteral().getLong();
-			if (matcher1.find())
-				returnedList.put(matcher1.group(1), time);
+		while (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher1 = patternIdCell.matcher(entry.getSubject().getURI());
+			if (matcher1.find() && entry.getObject().isLiteral())
+				returnedList.put(matcher1.group(1), entry.getObject().asLiteral().getLong());
 		}
-		qe.close();
+		statements.close();
 		return returnedList;
 	}
 
 	public void learnFromOtherOntology(MapaModel otherModel) {
-		for (String open : otherModel.getClosedNodes()) {
+		for (String open : otherModel.getOpenNodes()) {
 			addNode(open, NodeType.Open);
 		}
 		for (String closed : otherModel.getClosedNodes()) {
@@ -449,106 +473,54 @@ public class MapaModel {
 		for (Pair<String, String> edge : otherModel.getEdges()) {
 			this.addAdjancency(edge.getKey(), edge.getValue());
 		}
-		/*
-		 * {
-		 * Map<String, Long> ourUpdateTimes = getUpdatetimesAgents();
-		 * //System.out.println("Our times: " + ourUpdateTimes);
-		 * for (Entry<String, Long> agentUpdate :
-		 * otherModel.getUpdatetimesAgents().entrySet()) {
-		 * //System.out.println("Info Agent: " + agentUpdate);
-		 * if (ourUpdateTimes.containsKey(agentUpdate.getKey()) &&
-		 * ourUpdateTimes.get(agentUpdate.getKey()) > agentUpdate.getValue()) {
-		 * //System.out.println("We have: " + ourUpdateTimes.get(agentUpdate.getKey()));
-		 * continue;
-		 * }
-		 * System.out.println("Importing: " + agentUpdate);
-		 * addAgent(agentUpdate.getKey(),
-		 * otherModel.getAgentType(agentUpdate.getKey()));
-		 * addAgentPos(agentUpdate.getKey(),
-		 * otherModel.getAgentLocation(agentUpdate.getKey()));
-		 * updateEntityTime(getAgent(agentUpdate.getKey()), agentUpdate.getValue());
-		 * }
-		 * }
-		 * Map<String, Long> ourUpdateTimes = getUpdatetimesMinerals();
-		 * for (Entry<String, Long> mineralUpdate :
-		 * otherModel.getUpdatetimesMinerals().entrySet()) {
-		 * if (ourUpdateTimes.containsKey(mineralUpdate.getKey()) &&
-		 * ourUpdateTimes.get(mineralUpdate.getKey()) > mineralUpdate.getValue())
-		 * continue;
-		 * 
-		 * addMineral(mineralUpdate.getKey(),
-		 * otherModel.getMineralType(mineralUpdate.getKey()));
-		 * Couple<String, String> locInfo =
-		 * otherModel.getMineralLocation(mineralUpdate.getKey());
-		 * if (locInfo.getLeft() != null) addMineralCarried(mineralUpdate.getKey(),
-		 * locInfo.getLeft());
-		 * else if (locInfo.getRight() != null) addMineralPos(mineralUpdate.getKey(),
-		 * locInfo.getRight());
-		 * updateEntityTime(getMineral(mineralUpdate.getKey()),
-		 * mineralUpdate.getValue());
-		 * }
-		 */
+		{
+			Map<String, Long> ourUpdateTimes = getUpdatetimesAgents();
+			// System.out.println("Our times: " + ourUpdateTimes);
+			for (Entry<String, Long> agentUpdate : otherModel.getUpdatetimesAgents().entrySet()) {
+				// System.out.println("Info Agent: " + agentUpdate);
+				if (ourUpdateTimes.containsKey(agentUpdate.getKey())
+						&& ourUpdateTimes.get(agentUpdate.getKey()) > agentUpdate.getValue()) {
+					// System.out.println("We have: " + ourUpdateTimes.get(agentUpdate.getKey()));
+					continue;
+				}
+				// System.out.println("Importing: " + agentUpdate);
+				AgentConstantInfo infoConstant = otherModel.getAgentConstantInfo(agentUpdate.getKey());
+				addAgent(agentUpdate.getKey(), infoConstant.type, infoConstant.goldCapacity, infoConstant.diamondCapacity,
+						infoConstant.lockpickLevel);
+				AgentInfo info = otherModel.getAgentInfo(agentUpdate.getKey());
+				addAgentInfo(agentUpdate.getKey(), info.goldAmount, info.diamondAmount);
+				addAgentPos(agentUpdate.getKey(), otherModel.getAgentLocation(agentUpdate.getKey()));
+				updateEntityTime(getAgent(agentUpdate.getKey()), agentUpdate.getValue());
+			}
+		}
+		{
+			Map<String, Long> ourUpdateTimes = getUpdatetimesCells();
+			for (Entry<String, Long> cellUpdate : otherModel.getUpdatetimesCells().entrySet()) {
+				if (ourUpdateTimes.containsKey(cellUpdate.getKey())
+						&& ourUpdateTimes.get(cellUpdate.getKey()) > cellUpdate.getValue()) {
+					continue;
+				}
+				NodeInfo info = otherModel.getCellInfo(cellUpdate.getKey());
+				addNodeInfo(cellUpdate.getKey(), info.goldAmount, info.diamondAmount, info.lockpickLevel);
+				updateEntityTime(getCell(cellUpdate.getKey()), cellUpdate.getValue());
+			}
+		}
 	}
 
 	public Map<String, String> getAgentPositions() {
-		Query query = QueryFactory.create(
-				"PREFIX mapa: <http://mapa#> " +
-						"SELECT ?Agent ?Position where {" +
-						" ?Agent a ?Type ;" +
-						"  mapa:LocatedAt ?Position ." +
-						"  FILTER(?Type IN (mapa:Explorer, mapa:Recollector, mapa:Storage) )" +
-						"}");
-
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet result = qe.execSelect();
+		StmtIterator statements = model.listStatements((Resource) null, model.getProperty(mapa("LocatedAt")),
+				(RDFNode) null);
 		HashMap<String, String> returnedList = new HashMap<String, String>();
-		while (result.hasNext()) {
-			QuerySolution entry = result.next();
-			Matcher matcher1 = patternIdAgent.matcher(entry.get("Agent").toString());
-			Matcher matcher2 = patternIdCell.matcher(entry.get("Position").toString());
+		while (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher1 = patternIdAgent.matcher(entry.getSubject().getURI());
+			Matcher matcher2 = patternIdCell.matcher(entry.getObject().asResource().getURI());
 			if (matcher1.find() && matcher2.find())
 				returnedList.put(matcher1.group(1), matcher2.group(1));
 		}
-		qe.close();
+		statements.close();
 		return returnedList;
 	}
-
-	/*
-	 * public void removeAllAgentPositionsInSet(Set<String> agentNames) {
-	 * Query query = QueryFactory.create
-	 * (
-	 * "PREFIX mapa: <http://mapa#> " +
-	 * "SELECT ?Agent ?Position where {" +
-	 * " ?Agent a ?Type ;" +
-	 * "  mapa:LocatedAt ?Position ." +
-	 * "  FILTER(?Type IN (mapa:Explorer, mapa:Recollector, mapa:Storage) )" +
-	 * "}"
-	 * );
-	 * 
-	 * QueryExecution qe = QueryExecutionFactory.create(query, model);
-	 * ResultSet result = qe.execSelect();
-	 * HashMap<String, String> removals = new HashMap<String, String>();
-	 * while (result.hasNext()) {
-	 * QuerySolution entry = result.next();
-	 * 
-	 * String position = null;
-	 * String agent = null;
-	 * Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-	 * if (matcher.find()) position = matcher.group(1);
-	 * matcher = patternIdAgent.matcher(entry.get("Agent").toString());
-	 * if (matcher.find()) agent = matcher.group(1);
-	 * if (agent == null || position == null || !agentNames.contains(agent))
-	 * continue;
-	 * removals.put(agent, position);
-	 * }
-	 * qe.close();
-	 * for (Entry<String, String> agentPosition : removals.entrySet()) {
-	 * model.remove(new StatementImpl(getAgent(agentPosition.getKey()),
-	 * model.getProperty(mapa("LocatedAt")), getCell(agentPosition.getValue())));
-	 * }
-	 * ++revision;
-	 * }
-	 */
 
 	public String getOntology() {
 		ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -564,229 +536,118 @@ public class MapaModel {
 	}
 
 	public Set<String> getClosedNodes() {
-		Query query = QueryFactory.create(
-				"PREFIX mapa: <http://mapa#> " +
-						"SELECT ?Node where {" +
-						" ?Node a mapa:Closed ." +
-						"}");
-
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet result = qe.execSelect();
+		StmtIterator statements = model.listStatements((Resource) null,
+				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), model.getResource(mapa("Closed")));
 		Set<String> returnedList = new HashSet<String>();
-		while (result.hasNext()) {
-			QuerySolution entry = result.next();
-			Matcher matcher = patternIdCell.matcher(entry.get("Node").toString());
+		while (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher = patternIdCell.matcher(entry.getSubject().getURI());
 			if (matcher.find())
 				returnedList.add(matcher.group(1));
 		}
-		qe.close();
+		statements.close();
 		return returnedList;
 	}
 
 	public Set<String> getOpenNodes() {
-		Query query = QueryFactory.create(
-				"PREFIX mapa: <http://mapa#> " +
-						"SELECT ?Node where {" +
-						" ?Node a mapa:Open ." +
-						"}");
-
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet result = qe.execSelect();
+		StmtIterator statements = model.listStatements((Resource) null,
+				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), model.getResource(mapa("Open")));
 		Set<String> returnedList = new HashSet<String>();
-		while (result.hasNext()) {
-			QuerySolution entry = result.next();
-			Matcher matcher = patternIdCell.matcher(entry.get("Node").toString());
+		while (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher = patternIdCell.matcher(entry.getSubject().getURI());
 			if (matcher.find())
 				returnedList.add(matcher.group(1));
 		}
-		qe.close();
+		statements.close();
 		return returnedList;
 	}
 
 	public Set<String> getWindyNodes() {
-		Query query = QueryFactory.create(
-				"PREFIX mapa: <http://mapa#> " +
-						"SELECT ?Node where {" +
-						" ?Node a mapa:Windy ." +
-						"}");
-
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet result = qe.execSelect();
+		StmtIterator statements = model.listStatements((Resource) null,
+				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), model.getResource(mapa("Windy")));
 		Set<String> returnedList = new HashSet<String>();
-		while (result.hasNext()) {
-			QuerySolution entry = result.next();
-			Matcher matcher = patternIdCell.matcher(entry.get("Node").toString());
+		while (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher = patternIdCell.matcher(entry.getSubject().getURI());
 			if (matcher.find())
 				returnedList.add(matcher.group(1));
 		}
-		qe.close();
+		statements.close();
 		return returnedList;
 	}
 
 	public Set<Pair<String, String>> getEdges() {
-		Query query = QueryFactory.create(
-				"PREFIX mapa: <http://mapa#> " +
-						"SELECT ?Node1 ?Node2 where {" +
-						" ?Node1 mapa:Adjacent ?Node2 ." +
-						"}");
-
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet result = qe.execSelect();
+		StmtIterator statements = model.listStatements((Resource) null, model.getProperty(mapa("Adjacent")),
+				(RDFNode) null);
 		Set<Pair<String, String>> returnedList = new HashSet<Pair<String, String>>();
-		while (result.hasNext()) {
-			QuerySolution entry = result.next();
-			Matcher matcher1 = patternIdCell.matcher(entry.get("Node1").toString());
-			Matcher matcher2 = patternIdCell.matcher(entry.get("Node2").toString());
+		while (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher1 = patternIdCell.matcher(entry.getSubject().getURI());
+			Matcher matcher2 = patternIdCell.matcher(entry.getObject().asResource().getURI());
 			if (matcher1.find() && matcher2.find())
 				returnedList.add(new Pair<String, String>(matcher1.group(1), matcher2.group(1)));
 		}
-		qe.close();
+		statements.close();
 		return returnedList;
 	}
-
-	/*
-	 * public void removeClosedNodes(Set<String> closedNodes) {
-	 * Query query = QueryFactory.create
-	 * (
-	 * "PREFIX mapa: <http://mapa#> " +
-	 * "SELECT ?Node where {" +
-	 * " ?Node a mapa:Open ." +
-	 * "}"
-	 * );
-	 * 
-	 * QueryExecution qe = QueryExecutionFactory.create(query, model);
-	 * ResultSet result = qe.execSelect();
-	 * ArrayList<String> positions = new ArrayList<String>();
-	 * while (result.hasNext()) {
-	 * QuerySolution entry = result.next();
-	 * 
-	 * String position = null;
-	 * Matcher matcher = patternIdCell.matcher(entry.get("Node").toString());
-	 * if (matcher.find()) position = matcher.group(1);
-	 * if (position == null || !closedNodes.contains(position))
-	 * continue;
-	 * positions.add(position);
-	 * }
-	 * qe.close();
-	 * for (String position : positions) {
-	 * model.remove(new StatementImpl(
-	 * getCell(position),
-	 * model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"),
-	 * model.getResource(mapa("Open"))));
-	 * }
-	 * ++revision;
-	 * }
-	 */
 
 	public void replaceModel(MapaModel mapa) {
 		++revision;
 		this.model = mapa.model;
+		this.adjacencyCache.clear();
+		this.agentCache.clear();
+		this.agentPosCache.clear();
+		this.nodeCache.clear();
+		this.windyCache.clear();
 	}
 
 	public String getObjectiveLocation(String agentId) {
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Position where {" +
-							"  mapa:Instance_" + agentId + "_agent mapa:IntendsToWalkTo ?Position ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-				if (matcher.find()) {
-					return matcher.group(1);
-				}
+		StmtIterator statements = model.listStatements(getAgent(agentId), model.getProperty(mapa("IntendsToWalkTo")),
+				(RDFNode) null);
+		if (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher = patternIdCell.matcher(entry.getObject().asResource().getURI());
+			if (matcher.find()) {
+				String pos = matcher.group(1);
+				statements.close();
+				return pos;
 			}
 		}
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Position where {" +
-							"  mapa:Instance_" + agentId + "_agent mapa:LocatedAt ?Position ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-				if (matcher.find()) {
-					return matcher.group(1);
-				}
-			}
-		}
+		statements.close();
 		return null;
-	}
 
-	// Left - Carried by
-	// Right - Located at
-	public Couple<String, String> getMineralLocation(String mineralId) {
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Position where {" +
-							"  mapa:Instance_" + mineralId + "_resource mapa:LocatedAt ?Position ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-				if (matcher.find()) {
-					return new Couple<String, String>(null, matcher.group(1));
-				}
-			}
-		}
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Agent where {" +
-							"  mapa:Instance_" + mineralId + "_resource mapa:CarriedBy ?Agent ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdAgent.matcher(entry.get("Agent").toString());
-				if (matcher.find()) {
-					return new Couple<String, String>(matcher.group(1), null);
-				}
-			}
-		}
-		return null;
 	}
 
 	public String getAgentLocation(String agentId) {
-		{
-			Query query = QueryFactory.create(
-					"PREFIX mapa: <http://mapa#> " +
-							"SELECT ?Position where {" +
-							"  mapa:Instance_" + agentId + "_agent mapa:LocatedAt ?Position ." +
-							"}");
-
-			QueryExecution qe = QueryExecutionFactory.create(query, model);
-			ResultSet result = qe.execSelect();
-			if (result.hasNext()) {
-				QuerySolution entry = result.next();
-				Matcher matcher = patternIdCell.matcher(entry.get("Position").toString());
-				if (matcher.find()) {
-					return matcher.group(1);
-				}
+		String locCache = agentPosCache.get(agentId);
+		if (locCache != null) {
+			return locCache;
+		}
+		StmtIterator statements = model.listStatements(getAgent(agentId), model.getProperty(mapa("LocatedAt")),
+				(RDFNode) null);
+		if (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher = patternIdCell.matcher(entry.getObject().asResource().getURI());
+			if (matcher.find()) {
+				String pos = matcher.group(1);
+				agentPosCache.put(agentId, pos);
+				statements.close();
+				return pos;
 			}
 		}
+		statements.close();
 		return null;
 	}
 
-	public boolean hasOpenNodes() {
+	public boolean hasOpenNotWindyNodes() {
 		Query query = QueryFactory.create(
 				"PREFIX mapa: <http://mapa#> " +
 						"SELECT ?Node where {" +
 						" ?Node a mapa:Open ." +
+						" FILTER NOT EXISTS {" +
+						"  ?Node a mapa:Windy ." +
+						" }" +
 						"}");
 
 		QueryExecution qe = QueryExecutionFactory.create(query, model);
@@ -795,14 +656,10 @@ public class MapaModel {
 	}
 
 	public boolean hasClosedNodes() {
-		Query query = QueryFactory.create(
-				"PREFIX mapa: <http://mapa#> " +
-						"SELECT ?Node where {" +
-						" ?Node a mapa:Closed ." +
-						"}");
-
-		QueryExecution qe = QueryExecutionFactory.create(query, model);
-		ResultSet result = qe.execSelect();
-		return result.hasNext();
+		StmtIterator statements = model.listStatements((Resource) null,
+				model.getProperty("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"), model.getResource(mapa("Closed")));
+		boolean hasClosed = (statements.hasNext());
+		statements.close();
+		return hasClosed;
 	}
 }

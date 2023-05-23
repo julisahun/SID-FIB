@@ -143,10 +143,11 @@ public class Utils {
   // className));
   // }
 
-  public static void addIndividual(Agent a, String className, String instance) {
-    OntModel ont = getOntology(a);
-    addIndividual(ont, className, instance);
-  }
+  // public static void addIndividual(Agent a, String className, String instance)
+  // {
+  // OntModel ont = getOntology(a);
+  // addIndividual(ont, className, instance);
+  // }
 
   public static OntModel getOntology(Agent a) {
     SingleCapabilityAgent agent = (SingleCapabilityAgent) a;

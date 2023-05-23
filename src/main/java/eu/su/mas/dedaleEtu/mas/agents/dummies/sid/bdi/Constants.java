@@ -8,7 +8,12 @@ public class Constants {
             "SELECT ?Agent where {" +
             " ?Agent a example:Agent ." +
             "}";
-    public static String IS_SLAVE_ALIVE = "isSlaveAlive";
+    public static String EXPLORER_ALIVE = "explorerAlive";
+    public static String COLLECTOR_ALIVE = "collectorAlive";
+    public static String TANKER_ALIVE = "tankerAlive";
+    public static String EXPLORER_COMMANDED = "explorerCommanded";
+    public static String COLLECTOR_COMMANDED = "collectorCommanded";
+    public static String TANKER_COMMANDED = "tankerCommanded";
     public static String MAP = "map";
     public static String IS_FULL_EXPLORED = "isFullExplored";
     public static String COMMAND_SENT = "commandSent";

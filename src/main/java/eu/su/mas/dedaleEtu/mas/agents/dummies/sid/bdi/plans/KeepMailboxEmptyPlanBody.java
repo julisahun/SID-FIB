@@ -35,7 +35,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			((BDIAgent) this.myAgent).addGoal(commandSentGoal);
 			GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
 			Plan commandSentPlan = new DefaultPlan(
-					commandSentTemplate, CommandSentPlanBody.class);
+					commandSentTemplate, CommandExplorerPlanBody.class);
 			getCapability().getPlanLibrary().addPlan(commandSentPlan);
 		}
 		setEndState(Plan.EndState.SUCCESSFUL);
@@ -65,37 +65,35 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		String sender = msg.getSender().getLocalName();
 		String content = msg.getContent();
 		JSONObject body = new JSONObject(content);
-		if (sender.equals("slave")) {
-			String status = body.getString("status");
-			if (status.equals("failure")) {
-				String rejectedNode = body.getString("position");
-				addRejectedNode(rejectedNode);
-			} else if (status.equals("finished")) {
-				Belief isFullExplored = getBeliefBase().getBelief(IS_FULL_EXPLORED);
-				isFullExplored.setValue(true);
-			} else if (status.equals("pong")) {
-				HashMap map = new HashMap<>();
-				String stringMap = body.getString("map");
-				JSONObject jsonMap = new JSONObject(stringMap);
-				for (String node : jsonMap.keySet()) {
-					HashSet<String> neighbors = new HashSet<>();
+		String status = body.getString("status");
+		if (status.equals("failure")) {
+			String rejectedNode = body.getString("position");
+			addRejectedNode(rejectedNode);
+		} else if (status.equals("finished")) {
+			Belief isFullExplored = getBeliefBase().getBelief(IS_FULL_EXPLORED);
+			isFullExplored.setValue(true);
+		} else if (status.equals("pong")) {
+			HashMap map = new HashMap<>();
+			String stringMap = body.getString("map");
+			JSONObject jsonMap = new JSONObject(stringMap);
+			for (String node : jsonMap.keySet()) {
+				HashSet<String> neighbors = new HashSet<>();
 
-					for (Object neighbor : jsonMap.getJSONObject(node).getJSONArray("neighbors")) {
-						neighbors.add((String) neighbor);
-					}
-					Boolean closed = neighbors.size() > 0;
-					map.put(node, new Couple<Boolean, HashSet<String>>(closed, neighbors));
+				for (Object neighbor : jsonMap.getJSONObject(node).getJSONArray("neighbors")) {
+					neighbors.add((String) neighbor);
 				}
-				Belief mapBelief = getBeliefBase().getBelief(MAP);
-				mapBelief.setValue(map);
-				Belief b = getBeliefBase().getBelief(IS_SLAVE_ALIVE);
-				b.setValue(true);
-				return;
+				Boolean closed = neighbors.size() > 0;
+				map.put(node, new Couple<Boolean, HashSet<String>>(closed, neighbors));
 			}
-			Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
-			commandSent.setValue(false);
-			updateMap(body.getString("map"));
+			Belief mapBelief = getBeliefBase().getBelief(MAP);
+			mapBelief.setValue(map);
+			Belief b = getBeliefBase().getBelief(msg.getSender().getLocalName() + "Alive");
+			b.setValue(true);
+			return;
 		}
+		Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
+		commandSent.setValue(false);
+		updateMap(body.getString("map"));
 	}
 
 	private HashMap parseMap(String stringMap) {
