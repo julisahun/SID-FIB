@@ -34,7 +34,7 @@ public class ExplorerAgent extends AbstractDedaleAgent {
     protected void setup() {
         super.setup();
         List<Behaviour> lb = new ArrayList<>();
-        lb.add(new RegisterToDF(this, "explorer", "explorer"));
+        lb.add(new RegisterToDF(this, "explorer", "situated"));
         lb.add(new MessageMapper(this));
         addBehaviour(new startMyBehaviours(this, lb));
         this.messages = new HashMap<>();

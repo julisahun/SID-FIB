@@ -11,13 +11,12 @@ public class Constants {
     public static String EXPLORER_ALIVE = "explorerAlive";
     public static String COLLECTOR_ALIVE = "collectorAlive";
     public static String TANKER_ALIVE = "tankerAlive";
-    public static String EXPLORER_COMMANDED = "explorerCommanded";
-    public static String COLLECTOR_COMMANDED = "collectorCommanded";
-    public static String TANKER_COMMANDED = "tankerCommanded";
     public static String MAP = "map";
     public static String IS_FULL_EXPLORED = "isFullExplored";
     public static String COMMAND_SENT = "commandSent";
     public static String REJECTED_NODES = "rejectedNodes";
     public static String MAILBOX_EMPTY = "mailboxEmpty";
     public static String SITUATED_PINGED = "situatedPinged";
+    public static String SITUATED_COMMANDED = "situatedCommanded";
+    public static String PING_SEND = "pingSend";
 }

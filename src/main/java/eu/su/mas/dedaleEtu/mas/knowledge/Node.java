@@ -46,6 +46,14 @@ public class Node {
     return this.status;
   }
 
+  public Integer getTimeVisited() {
+    return this.timeVisited;
+  }
+
+  public void visit() {
+    this.timeVisited++;
+  }
+
   public HashSet<String> getNeighbors() {
     return this.neighbors;
   }

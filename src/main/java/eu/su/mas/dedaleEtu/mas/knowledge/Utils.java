@@ -18,6 +18,10 @@ import java.nio.file.Paths;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
+import jade.domain.DFService;
+import jade.domain.FIPAException;
+import jade.domain.FIPAAgentManagement.DFAgentDescription;
+import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 
 import org.apache.jena.ontology.Individual;
@@ -108,6 +112,25 @@ public class Utils {
     } catch (Exception e) {
       e.printStackTrace();
     }
+  }
+
+  public static String findAgent(Agent a, String name) {
+    DFAgentDescription template = new DFAgentDescription();
+    ServiceDescription templateSd = new ServiceDescription();
+    templateSd.setType("situated");
+    template.addServices(templateSd);
+    try {
+      DFAgentDescription[] results = DFService.search(a, template);
+      if (results.length > 0) {
+        DFAgentDescription dfd = results[0];
+        String result = dfd.getName().getLocalName();
+        if (result.contains(name))
+          return result;
+      }
+    } catch (FIPAException e) {
+      e.printStackTrace();
+    }
+    return null;
   }
 
   // public static void addProperty(OntModel ont, String from, String property,

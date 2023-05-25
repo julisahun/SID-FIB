@@ -31,12 +31,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		} else if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
 			handleReject(msg);
 		} else {
-			Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, false);
-			((BDIAgent) this.myAgent).addGoal(commandSentGoal);
-			GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
-			Plan commandSentPlan = new DefaultPlan(
-					commandSentTemplate, CommandExplorerPlanBody.class);
-			getCapability().getPlanLibrary().addPlan(commandSentPlan);
+
 		}
 		setEndState(Plan.EndState.SUCCESSFUL);
 	}
@@ -73,6 +68,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			Belief isFullExplored = getBeliefBase().getBelief(IS_FULL_EXPLORED);
 			isFullExplored.setValue(true);
 		} else if (status.equals("pong")) {
+			System.out.println("Pong from " + sender);
 			HashMap map = new HashMap<>();
 			String stringMap = body.getString("map");
 			JSONObject jsonMap = new JSONObject(stringMap);

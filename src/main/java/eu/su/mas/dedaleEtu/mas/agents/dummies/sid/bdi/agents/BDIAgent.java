@@ -17,11 +17,12 @@ import bdi4jade.core.GoalUpdateSet.GoalDescription;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.GoalTest;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.PlanBodyTest;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SPARQLGoal;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.goals.CommandGoal;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.goals.PingAgentGoal;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.CommandExplorerPlanBody;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.CommandPlanBody;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.KeepMailboxEmptyPlanBody;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.PingAgentPlanBody;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.RegisterPlanBody;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.AgentListeningPlanBody;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
@@ -36,7 +37,6 @@ import org.apache.jena.rdf.model.ModelFactory;
 import org.json.JSONObject;
 
 import java.sql.Timestamp;
-import java.net.URL;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -49,7 +49,8 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 public class BDIAgent extends SingleCapabilityAgent {
 
     private ArrayList<String> messages = new ArrayList<>();
-
+    public static String situatedName = "explorer";
+    private Goal pingAgentGoal;
     private HashMap<String, Goal> pingGoals = new HashMap<>();
 
     public BDIAgent() {
@@ -62,53 +63,39 @@ public class BDIAgent extends SingleCapabilityAgent {
         Belief<String, Boolean> isCollectorAlive = new TransientPredicate<String>(COLLECTOR_ALIVE, false);
         Belief<String, Boolean> isTankerAlive = new TransientPredicate<String>(TANKER_ALIVE, false);
 
-        Belief<String, Boolean> explorerCommanded = new TransientPredicate<String>(EXPLORER_COMMANDED, false);
-        Belief<String, Boolean> collectorCommanded = new TransientPredicate<String>(COLLECTOR_COMMANDED, false);
-        Belief<String, Boolean> tankerCommanded = new TransientPredicate<String>(TANKER_COMMANDED, false);
+        Belief<String, Boolean> situatedPinged = new TransientPredicate<String>(SITUATED_PINGED, false);
+        Belief<String, Boolean> situatedCommanded = new TransientPredicate<String>(SITUATED_COMMANDED, false);
 
         Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
 
         Belief<String, HashSet> rejectedNodes = new TransientBelief<String, HashSet>(REJECTED_NODES, new HashSet<>());
 
-        Goal pingExplorerGoal = new PingAgentGoal("explorer");
-        Goal pingCollectorGoal = new PingAgentGoal("collector");
-        Goal pingTankerGoal = new PingAgentGoal("tanker");
-
-        this.pingGoals.put("explorer", pingExplorerGoal);
-        this.pingGoals.put("collector", pingCollectorGoal);
-        this.pingGoals.put("tanker", pingTankerGoal);
-
         // Add initial desires
         Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
-        Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
-        Goal situatedPingedGoal = new PredicateGoal<String>(SITUATED_PINGED, true);
-
+        this.pingAgentGoal = new PingAgentGoal(BDIAgent.situatedName);
+        Goal commandGoal = new CommandGoal(BDIAgent.situatedName);
         addGoal(registerGoal);
 
         // Declare goal templates
         GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
-        GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
-        GoalTemplate situatedPingedTemplate = matchesGoal(situatedPingedGoal);
+        GoalTemplate commandSentTemplate = matchesGoal(commandGoal);
 
-        GoalTemplate pingAgentGoalTemplate = matchesGoals(List.of(pingExplorerGoal, pingCollectorGoal, pingTankerGoal));
+        GoalTemplate pingAgentGoalTemplate = matchesGoal(this.pingAgentGoal);
 
         // Assign plan bodies to goals
         Plan registerPlan = new DefaultPlan(
                 registerGoalTemplate, RegisterPlanBody.class);
         Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
                 KeepMailboxEmptyPlanBody.class);
-        Plan situatedListeningPlan = new DefaultPlan(
-                situatedPingedTemplate, AgentListeningPlanBody.class);
         Plan commandSentPlan = new DefaultPlan(
-                commandSentTemplate, CommandExplorerPlanBody.class);
+                commandSentTemplate, CommandPlanBody.class);
 
         Plan pingExplorerPlan = new DefaultPlan(
-                pingAgentGoalTemplate, AgentListeningPlanBody.class);
+                pingAgentGoalTemplate, PingAgentPlanBody.class);
 
         // Init plan library
         getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
         getCapability().getPlanLibrary().addPlan(registerPlan);
-        getCapability().getPlanLibrary().addPlan(situatedListeningPlan);
         getCapability().getPlanLibrary().addPlan(commandSentPlan);
         getCapability().getPlanLibrary().addPlan(pingExplorerPlan);
 
@@ -123,10 +110,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(isExplorerAlive);
         getCapability().getBeliefBase().addBelief(isCollectorAlive);
         getCapability().getBeliefBase().addBelief(isTankerAlive);
-
-        getCapability().getBeliefBase().addBelief(explorerCommanded);
-        getCapability().getBeliefBase().addBelief(collectorCommanded);
-        getCapability().getBeliefBase().addBelief(tankerCommanded);
+        getCapability().getBeliefBase().addBelief(situatedPinged);
 
         // Add a goal listener to track events
         enableGoalMonitoring();
@@ -142,27 +126,6 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
-                Boolean commandSent = (Boolean) getCapability().getBeliefBase().getBelief(EXPLORER_COMMANDED)
-                        .getValue();
-                if (!commandSent) {
-
-                }
-
-                Belief map = getCapability().getBeliefBase().getBelief(MAP);
-                HashMap<String, Couple<Boolean, HashSet<String>>> mapValue = (HashMap<String, Couple<Boolean, HashSet<String>>>) map
-                        .getValue();
-                for (String key : mapValue.keySet()) {
-                    Couple<Boolean, HashSet<String>> nodeInfo = mapValue.get(key);
-                    Boolean status = nodeInfo.getLeft();
-                    if (!status) {
-                        return;
-                    }
-                }
-                if (mapValue.size() == 0)
-                    return;
-                Belief isFullExplored = getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED);
-                isFullExplored.setValue(true);
-
                 // This method should check belief base consistency,
                 // make new inferences, etc.
                 // The default implementation does nothing
@@ -183,20 +146,11 @@ public class BDIAgent extends SingleCapabilityAgent {
                 Boolean isTankerAlive = (Boolean) getCapability().getBeliefBase().getBelief(TANKER_ALIVE).getValue();
 
                 if (imRegistered) {
-                    if (!isExplorerAlive) {
-                        System.out.println("Explorer is dead");
-                        Goal ping = pingGoals.get("explorer");
-                        agentGoalUpdateSet.generateGoal(ping);
-                    }
-                    if (!isCollectorAlive) {
-                        System.out.println("Collector is dead");
-                        Goal ping = pingGoals.get("collector");
-                        agentGoalUpdateSet.generateGoal(ping);
-                    }
-                    if (!isTankerAlive) {
-                        System.out.println("Tanker is dead");
-                        Goal ping = pingGoals.get("tanker");
-                        agentGoalUpdateSet.generateGoal(ping);
+                    if (!isExplorerAlive && !isCollectorAlive && !isTankerAlive) {
+                        Belief pingSent = getCapability().getBeliefBase().getBelief(SITUATED_PINGED);
+                        if (!(Boolean) pingSent.getValue()) {
+                            agentGoalUpdateSet.generateGoal(pingAgentGoal);
+                        }
                     }
                 }
 
@@ -248,8 +202,6 @@ public class BDIAgent extends SingleCapabilityAgent {
             @Override
             public Set<Goal> filter(Set<GoalDescription> agentGoals,
                     Map<Capability, Set<GoalDescription>> capabilityGoals) {
-                for (GoalDescription a : agentGoals) {
-                }
                 return agentGoals.stream().map(GoalDescription::getGoal).collect(java.util.stream.Collectors.toSet());
             }
         });
