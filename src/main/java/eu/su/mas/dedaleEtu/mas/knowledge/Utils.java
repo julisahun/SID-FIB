@@ -1,7 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.knowledge;
 
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.ExplorerAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.MessageSender;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
@@ -50,7 +50,7 @@ public class Utils {
   }
 
   public static String registerBehaviour(Agent a, Behaviour b, String id) {
-    ExplorerAgent agent = (ExplorerAgent) a;
+    SituatedAgent agent = (SituatedAgent) a;
     agent.registerBehaviour(id, b, BehaviourStatus.NOT_ACTIVE);
     return id;
   }
@@ -65,17 +65,17 @@ public class Utils {
   }
 
   public static void activateBehaviour(Agent a, String id) {
-    ExplorerAgent agent = (ExplorerAgent) a;
+    SituatedAgent agent = (SituatedAgent) a;
     agent.updateStatus(id, BehaviourStatus.ACTIVE);
   }
 
   public static void finishBehaviour(Agent a, String id, Integer code) {
-    ExplorerAgent agent = (ExplorerAgent) a;
+    SituatedAgent agent = (SituatedAgent) a;
     agent.updateStatus(id, code == 0 ? BehaviourStatus.SUCCEEDED : BehaviourStatus.FAILED, code);
   }
 
   public static Integer getStatusCode(Agent a, String id) {
-    ExplorerAgent agent = (ExplorerAgent) a;
+    SituatedAgent agent = (SituatedAgent) a;
     return agent.getStatus(id).getRight();
   }
 

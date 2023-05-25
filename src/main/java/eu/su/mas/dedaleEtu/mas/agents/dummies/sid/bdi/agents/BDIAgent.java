@@ -111,6 +111,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(isCollectorAlive);
         getCapability().getBeliefBase().addBelief(isTankerAlive);
         getCapability().getBeliefBase().addBelief(situatedPinged);
+        getCapability().getBeliefBase().addBelief(situatedCommanded);
 
         // Add a goal listener to track events
         enableGoalMonitoring();
@@ -150,30 +151,26 @@ public class BDIAgent extends SingleCapabilityAgent {
                         Belief pingSent = getCapability().getBeliefBase().getBelief(SITUATED_PINGED);
                         if (!(Boolean) pingSent.getValue()) {
                             agentGoalUpdateSet.generateGoal(pingAgentGoal);
+                            return;
                         }
                     }
                 }
 
-                // agentGoalUpdateSet.getCurrentGoals().forEach(goal -> {
-                // System.out.println("Current goal: " + goal);
-                // });
-                // Boolean commandSent = (Boolean)
-                // getCapability().getBeliefBase().getBelief(COMMAND_SENT).getValue();
-                // Boolean isSlaveAlive = (Boolean)
-                // getCapability().getBeliefBase().getBelief(IS_SLAVE_ALIVE).getValue();
-                // Boolean isFinished = (Boolean)
-                // getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED).getValue();
-                // if (isSlaveAlive && !commandSent &&
-                // agentGoalUpdateSet.getCurrentGoals().size() == 0 && !isFinished) {
-                // Goal commandSentGoal = new PredicateGoal<String>(COMMAND_SENT, true);
-                // GoalTemplate commandSentTemplate = matchesGoal(commandSentGoal);
-                // Plan commandSentPlan = new DefaultPlan(
-                // commandSentTemplate, CommandExplorerPlanBody.class);
-                // getCapability().getPlanLibrary().addPlan(commandSentPlan);
-                // agentGoalUpdateSet.generateGoal((commandSentGoal));
-                // }
+                if (isExplorerAlive) {
+                    Boolean situatedCommanded = (Boolean) getCapability().getBeliefBase()
+                            .getBelief(SITUATED_COMMANDED).getValue();
+                    if (!situatedCommanded) {
+                        System.out.println("Sending command to explorer");
+                        agentGoalUpdateSet.generateGoal(new CommandGoal(getNextExplorerCommand()));
+                        return;
+                    }
+                }
             }
         });
+    }
+
+    private String getNextExplorerCommand() {
+
     }
 
     public void addMessage(ACLMessage msg) {
@@ -187,7 +184,6 @@ public class BDIAgent extends SingleCapabilityAgent {
         body.put("performative", performative);
         body.put("content", content);
         body.put("timestamp", timestamp);
-
         this.messages.add(body.toString());
     }
 
@@ -232,7 +228,8 @@ public class BDIAgent extends SingleCapabilityAgent {
         return new GoalTemplate() {
             @Override
             public boolean match(Goal goal) {
-                return goal == goalToMatch;
+                return goal.getClass().equals(goalToMatch.getClass());
+                // return goal == goalToMatch;
             }
         };
     }

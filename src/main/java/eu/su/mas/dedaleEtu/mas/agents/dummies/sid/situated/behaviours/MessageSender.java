@@ -1,6 +1,6 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours;
 
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.ExplorerAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.AID;
 import jade.core.Agent;

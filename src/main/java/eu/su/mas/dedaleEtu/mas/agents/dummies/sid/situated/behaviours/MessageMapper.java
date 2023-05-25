@@ -10,7 +10,7 @@ import dataStructures.tuple.Couple;
 import jade.core.behaviours.Behaviour;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.ExplorerAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.Agent;
 import eu.su.mas.dedale.env.Location;
@@ -110,8 +110,8 @@ public class MessageMapper extends OneShotBehaviour {
     this.myAgent.addBehaviour(new Listener(this.myAgent, actions));
   }
 
-  private ExplorerAgent getSituatedAgent() {
-    return (ExplorerAgent) this.agent;
+  private SituatedAgent getSituatedAgent() {
+    return (SituatedAgent) this.agent;
   }
 
 }

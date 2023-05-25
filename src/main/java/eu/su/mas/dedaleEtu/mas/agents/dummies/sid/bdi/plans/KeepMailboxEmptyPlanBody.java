@@ -68,7 +68,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			Belief isFullExplored = getBeliefBase().getBelief(IS_FULL_EXPLORED);
 			isFullExplored.setValue(true);
 		} else if (status.equals("pong")) {
-			System.out.println("Pong from " + sender);
 			HashMap map = new HashMap<>();
 			String stringMap = body.getString("map");
 			JSONObject jsonMap = new JSONObject(stringMap);

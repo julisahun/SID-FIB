@@ -20,7 +20,7 @@ import org.json.JSONArray;
 
 import java.util.HashSet;
 
-public class ExplorerAgent extends AbstractDedaleAgent {
+public class SituatedAgent extends AbstractDedaleAgent {
 
     private MapRepresentation map;
     private HashMap<String, Node> nodes;
