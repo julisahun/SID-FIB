@@ -14,7 +14,6 @@ public class PingAgentPlanBody extends AbstractPlanBody {
     PingAgentGoal goal = (PingAgentGoal) getGoal();
     String agentToPing = goal.getAgent();
     agentToPing = Utils.findAgent(myAgent, agentToPing);
-    System.out.println("Agent " + agentToPing + " not found");
     if (agentToPing == null) {
       setEndState(Plan.EndState.FAILED);
       return;

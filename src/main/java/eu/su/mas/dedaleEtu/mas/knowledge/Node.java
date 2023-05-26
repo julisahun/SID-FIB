@@ -18,6 +18,7 @@ public class Node {
   }
 
   private Status status = Status.OPEN;
+  private String id;
   private Integer timeVisited = 0;
   private HashSet<String> neighbors = new HashSet<String>();
   private List<Couple<Observation, Integer>> observations = new ArrayList<Couple<Observation, Integer>>();
@@ -31,15 +32,17 @@ public class Node {
     }
   }
 
-  public Node(Status status, HashSet<String> neighbors, List<Couple<Observation, Integer>> observations) {
+  public Node(String id, Status status, HashSet<String> neighbors, List<Couple<Observation, Integer>> observations) {
     this.status = status;
     this.neighbors = neighbors;
     this.observations = observations;
+    this.id = id;
   }
 
-  public Node(Status status, HashSet<String> neighbors) {
+  public Node(String id, Status status, HashSet<String> neighbors) {
     this.status = status;
     this.neighbors = neighbors;
+    this.id = id;
   }
 
   public Status getStatus() {

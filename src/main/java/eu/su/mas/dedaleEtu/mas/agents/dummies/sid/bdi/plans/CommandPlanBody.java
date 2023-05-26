@@ -22,8 +22,6 @@ public class CommandPlanBody extends AbstractPlanBody {
     CommandGoal goal = (CommandGoal) getGoal();
     String command = goal.getCommand();
     sendCommand(command);
-    Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
-    commandSent.setValue(true);
     setEndState(Plan.EndState.SUCCESSFUL);
   }
 

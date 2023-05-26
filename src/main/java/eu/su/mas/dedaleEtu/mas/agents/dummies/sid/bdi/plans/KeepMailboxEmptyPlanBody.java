@@ -15,6 +15,7 @@ import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
+import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import jade.lang.acl.ACLMessage;
 
 public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
@@ -78,7 +79,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 					neighbors.add((String) neighbor);
 				}
 				Boolean closed = neighbors.size() > 0;
-				map.put(node, new Couple<Boolean, HashSet<String>>(closed, neighbors));
+				map.put(node, new Node(node, closed ? Node.Status.CLOSED : Node.Status.OPEN, neighbors));
 			}
 			Belief mapBelief = getBeliefBase().getBelief(MAP);
 			mapBelief.setValue(map);

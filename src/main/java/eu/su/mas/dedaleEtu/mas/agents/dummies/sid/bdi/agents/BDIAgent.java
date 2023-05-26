@@ -162,6 +162,8 @@ public class BDIAgent extends SingleCapabilityAgent {
                     if (!situatedCommanded) {
                         System.out.println("Sending command to explorer");
                         agentGoalUpdateSet.generateGoal(new CommandGoal(getNextExplorerCommand()));
+                        Belief commandSent = getCapability().getBeliefBase().getBelief(SITUATED_COMMANDED);
+                        commandSent.setValue(true);
                         return;
                     }
                 }
@@ -170,7 +172,15 @@ public class BDIAgent extends SingleCapabilityAgent {
     }
 
     private String getNextExplorerCommand() {
-
+        HashMap<String, Node> map = (HashMap<String, Node>) getCapability().getBeliefBase().getBelief(MAP).getValue();
+        HashSet<String> rejectedNodes = (HashSet<String>) getCapability().getBeliefBase().getBelief(REJECTED_NODES)
+                .getValue();
+        for (String node : map.keySet()) {
+            if (!rejectedNodes.contains(node) && map.get(node).getStatus() == Node.Status.OPEN) {
+                return node;
+            }
+        }
+        return "";
     }
 
     public void addMessage(ACLMessage msg) {

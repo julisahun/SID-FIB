@@ -68,21 +68,21 @@ public class SituatedAgent extends AbstractDedaleAgent {
             }
         }
         neighbors.add(node2);
-        this.nodes.put(node1, new Node(value.getStatus(), neighbors, value.getObservations()));
+        this.nodes.put(node1, new Node(node1, value.getStatus(), neighbors, value.getObservations()));
         if (!this.nodes.containsKey(node2)) {
-            this.nodes.put(node2, new Node(Node.Status.OPEN, new HashSet<String>(), observations));
+            this.nodes.put(node2, new Node(node2, Node.Status.OPEN, new HashSet<String>(), observations));
         }
     }
 
     public void addNode(String node) {
         if (!this.nodes.containsKey(node)) {
-            this.nodes.put(node, new Node(Node.Status.CLOSED, new HashSet<String>()));
+            this.nodes.put(node, new Node(node, Node.Status.CLOSED, new HashSet<String>()));
         }
     }
 
     public void closeNode(String node) {
         if (this.nodes.containsKey(node)) {
-            this.nodes.put(node, new Node(Node.Status.CLOSED, this.nodes.get(node).getNeighbors(),
+            this.nodes.put(node, new Node(node, Node.Status.CLOSED, this.nodes.get(node).getNeighbors(),
                     this.nodes.get(node).getObservations()));
         }
     }
