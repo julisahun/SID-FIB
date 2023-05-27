@@ -4,6 +4,7 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Queue;
 
 import bdi4jade.plan.DefaultPlan;
 import org.json.JSONObject;
@@ -15,6 +16,7 @@ import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
+import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import jade.lang.acl.ACLMessage;
 
@@ -58,7 +60,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void handleInform(ACLMessage msg) {
-		String sender = msg.getSender().getLocalName();
 		String content = msg.getContent();
 		JSONObject body = new JSONObject(content);
 		String status = body.getString("status");
@@ -69,32 +70,18 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			Belief isFullExplored = getBeliefBase().getBelief(IS_FULL_EXPLORED);
 			isFullExplored.setValue(true);
 		} else if (status.equals("pong")) {
-			HashMap map = new HashMap<>();
-			String stringMap = body.getString("map");
-			JSONObject jsonMap = new JSONObject(stringMap);
-			for (String node : jsonMap.keySet()) {
-				HashSet<String> neighbors = new HashSet<>();
-
-				for (Object neighbor : jsonMap.getJSONObject(node).getJSONArray("neighbors")) {
-					neighbors.add((String) neighbor);
-				}
-				Boolean closed = neighbors.size() > 0;
-				map.put(node, new Node(node, closed ? Node.Status.CLOSED : Node.Status.OPEN, neighbors));
-			}
-			Belief mapBelief = getBeliefBase().getBelief(MAP);
-			mapBelief.setValue(map);
-			Belief b = getBeliefBase().getBelief(msg.getSender().getLocalName() + "Alive");
+			String agentType = body.getString("agentType");
+			Belief b = getBeliefBase().getBelief(agentType + "Alive");
 			b.setValue(true);
-			return;
 		}
 		Belief commandSent = getBeliefBase().getBelief(SITUATED_COMMANDED);
 		commandSent.setValue(false);
-		updateMap(body.getString("map"));
+		pushMapUpdate(body.getString("map"));
 	}
 
-	private HashMap parseMap(String stringMap) {
+	private Map parseMap(String stringMap) {
 		JSONObject map = new JSONObject(stringMap);
-		HashMap<String, Node> parsedMap = new HashMap<>();
+		Map parsedMap = new Map();
 		for (String node : map.keySet()) {
 			JSONObject nodeObject = map.getJSONObject(node);
 			String status = nodeObject.getString("status");
@@ -102,32 +89,22 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			for (Object neighbor : nodeObject.getJSONArray("neighbors")) {
 				neighbors.add(neighbor.toString());
 			}
-			parsedMap.put(node, new Node(node, status.equals("closed")? Node.Status.CLOSED : Node.Status.OPEN, neighbors));
+			parsedMap.put(node, new Node(node, status.equals("closed") ? Node.Status.CLOSED : Node.Status.OPEN, neighbors));
 		}
 		return parsedMap;
 	}
 
-	private void updateMap(String newMap) {
-		HashMap<String, HashSet<String>> parsedMap = parseMap(newMap);
-		Belief mapBelief = getBeliefBase().getBelief(MAP);
-		HashMap<String, Couple<Boolean, HashSet<String>>> map = (HashMap<String, Couple<Boolean, HashSet<String>>>) mapBelief
-				.getValue();
-		mapBelief.setValue(parsedMap);
+	private void pushMapUpdate(String newMap) {
+		Map parsedMap = parseMap(newMap);
 
+		Belief currentPendingUpdatesBelief = getBeliefBase().getBelief(MAP_UPDATES);
+		Queue currentPendingUpdates = (Queue) currentPendingUpdatesBelief.getValue();
+		currentPendingUpdates.add(parsedMap);
+		currentPendingUpdatesBelief.setValue(currentPendingUpdates);
 	}
 
 	@Parameter(direction = Parameter.Direction.IN)
 	public void setMessage(ACLMessage msgReceived) {
 		this.msgReceived = msgReceived;
 	}
-
-	private GoalTemplate matchesGoal(Goal goalToMatch) {
-		return new GoalTemplate() {
-			@Override
-			public boolean match(Goal goal) {
-				return goal == goalToMatch;
-			}
-		};
-	}
-
 }

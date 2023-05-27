@@ -14,9 +14,6 @@ import bdi4jade.reasoning.*;
 import dataStructures.tuple.Couple;
 import bdi4jade.core.Capability;
 import bdi4jade.core.GoalUpdateSet.GoalDescription;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.GoalTest;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.PlanBodyTest;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.SPARQLGoal;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.goals.CommandGoal;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.goals.PingAgentGoal;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.CommandPlanBody;
@@ -25,23 +22,21 @@ import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.PingAgentPlanBody;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.RegisterPlanBody;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
+import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.NodeType;
 import jade.lang.acl.ACLMessage;
 
 import jade.lang.acl.MessageTemplate;
-import org.apache.jena.ontology.OntDocumentManager;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.sql.Timestamp;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.Queue;
+import java.util.LinkedList;
 import java.util.HashSet;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
@@ -49,68 +44,14 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 public class BDIAgent extends SingleCapabilityAgent {
 
     private ArrayList<String> messages = new ArrayList<>();
-    public static String situatedName = "explorer";
+    public final static String situatedName = "situated";
     private Goal pingAgentGoal;
 
     public BDIAgent() {
-        // Create initial beliefs
-        Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
-        Belief<String, MapaModel> ontology = new TransientBelief<String, MapaModel>(ONTOLOGY, Utils.loadOntology());
-        Belief<String, HashMap<String, Node>> map = new TransientBelief<String, HashMap<String, Node>>(
-                MAP, new HashMap<>());
-        Belief<String, Boolean> isExplorerAlive = new TransientPredicate<String>(EXPLORER_ALIVE, false);
-        Belief<String, Boolean> isCollectorAlive = new TransientPredicate<String>(COLLECTOR_ALIVE, false);
-        Belief<String, Boolean> isTankerAlive = new TransientPredicate<String>(TANKER_ALIVE, false);
 
-        Belief<String, Boolean> situatedPinged = new TransientPredicate<String>(SITUATED_PINGED, false);
-        Belief<String, Boolean> situatedCommanded = new TransientPredicate<String>(SITUATED_COMMANDED, false);
+        initBeliefs();
 
-        Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
-
-        Belief<String, HashSet> rejectedNodes = new TransientBelief<String, HashSet>(REJECTED_NODES, new HashSet<>());
-
-        // Add initial desires
-        Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
-        this.pingAgentGoal = new PingAgentGoal(BDIAgent.situatedName);
-        Goal commandGoal = new CommandGoal(BDIAgent.situatedName);
-        addGoal(registerGoal);
-
-        // Declare goal templates
-        GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
-        GoalTemplate commandSentTemplate = matchesGoal(commandGoal);
-
-        GoalTemplate pingAgentGoalTemplate = matchesGoal(this.pingAgentGoal);
-
-        // Assign plan bodies to goals
-        Plan registerPlan = new DefaultPlan(
-                registerGoalTemplate, RegisterPlanBody.class);
-        Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
-                KeepMailboxEmptyPlanBody.class);
-        Plan commandSentPlan = new DefaultPlan(
-                commandSentTemplate, CommandPlanBody.class);
-
-        Plan pingExplorerPlan = new DefaultPlan(
-                pingAgentGoalTemplate, PingAgentPlanBody.class);
-
-        // Init plan library
-        getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
-        getCapability().getPlanLibrary().addPlan(registerPlan);
-        getCapability().getPlanLibrary().addPlan(commandSentPlan);
-        getCapability().getPlanLibrary().addPlan(pingExplorerPlan);
-
-        // Init belief base
-
-        getCapability().getBeliefBase().addBelief(iAmRegistered);
-        getCapability().getBeliefBase().addBelief(ontology);
-        getCapability().getBeliefBase().addBelief(map);
-        getCapability().getBeliefBase().addBelief(isFullExplored);
-        getCapability().getBeliefBase().addBelief(rejectedNodes);
-
-        getCapability().getBeliefBase().addBelief(isExplorerAlive);
-        getCapability().getBeliefBase().addBelief(isCollectorAlive);
-        getCapability().getBeliefBase().addBelief(isTankerAlive);
-        getCapability().getBeliefBase().addBelief(situatedPinged);
-        getCapability().getBeliefBase().addBelief(situatedCommanded);
+        initGoals();
 
         // Add a goal listener to track events
         enableGoalMonitoring();
@@ -122,26 +63,95 @@ public class BDIAgent extends SingleCapabilityAgent {
         overridePlanSelectionStrategy();
     }
 
+    private void initBeliefs() {
+        Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
+        Belief<String, MapaModel> ontology = new TransientBelief<String, MapaModel>(ONTOLOGY, Utils.loadOntology());
+        Belief<String, Map> map = new TransientBelief<String, Map>(MAP, new Map());
+        Belief<String, Queue<Map>> mapUpdates = new TransientBelief<String, Queue<Map>>(MAP_UPDATES,
+                new LinkedList<>());
+        Belief<String, Boolean> isExplorerAlive = new TransientPredicate<String>(EXPLORER_ALIVE, false);
+        Belief<String, Boolean> isCollectorAlive = new TransientPredicate<String>(COLLECTOR_ALIVE, false);
+        Belief<String, Boolean> isTankerAlive = new TransientPredicate<String>(TANKER_ALIVE, false);
+
+        Belief<String, Boolean> situatedPinged = new TransientPredicate<String>(SITUATED_PINGED, false);
+        Belief<String, Boolean> situatedCommanded = new TransientPredicate<String>(SITUATED_COMMANDED, false);
+
+        Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
+
+        Belief<String, HashSet<String>> rejectedNodes = new TransientBelief<String, HashSet<String>>(REJECTED_NODES,
+                new HashSet<>());
+
+        getCapability().getBeliefBase().addBelief(iAmRegistered);
+        getCapability().getBeliefBase().addBelief(ontology);
+        getCapability().getBeliefBase().addBelief(map);
+        getCapability().getBeliefBase().addBelief(mapUpdates);
+        getCapability().getBeliefBase().addBelief(isFullExplored);
+        getCapability().getBeliefBase().addBelief(rejectedNodes);
+
+        getCapability().getBeliefBase().addBelief(isExplorerAlive);
+        getCapability().getBeliefBase().addBelief(isCollectorAlive);
+        getCapability().getBeliefBase().addBelief(isTankerAlive);
+        getCapability().getBeliefBase().addBelief(situatedPinged);
+        getCapability().getBeliefBase().addBelief(situatedCommanded);
+    }
+
+    private void initGoals() {
+        Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
+        this.pingAgentGoal = new PingAgentGoal(BDIAgent.situatedName);
+        Goal commandGoal = new CommandGoal(BDIAgent.situatedName);
+        addGoal(registerGoal);
+
+        // Declare goal templates
+        GoalTemplate registerGoalTemplate = matchesGoal(registerGoal);
+        GoalTemplate commandSentTemplate = matchesGoal(commandGoal);
+        GoalTemplate pingAgentGoalTemplate = matchesGoal(this.pingAgentGoal);
+
+        // Assign plan bodies to goals
+        Plan registerPlan = new DefaultPlan(
+                registerGoalTemplate, RegisterPlanBody.class);
+        Plan keepMailboxEmptyPlan = new DefaultPlan(MessageTemplate.MatchAll(),
+                KeepMailboxEmptyPlanBody.class);
+        Plan commandSentPlan = new DefaultPlan(
+                commandSentTemplate, CommandPlanBody.class);
+        Plan pingExplorerPlan = new DefaultPlan(
+                pingAgentGoalTemplate, PingAgentPlanBody.class);
+
+        // Init plan library
+        getCapability().getPlanLibrary().addPlan(keepMailboxEmptyPlan);
+        getCapability().getPlanLibrary().addPlan(registerPlan);
+        getCapability().getPlanLibrary().addPlan(commandSentPlan);
+        getCapability().getPlanLibrary().addPlan(pingExplorerPlan);
+    }
+
     private void overrideBeliefRevisionStrategy() {
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
-                Boolean mapFullExplored = true;
-                HashMap<String, Node> map = (HashMap<String, Node>) getCapability().getBeliefBase().getBelief(MAP)
-                        .getValue();
-                for (String nodeId : map.keySet()) {
-                    if (map.get(nodeId).getStatus() == Node.Status.OPEN) {
-                        mapFullExplored = false;
-                        break;
-                    }
-                }
-                Belief isFullExplored = getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED);
-                isFullExplored.setValue(mapFullExplored);
-                // This method should check belief base consistency,
-                // make new inferences, etc.
-                // The default implementation does nothing
+                runMapUpdates();
+                updateMapStatus();
+            }
+
+            private void updateMapStatus() {
+                MapaModel map = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+                Set<String> openNodes = map.getOpenNodes();
+                Belief<String, Boolean> isFullExplored = (Belief<String, Boolean>) getCapability().getBeliefBase()
+                        .getBelief(IS_FULL_EXPLORED);
+                isFullExplored.setValue(openNodes.size() == 0);
+            }
+
+            private void runMapUpdates() {
+                Queue<Map> mapUpdates = (Queue<Map>) getCapability().getBeliefBase().getBelief(MAP_UPDATES).getValue();
+                if (mapUpdates.isEmpty())
+                    return;
+                Map updateMap = mapUpdates.poll();
+                MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+                Belief mapBelief = getCapability().getBeliefBase().getBelief(MAP);
+                Map currentMap = (Map) mapBelief.getValue();
+                currentMap.update(updateMap, ontology);
+                mapBelief.setValue(currentMap);
             }
         });
+
     }
 
     private void overrideOptionGenerationFunction() {
@@ -182,34 +192,41 @@ public class BDIAgent extends SingleCapabilityAgent {
         });
     }
 
-    private String getNextExplorerCommand() {
+    private String getOpenNode() {
+        Map map = (Map) getCapability().getBeliefBase().getBelief(MAP).getValue();
+        return map.getOpenNode();
+    }
+
+    private String getLeastVisitedNode() {
         HashMap<String, Node> map = (HashMap<String, Node>) getCapability().getBeliefBase().getBelief(MAP).getValue();
         HashSet<String> rejectedNodes = (HashSet<String>) getCapability().getBeliefBase().getBelief(REJECTED_NODES)
                 .getValue();
+        int min = Integer.MAX_VALUE;
+        String minNode = null;
+        for (String node : map.keySet()) {
+            if (!rejectedNodes.contains(node)) {
+                int timesVisited = map.get(node).getTimesVisited();
+                if (timesVisited < min) {
+                    min = timesVisited;
+                    minNode = node;
+                }
+            }
+        }
+        return minNode;
+    }
+
+    private String getNextExplorerCommand() {
         Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED).getValue();
         if (!isFullExplored) {
-            for (String node : map.keySet()) {
-                if (!rejectedNodes.contains(node) && map.get(node).getStatus() == Node.Status.OPEN) {
-                    return node;
-                }
-            }
-            return null;
+            return getOpenNode();
         }
-        else {
-            int min = Integer.MAX_VALUE;
-            String minNode = null;
-            for (String node : map.keySet()) {
-                if (!rejectedNodes.contains(node)) {
-                    int timesVisited = map.get(node).getTimeVisited();
-                    if (timesVisited < min) {
-                        min = timesVisited;
-                        minNode = node;
-                    }
-                }
-            }
-            return minNode;
-        }
+        return "";
+        // return getLeastVisitedNode();
     }
+
+    // private String getNextCollectorCommand() {
+
+    // }
 
     public void addMessage(ACLMessage msg) {
         String content = msg.getContent();
@@ -235,7 +252,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.setDeliberationFunction(new DefaultAgentDeliberationFunction() {
             @Override
             public Set<Goal> filter(Set<GoalDescription> agentGoals,
-                    Map<Capability, Set<GoalDescription>> capabilityGoals) {
+                    java.util.Map<Capability, Set<GoalDescription>> capabilityGoals) {
                 return agentGoals.stream().map(GoalDescription::getGoal).collect(java.util.stream.Collectors.toSet());
             }
         });
@@ -272,12 +289,4 @@ public class BDIAgent extends SingleCapabilityAgent {
         };
     }
 
-    private GoalTemplate matchesGoals(List<Goal> goalsToMatch) {
-        return new GoalTemplate() {
-            @Override
-            public boolean match(Goal goal) {
-                return goalsToMatch.contains(goal);
-            }
-        };
-    }
 }

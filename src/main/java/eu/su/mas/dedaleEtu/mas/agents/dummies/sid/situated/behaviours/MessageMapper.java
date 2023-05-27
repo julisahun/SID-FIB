@@ -38,7 +38,7 @@ public class MessageMapper extends OneShotBehaviour {
       Utils.sendMessage(this.agent, ACLMessage.ACCEPT_PROPOSAL, body, "master");
 
       String id = Utils.uuid();
-      Behaviour walk = new WalkTo(this.agent, position, getSituatedAgent().getMap(), id);
+      Behaviour walk = new WalkTo(this.agent, position, getSituatedAgent().getMapRepresentation(), id);
       Utils.registerBehaviour(this.agent, walk, id);
 
       HashMap<Integer, Runnable> responses = mapResponses();
@@ -97,6 +97,7 @@ public class MessageMapper extends OneShotBehaviour {
     JSONObject response = new JSONObject();
     response.put("status", "pong");
     response.put("map", getSituatedAgent().stringifyNodes());
+    response.put("agentType", ((SituatedAgent) this.agent).getType());
     Behaviour pong = new MessageSender(this.agent, response.toString());
     this.agent.addBehaviour(pong);
   }

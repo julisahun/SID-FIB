@@ -117,13 +117,14 @@ public class Utils {
   public static String findAgent(Agent a, String name) {
     DFAgentDescription template = new DFAgentDescription();
     ServiceDescription templateSd = new ServiceDescription();
-    templateSd.setType("situated");
+    // templateSd.setType("situated");
     template.addServices(templateSd);
     try {
       DFAgentDescription[] results = DFService.search(a, template);
       if (results.length > 0) {
         DFAgentDescription dfd = results[0];
         String result = dfd.getName().getLocalName();
+        System.out.println("Found agent: " + result);
         if (result.contains(name))
           return result;
       }

@@ -49,7 +49,11 @@ public class Node {
     return this.status;
   }
 
-  public Integer getTimeVisited() {
+  public String getId() {
+    return this.id;
+  }
+
+  public Integer getTimesVisited() {
     return this.timeVisited;
   }
 
@@ -71,6 +75,10 @@ public class Node {
 
   public void setNeighbors(HashSet<String> neighbors) {
     this.neighbors = neighbors;
+  }
+
+  public void addNeighbor(String neighbor) {
+    this.neighbors.add(neighbor);
   }
 
   public void mergeObs(List<Couple<Observation, Integer>> observations) {
@@ -109,4 +117,51 @@ public class Node {
     return json;
   }
 
+  public JSONObject difference(Node node) {
+    JSONObject json = new JSONObject();
+    if (!this.id.equals(node.getId()))
+      return null;
+
+    if (!this.status.equals(node.getStatus())) {
+      json.put("status", node.getStatus().equals(Status.OPEN) ? "open" : "closed");
+    }
+    if (!this.timeVisited.equals(node.getTimesVisited())) {
+      json.put("timesVisited", node.getTimesVisited());
+    }
+    JSONArray neighbors = new JSONArray();
+    for (String neighbor : node.getNeighbors()) {
+      if (!this.neighbors.contains(neighbor)) {
+        neighbors.put(neighbor);
+      }
+    }
+    if (neighbors.length() > 0) {
+      json.put("neighbors", neighbors);
+    }
+    Boolean sameObservations = true;
+    for (Couple<Observation, Integer> observation : node.getObservations()) {
+      Boolean isOk = false;
+      String name = observation.getLeft().getName();
+      Integer value = observation.getRight();
+      for (Couple<Observation, Integer> nodeObservation : this.observations) {
+        if (nodeObservation.getLeft().getName().equals(name) && nodeObservation.getRight().equals(value)) {
+          isOk = true;
+          break;
+        }
+      }
+      if (!isOk) {
+        sameObservations = false;
+        break;
+      }
+    }
+    if (!sameObservations) {
+      JSONArray observations = new JSONArray();
+      for (Couple<Observation, Integer> observation : node.getObservations()) {
+        JSONObject observationJson = new JSONObject();
+        observationJson.put("observation", observation.getLeft().getName());
+        observationJson.put("value", observation.getRight());
+        observations.put(observationJson);
+      }
+    }
+    return json;
+  }
 }

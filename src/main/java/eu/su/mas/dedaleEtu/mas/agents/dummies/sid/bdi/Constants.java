@@ -19,4 +19,5 @@ public class Constants {
     public static String SITUATED_PINGED = "situatedPinged";
     public static String SITUATED_COMMANDED = "situatedCommanded";
     public static String PING_SEND = "pingSend";
+    public static String MAP_UPDATES = "mapUpdates";
 }
