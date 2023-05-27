@@ -1,5 +1,6 @@
 package eu.su.mas.dedaleEtu.mas.knowledge;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.io.Serializable;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
+import dataStructures.tuple.Couple;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.NodeType;
 
 public class Map implements Serializable {
@@ -92,10 +94,25 @@ public class Map implements Serializable {
     }
     if (update.has("observations")) {
       JSONArray observations = update.getJSONArray("observations");
+      List<Couple<String, Integer>> observationsList = new ArrayList<Couple<String, Integer>>();
+      long diamondAmount = 0;
+      long goldAmount = 0;
+      long lockpickLevel = 0;
       for (int i = 0; i < observations.length(); i++) {
         JSONObject observation = observations.getJSONObject(i);
-        // Integer diamondAmmount = observation.getInt("Diamonds");
+        String name = observation.getString("observation");
+        Integer value = observation.getInt("value");
+        observationsList.add(new Couple<String, Integer>(name, value));
+        if (name.equals("Gold")) {
+          goldAmount += value;
+        } else if (name.equals("Diamond")) {
+          diamondAmount += value;
+        } else if (name.equals("LockPicking")) {
+          lockpickLevel += value;
+        }
       }
+      ontology.addNodeInfo(node, diamondAmount, goldAmount, lockpickLevel);
+      this.nodes.get(node).setObservations(observationsList);
     }
   }
 }

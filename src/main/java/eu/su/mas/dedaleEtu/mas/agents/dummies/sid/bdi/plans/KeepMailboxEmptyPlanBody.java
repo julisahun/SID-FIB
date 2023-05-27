@@ -17,6 +17,7 @@ import bdi4jade.plan.planbody.AbstractPlanBody;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.Map;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import jade.lang.acl.ACLMessage;
 
@@ -60,6 +61,9 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void handleInform(ACLMessage msg) {
+		if (msg.getProtocol().equals("SHARE-ONTO")) {
+			updateOntologyAndMap(msg.getContent());
+		}
 		String content = msg.getContent();
 		JSONObject body = new JSONObject(content);
 		String status = body.getString("status");
@@ -83,13 +87,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		JSONObject map = new JSONObject(stringMap);
 		Map parsedMap = new Map();
 		for (String node : map.keySet()) {
-			JSONObject nodeObject = map.getJSONObject(node);
-			String status = nodeObject.getString("status");
-			HashSet<String> neighbors = new HashSet<>();
-			for (Object neighbor : nodeObject.getJSONArray("neighbors")) {
-				neighbors.add(neighbor.toString());
-			}
-			parsedMap.put(node, new Node(node, status.equals("closed") ? Node.Status.CLOSED : Node.Status.OPEN, neighbors));
+			parsedMap.put(node, new Node(map.getJSONObject(node)));
 		}
 		return parsedMap;
 	}
@@ -101,6 +99,26 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		Queue currentPendingUpdates = (Queue) currentPendingUpdatesBelief.getValue();
 		currentPendingUpdates.add(parsedMap);
 		currentPendingUpdatesBelief.setValue(currentPendingUpdates);
+	}
+
+	private void updateOntologyAndMap(String stringifiedOntology) {
+		updateOntology(stringifiedOntology);
+		updateMap();
+
+	}
+
+	private void updateOntology(String stringifiedOntology) {
+		MapaModel newOntology = MapaModel.importOntology(stringifiedOntology);
+		Belief ontologyBelief = getBeliefBase().getBelief(ONTOLOGY);
+		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
+		ontology.learnFromOtherOntology(newOntology);
+		ontologyBelief.setValue(ontology);
+	}
+
+	private void updateMap() {
+		Belief ontologyBelief = getBeliefBase().getBelief(ONTOLOGY);
+		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
+
 	}
 
 	@Parameter(direction = Parameter.Direction.IN)

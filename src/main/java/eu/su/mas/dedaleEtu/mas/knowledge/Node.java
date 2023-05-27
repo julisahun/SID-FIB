@@ -21,22 +21,32 @@ public class Node {
   private String id;
   private Integer timeVisited = 0;
   private HashSet<String> neighbors = new HashSet<String>();
-  private List<Couple<Observation, Integer>> observations = new ArrayList<Couple<Observation, Integer>>();
+  private List<Couple<String, Integer>> observations = new ArrayList<Couple<String, Integer>>();
 
   public Node(JSONObject json) {
+    this.id = json.getString("id");
     this.status = json.getString("status").equals("closed") ? Status.CLOSED : Status.OPEN;
     this.neighbors = new HashSet<>();
     JSONArray neighbors = json.getJSONArray("neighbors");
     for (int i = 0; i < neighbors.length(); i++) {
       this.neighbors.add(neighbors.getString(i));
     }
+    JSONArray observations = json.getJSONArray("observations");
+    for (int i = 0; i < observations.length(); i++) {
+      JSONObject observation = observations.getJSONObject(i);
+      this.observations.add(new Couple<String, Integer>(observation.getString("observation"),
+          observation.getInt("value")));
+    }
   }
 
   public Node(String id, Status status, HashSet<String> neighbors, List<Couple<Observation, Integer>> observations) {
     this.status = status;
     this.neighbors = neighbors;
-    this.observations = observations;
     this.id = id;
+    this.observations = new ArrayList<Couple<String, Integer>>();
+    for (Couple<Observation, Integer> observation : observations) {
+      this.observations.add(new Couple<String, Integer>(observation.getLeft().getName(), observation.getRight()));
+    }
   }
 
   public Node(String id, Status status, HashSet<String> neighbors) {
@@ -65,8 +75,12 @@ public class Node {
     return this.neighbors;
   }
 
-  public List<Couple<Observation, Integer>> getObservations() {
+  public List<Couple<String, Integer>> getObservations() {
     return this.observations;
+  }
+
+  public void setObservations(List<Couple<String, Integer>> observations) {
+    this.observations = observations;
   }
 
   public void setStatus(Status status) {
@@ -85,21 +99,22 @@ public class Node {
     for (Couple<Observation, Integer> observation : observations) {
       Observation obs = observation.getLeft();
       boolean found = false;
-      for (Couple<Observation, Integer> thisObservation : this.observations) {
-        Observation thisObs = thisObservation.getLeft();
-        if (thisObs.getName().equals(obs.getName())) {
+      for (Couple<String, Integer> thisObservation : this.observations) {
+        String thisObs = thisObservation.getLeft();
+        if (thisObs.equals(obs.getName())) {
           found = true;
           break;
         }
       }
       if (!found) {
-        this.observations.add(observation);
+        this.observations.add(new Couple<String, Integer>(observation.getLeft().getName(), observation.getRight()));
       }
     }
   }
 
   public JSONObject toJson() {
     JSONObject json = new JSONObject();
+    json.put("id", this.id);
     json.put("status", this.status.equals(Status.OPEN) ? "open" : "closed");
     JSONArray neighbors = new JSONArray();
     for (String neighbor : this.neighbors) {
@@ -107,9 +122,9 @@ public class Node {
     }
     json.put("neighbors", neighbors);
     JSONArray observations = new JSONArray();
-    for (Couple<Observation, Integer> observation : this.observations) {
+    for (Couple<String, Integer> observation : this.observations) {
       JSONObject observationJson = new JSONObject();
-      observationJson.put("observation", observation.getLeft().getName());
+      observationJson.put("observation", observation.getLeft());
       observationJson.put("value", observation.getRight());
       observations.put(observationJson);
     }
@@ -138,12 +153,12 @@ public class Node {
       json.put("neighbors", neighbors);
     }
     Boolean sameObservations = true;
-    for (Couple<Observation, Integer> observation : node.getObservations()) {
+    for (Couple<String, Integer> observation : node.getObservations()) {
       Boolean isOk = false;
-      String name = observation.getLeft().getName();
+      String name = observation.getLeft();
       Integer value = observation.getRight();
-      for (Couple<Observation, Integer> nodeObservation : this.observations) {
-        if (nodeObservation.getLeft().getName().equals(name) && nodeObservation.getRight().equals(value)) {
+      for (Couple<String, Integer> nodeObservation : this.observations) {
+        if (nodeObservation.getLeft().equals(name) && nodeObservation.getRight().equals(value)) {
           isOk = true;
           break;
         }
@@ -155,9 +170,9 @@ public class Node {
     }
     if (!sameObservations) {
       JSONArray observations = new JSONArray();
-      for (Couple<Observation, Integer> observation : node.getObservations()) {
+      for (Couple<String, Integer> observation : node.getObservations()) {
         JSONObject observationJson = new JSONObject();
-        observationJson.put("observation", observation.getLeft().getName());
+        observationJson.put("observation", observation.getLeft());
         observationJson.put("value", observation.getRight());
         observations.put(observationJson);
       }

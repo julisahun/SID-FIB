@@ -24,6 +24,7 @@ public class RegisterToDF extends OneShotBehaviour {
     ServiceDescription sd = new ServiceDescription();
     sd.setName(this.name);
     sd.setType(this.type);
+    sd.addOntologies("polydama-mapstate");
     dfd.addServices(sd);
     try {
       DFService.register(this.myAgent, dfd);

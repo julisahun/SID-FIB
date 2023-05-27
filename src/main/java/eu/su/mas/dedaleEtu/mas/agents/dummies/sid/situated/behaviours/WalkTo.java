@@ -80,7 +80,6 @@ public class WalkTo extends SimpleBehaviour {
       String nodeId = neighbor.getLeft().getLocationId();
       boolean safeNeighbor = true;
       for (Couple<Observation, Integer> observation : neighbor.getRight()) {
-        System.out.println(nodeId + " : " + observation.getLeft().getName() + " : " + observation.getRight());
         if (observation.getLeft().getName().equals("WIND")) {
           safeNeighbor = false;
           // break;

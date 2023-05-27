@@ -20,6 +20,7 @@ public class RegisterPlanBody extends BeliefGoalPlanBody {
         ServiceDescription sd = new ServiceDescription();
         sd.setName("master");
         sd.setType("bdi");
+        sd.addOntologies("polydama-mapstate");
         try {
             DFService.register(this.myAgent, dfd);
             getBeliefBase().updateBelief(I_AM_REGISTERED, true);
