@@ -51,7 +51,6 @@ public class BDIAgent extends SingleCapabilityAgent {
     private ArrayList<String> messages = new ArrayList<>();
     public static String situatedName = "explorer";
     private Goal pingAgentGoal;
-    private HashMap<String, Goal> pingGoals = new HashMap<>();
 
     public BDIAgent() {
         // Create initial beliefs
@@ -127,6 +126,17 @@ public class BDIAgent extends SingleCapabilityAgent {
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
+                Boolean mapFullExplored = true;
+                HashMap<String, Node> map = (HashMap<String, Node>) getCapability().getBeliefBase().getBelief(MAP)
+                        .getValue();
+                for (String nodeId : map.keySet()) {
+                    if (map.get(nodeId).getStatus() == Node.Status.OPEN) {
+                        mapFullExplored = false;
+                        break;
+                    }
+                }
+                Belief isFullExplored = getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED);
+                isFullExplored.setValue(mapFullExplored);
                 // This method should check belief base consistency,
                 // make new inferences, etc.
                 // The default implementation does nothing
@@ -159,8 +169,9 @@ public class BDIAgent extends SingleCapabilityAgent {
                 if (isExplorerAlive) {
                     Boolean situatedCommanded = (Boolean) getCapability().getBeliefBase()
                             .getBelief(SITUATED_COMMANDED).getValue();
-                    if (!situatedCommanded) {
-                        System.out.println("Sending command to explorer");
+                    Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED)
+                            .getValue();
+                    if (!situatedCommanded && !isFullExplored) {
                         agentGoalUpdateSet.generateGoal(new CommandGoal(getNextExplorerCommand()));
                         Belief commandSent = getCapability().getBeliefBase().getBelief(SITUATED_COMMANDED);
                         commandSent.setValue(true);
@@ -175,12 +186,29 @@ public class BDIAgent extends SingleCapabilityAgent {
         HashMap<String, Node> map = (HashMap<String, Node>) getCapability().getBeliefBase().getBelief(MAP).getValue();
         HashSet<String> rejectedNodes = (HashSet<String>) getCapability().getBeliefBase().getBelief(REJECTED_NODES)
                 .getValue();
-        for (String node : map.keySet()) {
-            if (!rejectedNodes.contains(node) && map.get(node).getStatus() == Node.Status.OPEN) {
-                return node;
+        Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED).getValue();
+        if (!isFullExplored) {
+            for (String node : map.keySet()) {
+                if (!rejectedNodes.contains(node) && map.get(node).getStatus() == Node.Status.OPEN) {
+                    return node;
+                }
             }
+            return null;
         }
-        return "";
+        else {
+            int min = Integer.MAX_VALUE;
+            String minNode = null;
+            for (String node : map.keySet()) {
+                if (!rejectedNodes.contains(node)) {
+                    int timesVisited = map.get(node).getTimeVisited();
+                    if (timesVisited < min) {
+                        min = timesVisited;
+                        minNode = node;
+                    }
+                }
+            }
+            return minNode;
+        }
     }
 
     public void addMessage(ACLMessage msg) {

@@ -87,14 +87,14 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			b.setValue(true);
 			return;
 		}
-		Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
+		Belief commandSent = getBeliefBase().getBelief(SITUATED_COMMANDED);
 		commandSent.setValue(false);
 		updateMap(body.getString("map"));
 	}
 
 	private HashMap parseMap(String stringMap) {
 		JSONObject map = new JSONObject(stringMap);
-		HashMap<String, Couple<Boolean, HashSet<String>>> parsedMap = new HashMap<>();
+		HashMap<String, Node> parsedMap = new HashMap<>();
 		for (String node : map.keySet()) {
 			JSONObject nodeObject = map.getJSONObject(node);
 			String status = nodeObject.getString("status");
@@ -102,7 +102,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			for (Object neighbor : nodeObject.getJSONArray("neighbors")) {
 				neighbors.add(neighbor.toString());
 			}
-			parsedMap.put(node, new Couple<Boolean, HashSet<String>>(status.equals("closed"), neighbors));
+			parsedMap.put(node, new Node(node, status.equals("closed")? Node.Status.CLOSED : Node.Status.OPEN, neighbors));
 		}
 		return parsedMap;
 	}
