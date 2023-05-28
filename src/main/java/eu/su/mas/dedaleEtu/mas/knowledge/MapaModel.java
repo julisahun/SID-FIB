@@ -35,7 +35,7 @@ import javafx.application.Platform;
 import javafx.util.Pair;
 
 public class MapaModel {
-	Model model;
+	public Model model;
 	long revision;
 
 	public enum NodeType {

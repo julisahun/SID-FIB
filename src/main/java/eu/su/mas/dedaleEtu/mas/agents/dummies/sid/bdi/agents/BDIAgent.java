@@ -80,6 +80,9 @@ public class BDIAgent extends SingleCapabilityAgent {
 
         Belief<String, HashSet<String>> rejectedNodes = new TransientBelief<String, HashSet<String>>(REJECTED_NODES,
                 new HashSet<>());
+        Belief<String, String> currentSituatedPosition = new TransientBelief<String, String>(CURRENT_SITUATED_POSITION,
+                null);
+        Belief<String, Boolean> mapOutOfSync = new TransientPredicate<String>(MAP_OUT_OF_SYNC, false);
 
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
@@ -93,6 +96,8 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(isTankerAlive);
         getCapability().getBeliefBase().addBelief(situatedPinged);
         getCapability().getBeliefBase().addBelief(situatedCommanded);
+        getCapability().getBeliefBase().addBelief(currentSituatedPosition);
+        getCapability().getBeliefBase().addBelief(mapOutOfSync);
     }
 
     private void initGoals() {
@@ -136,10 +141,20 @@ public class BDIAgent extends SingleCapabilityAgent {
                 Set<String> openNodes = map.getOpenNodes();
                 Belief<String, Boolean> isFullExplored = (Belief<String, Boolean>) getCapability().getBeliefBase()
                         .getBelief(IS_FULL_EXPLORED);
+                System.out.println((map.getOpenNodes()
+                        .size() == 0) + " " + (map.getClosedNodes().size() > 0) + " " + !isFullExplored.getValue());
+                if (map.getOpenNodes().size() == 0 && map.getClosedNodes().size() > 0 && !isFullExplored.getValue()) {
+                    Utils.saveOntology(map.model);
+                }
                 isFullExplored.setValue(openNodes.size() == 0);
             }
 
             private void runMapUpdates() {
+                Belief mapOutOfSync = getCapability().getBeliefBase().getBelief(MAP_OUT_OF_SYNC);
+                if ((Boolean) mapOutOfSync.getValue()) {
+                    syncMap();
+                    mapOutOfSync.setValue(false);
+                }
                 Queue<Map> mapUpdates = (Queue<Map>) getCapability().getBeliefBase().getBelief(MAP_UPDATES).getValue();
                 if (mapUpdates.isEmpty())
                     return;
@@ -148,6 +163,14 @@ public class BDIAgent extends SingleCapabilityAgent {
                 Belief mapBelief = getCapability().getBeliefBase().getBelief(MAP);
                 Map currentMap = (Map) mapBelief.getValue();
                 currentMap.update(updateMap, ontology);
+                mapBelief.setValue(currentMap);
+            }
+
+            private void syncMap() {
+                MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+                Belief mapBelief = getCapability().getBeliefBase().getBelief(MAP);
+                Map currentMap = (Map) mapBelief.getValue();
+                currentMap.syncWithOntology(ontology);
                 mapBelief.setValue(currentMap);
             }
         });
@@ -201,18 +224,20 @@ public class BDIAgent extends SingleCapabilityAgent {
         HashMap<String, Node> map = (HashMap<String, Node>) getCapability().getBeliefBase().getBelief(MAP).getValue();
         HashSet<String> rejectedNodes = (HashSet<String>) getCapability().getBeliefBase().getBelief(REJECTED_NODES)
                 .getValue();
+        String currentPos = (String) getCapability().getBeliefBase().getBelief(CURRENT_SITUATED_POSITION).getValue();
+        Node currentNode = map.get(currentPos);
         int min = Integer.MAX_VALUE;
         String minNode = null;
-        for (String node : map.keySet()) {
-            if (!rejectedNodes.contains(node)) {
-                int timesVisited = map.get(node).getTimesVisited();
-                if (timesVisited < min) {
-                    min = timesVisited;
-                    minNode = node;
-                }
+        for (String neighbor : currentNode.getNeighbors()) {
+            if (rejectedNodes.contains(neighbor))
+                continue;
+            Node node = map.get(neighbor);
+            if (node.getTimesVisited() < min) {
+                min = node.getTimesVisited();
+                minNode = neighbor;
             }
         }
-        return minNode;
+
     }
 
     private String getNextExplorerCommand() {

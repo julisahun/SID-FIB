@@ -39,6 +39,17 @@ public class Node {
     }
   }
 
+  public Node(String id, Status status) {
+    this.status = status;
+    this.id = id;
+  }
+
+  public Node(String id, Status status, List<Couple<String, Integer>> observations) {
+    this.status = status;
+    this.id = id;
+    this.observations = observations;
+  }
+
   public Node(String id, Status status, HashSet<String> neighbors, List<Couple<Observation, Integer>> observations) {
     this.status = status;
     this.neighbors = neighbors;
@@ -71,6 +82,10 @@ public class Node {
     this.timeVisited++;
   }
 
+  public void setTimesVisited(Integer timesVisited) {
+    this.timeVisited = timesVisited;
+  }
+
   public HashSet<String> getNeighbors() {
     return this.neighbors;
   }
@@ -81,6 +96,18 @@ public class Node {
 
   public void setObservations(List<Couple<String, Integer>> observations) {
     this.observations = observations;
+  }
+
+  public void addObservation(Couple<String, Integer> observation) {
+    for (int i = 0; i < this.observations.size(); i++) {
+      Couple<String, Integer> thisObservation = this.observations.get(i);
+      String name = thisObservation.getLeft();
+      if (name.equals(observation.getLeft())) {
+        this.observations.set(i, observation);
+        return;
+      }
+    }
+    this.observations.add(observation);
   }
 
   public void setStatus(Status status) {

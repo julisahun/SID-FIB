@@ -5,6 +5,7 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Queue;
+import java.util.Set;
 
 import bdi4jade.plan.DefaultPlan;
 import org.json.JSONObject;
@@ -20,6 +21,7 @@ import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import jade.lang.acl.ACLMessage;
+import javafx.util.Pair;
 
 public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	private ACLMessage msgReceived;
@@ -62,7 +64,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 
 	private void handleInform(ACLMessage msg) {
 		if (msg.getProtocol().equals("SHARE-ONTO")) {
-			updateOntologyAndMap(msg.getContent());
+			updateOntology(msg.getContent());
 		}
 		String content = msg.getContent();
 		JSONObject body = new JSONObject(content);
@@ -71,13 +73,13 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			String rejectedNode = body.getString("position");
 			addRejectedNode(rejectedNode);
 		} else if (status.equals("finished")) {
-			Belief isFullExplored = getBeliefBase().getBelief(IS_FULL_EXPLORED);
-			isFullExplored.setValue(true);
 		} else if (status.equals("pong")) {
 			String agentType = body.getString("agentType");
 			Belief b = getBeliefBase().getBelief(agentType + "Alive");
 			b.setValue(true);
 		}
+		Belief currentPosition = getBeliefBase().getBelief(CURRENT_SITUATED_POSITION);
+		currentPosition.setValue(body.getString("position"));
 		Belief commandSent = getBeliefBase().getBelief(SITUATED_COMMANDED);
 		commandSent.setValue(false);
 		pushMapUpdate(body.getString("map"));
@@ -101,24 +103,15 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		currentPendingUpdatesBelief.setValue(currentPendingUpdates);
 	}
 
-	private void updateOntologyAndMap(String stringifiedOntology) {
-		updateOntology(stringifiedOntology);
-		updateMap();
-
-	}
-
 	private void updateOntology(String stringifiedOntology) {
 		MapaModel newOntology = MapaModel.importOntology(stringifiedOntology);
 		Belief ontologyBelief = getBeliefBase().getBelief(ONTOLOGY);
 		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
 		ontology.learnFromOtherOntology(newOntology);
 		ontologyBelief.setValue(ontology);
-	}
 
-	private void updateMap() {
-		Belief ontologyBelief = getBeliefBase().getBelief(ONTOLOGY);
-		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
-
+		Belief mapOutOfSync = getBeliefBase().getBelief(MAP_OUT_OF_SYNC);
+		mapOutOfSync.setValue(true);
 	}
 
 	@Parameter(direction = Parameter.Direction.IN)

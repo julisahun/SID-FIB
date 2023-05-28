@@ -11,7 +11,9 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.NodeInfo;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.NodeType;
+import javafx.util.Pair;
 
 public class Map implements Serializable {
 
@@ -72,6 +74,109 @@ public class Map implements Serializable {
     }
   }
 
+  private void syncOpenNodes(Set<String> openNodes) {
+    for (String node : openNodes) {
+      if (!this.nodes.containsKey(node)) {
+        Node newNode = new Node(node, Node.Status.OPEN);
+        this.put(node, newNode);
+      } else {
+        this.nodes.get(node).setStatus(Node.Status.OPEN);
+      }
+      // update cache
+      this.openNodes.add(node);
+    }
+  }
+
+  private void syncClosedNodes(Set<String> closedNodes) {
+    for (String node : closedNodes) {
+      if (!this.nodes.containsKey(node)) {
+        Node newNode = new Node(node, Node.Status.CLOSED);
+        this.put(node, newNode);
+      } else {
+        this.nodes.get(node).setStatus(Node.Status.CLOSED);
+      }
+      // update cache
+      this.openNodes.remove(node);
+    }
+  }
+
+  private void syncWindyNodes(Set<String> windyNodes) {
+    for (String node : windyNodes) {
+      if (!this.nodes.containsKey(node)) {
+        this.nodes.put(node, new Node(node, Node.Status.OPEN, List.of(new Couple<>("WIND", 0))));
+        this.openNodes.add(node);
+      } else {
+        this.nodes.get(node).addObservation(new Couple<>("WIND", 0));
+      }
+    }
+  }
+
+  private void syncEdges(Set<Pair<String, String>> edges) {
+    for (Pair<String, String> edge : edges) {
+      String node1 = edge.getKey();
+      String node2 = edge.getValue();
+      if (!this.nodes.containsKey(node1)) {
+        Node newNode = new Node(node1, Node.Status.OPEN);
+        newNode.addNeighbor(node2);
+        this.put(node1, newNode);
+      } else {
+        this.nodes.get(node1).addNeighbor(node2);
+      }
+      if (!this.nodes.containsKey(node2)) {
+        Node newNode = new Node(node2, Node.Status.OPEN);
+        newNode.addNeighbor(node1);
+        this.put(node2, newNode);
+      } else {
+        this.nodes.get(node2).addNeighbor(node1);
+      }
+    }
+  }
+
+  private void syncObservations(HashSet<String> nodes, MapaModel ontology) {
+    for (String node : nodes) {
+      try {
+        NodeInfo info = ontology.getCellInfo(node);
+        List<Couple<String, Integer>> observations = new ArrayList<Couple<String, Integer>>();
+        if (info.diamondAmount > 0) {
+          observations.add(new Couple<>("Diamond", ((Long) info.diamondAmount).intValue()));
+        }
+        if (info.goldAmount > 0) {
+          observations.add(new Couple<>("Gold", ((Long) info.goldAmount).intValue()));
+        }
+        if (info.lockpickLevel > 0) {
+          observations.add(new Couple<>("LockPicking", ((Long) info.lockpickLevel).intValue()));
+        }
+        if (info.lockpickLevel > 0) {
+          observations.add(new Couple<>("Strength", ((Long) info.lockpickLevel).intValue()));
+        }
+        this.nodes.get(node).setObservations(observations);
+      } catch (Exception e) {
+        // do nothing
+      }
+    }
+  }
+
+  public void syncWithOntology(MapaModel ontology) {
+    Set<String> openNodes = ontology.getOpenNodes();
+    syncOpenNodes(openNodes);
+
+    Set<String> closedNodes = ontology.getClosedNodes();
+    syncClosedNodes(closedNodes);
+
+    Set<String> windyNodes = ontology.getWindyNodes();
+    syncWindyNodes(windyNodes);
+
+    Set<Pair<String, String>> edges = ontology.getEdges();
+    syncEdges(edges);
+
+    HashSet<String> fullNodes = new HashSet<String>();
+    fullNodes.addAll(openNodes);
+    fullNodes.addAll(closedNodes);
+    fullNodes.addAll(windyNodes);
+
+    syncObservations(fullNodes, ontology);
+  }
+
   private void updateNode(String node, JSONObject update, MapaModel ontology) {
     if (update.has("status")) {
       String status = update.getString("status");
@@ -113,6 +218,10 @@ public class Map implements Serializable {
       }
       ontology.addNodeInfo(node, diamondAmount, goldAmount, lockpickLevel);
       this.nodes.get(node).setObservations(observationsList);
+    }
+    if (update.has("timesVisited")) {
+      Integer timesVisited = update.getInt("timesVisited");
+      this.nodes.get(node).setTimesVisited(timesVisited);
     }
   }
 }
