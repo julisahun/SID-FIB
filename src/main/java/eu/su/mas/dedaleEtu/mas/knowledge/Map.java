@@ -59,7 +59,6 @@ public class Map implements Serializable {
         JSONObject complementaryInfo = this.nodes.get(node).difference(patchUpdate.get(node));
         if (complementaryInfo == null || complementaryInfo.isEmpty())
           continue;
-
         updateNode(node, complementaryInfo, ontology);
 
       } else {
@@ -69,6 +68,29 @@ public class Map implements Serializable {
         for (String neighbor : newNode.getNeighbors()) {
           ontology.addAdjancency(node, neighbor);
         }
+        long diamondAmount = 0;
+        long goldAmount = 0;
+        long lockpickLevel = 0;
+        long strength = 0;
+        for (Couple<String, Integer> observation : newNode.getObservations()) {
+          switch (observation.getLeft()) {
+            case "Diamond":
+              diamondAmount = observation.getRight();
+              break;
+            case "Gold":
+              goldAmount = observation.getRight();
+              break;
+            case "LockPicking":
+              lockpickLevel = observation.getRight();
+              break;
+            case "Strength":
+              strength = observation.getRight();
+              break;
+            default:
+              break;
+          }
+        }
+        ontology.addNodeInfo(node, goldAmount, diamondAmount, lockpickLevel);// , strength);
         this.put(node, newNode);
       }
     }
@@ -216,7 +238,7 @@ public class Map implements Serializable {
           lockpickLevel += value;
         }
       }
-      ontology.addNodeInfo(node, diamondAmount, goldAmount, lockpickLevel);
+      ontology.addNodeInfo(node, goldAmount, diamondAmount, lockpickLevel);
       this.nodes.get(node).setObservations(observationsList);
     }
     if (update.has("timesVisited")) {

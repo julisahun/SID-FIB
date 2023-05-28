@@ -141,8 +141,6 @@ public class BDIAgent extends SingleCapabilityAgent {
                 Set<String> openNodes = map.getOpenNodes();
                 Belief<String, Boolean> isFullExplored = (Belief<String, Boolean>) getCapability().getBeliefBase()
                         .getBelief(IS_FULL_EXPLORED);
-                System.out.println((map.getOpenNodes()
-                        .size() == 0) + " " + (map.getClosedNodes().size() > 0) + " " + !isFullExplored.getValue());
                 if (map.getOpenNodes().size() == 0 && map.getClosedNodes().size() > 0 && !isFullExplored.getValue()) {
                     Utils.saveOntology(map.model);
                 }

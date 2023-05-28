@@ -89,7 +89,8 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		JSONObject map = new JSONObject(stringMap);
 		Map parsedMap = new Map();
 		for (String node : map.keySet()) {
-			parsedMap.put(node, new Node(map.getJSONObject(node)));
+			Node n = new Node(map.getJSONObject(node));
+			parsedMap.put(node, n);
 		}
 		return parsedMap;
 	}

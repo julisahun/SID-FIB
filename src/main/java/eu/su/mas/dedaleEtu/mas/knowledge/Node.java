@@ -31,6 +31,7 @@ public class Node {
     for (int i = 0; i < neighbors.length(); i++) {
       this.neighbors.add(neighbors.getString(i));
     }
+    this.observations = new ArrayList<>();
     JSONArray observations = json.getJSONArray("observations");
     for (int i = 0; i < observations.length(); i++) {
       JSONObject observation = observations.getJSONObject(i);
@@ -124,11 +125,11 @@ public class Node {
 
   public void mergeObs(List<Couple<Observation, Integer>> observations) {
     for (Couple<Observation, Integer> observation : observations) {
-      Observation obs = observation.getLeft();
+      String obs = observation.getLeft().getName();
       boolean found = false;
       for (Couple<String, Integer> thisObservation : this.observations) {
         String thisObs = thisObservation.getLeft();
-        if (thisObs.equals(obs.getName())) {
+        if (thisObs.equals(obs)) {
           found = true;
           break;
         }
@@ -203,6 +204,7 @@ public class Node {
         observationJson.put("value", observation.getRight());
         observations.put(observationJson);
       }
+      json.put("observations", observations);
     }
     return json;
   }
