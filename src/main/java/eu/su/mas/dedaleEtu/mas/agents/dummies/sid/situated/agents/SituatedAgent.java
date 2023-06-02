@@ -130,6 +130,10 @@ public class SituatedAgent extends AbstractDedaleAgent {
         return this.behaviours.get(id);
     }
 
+    public void recordVisit(String nodeId) {
+        this.nodes.visit(nodeId);
+    }
+
     public String stringifyNodes() {
         JSONObject json = new JSONObject();
         for (String node : this.nodes.keySet()) {

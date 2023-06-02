@@ -66,7 +66,8 @@ public class BDIAgent extends SingleCapabilityAgent {
     private void initBeliefs() {
         Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
         Belief<String, MapaModel> ontology = new TransientBelief<String, MapaModel>(ONTOLOGY, Utils.loadOntology());
-        Belief<String, Map> map = new TransientBelief<String, Map>(MAP, new Map());
+        Belief<String, HashMap<String, Integer>> timesVisited = new TransientBelief<String, HashMap<String, Integer>>(
+                TIMES_VISITED, new HashMap<>());
         Belief<String, Queue<Map>> mapUpdates = new TransientBelief<String, Queue<Map>>(MAP_UPDATES,
                 new LinkedList<>());
         Belief<String, Boolean> isExplorerAlive = new TransientPredicate<String>(EXPLORER_ALIVE, false);
@@ -86,7 +87,7 @@ public class BDIAgent extends SingleCapabilityAgent {
 
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
-        getCapability().getBeliefBase().addBelief(map);
+        getCapability().getBeliefBase().addBelief(timesVisited);
         getCapability().getBeliefBase().addBelief(mapUpdates);
         getCapability().getBeliefBase().addBelief(isFullExplored);
         getCapability().getBeliefBase().addBelief(rejectedNodes);
@@ -134,42 +135,37 @@ public class BDIAgent extends SingleCapabilityAgent {
             public void reviewBeliefs() {
                 runMapUpdates();
                 updateMapStatus();
+                runTestQueries();
+            }
+
+            private void runTestQueries() {
+                Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED)
+                        .getValue();
+                if (!isFullExplored)
+                    return;
+                MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+                // Utils.getNodesWith(ontology.model, "goldAmount > 0");
             }
 
             private void updateMapStatus() {
                 MapaModel map = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-                Set<String> openNodes = map.getOpenNodes();
                 Belief<String, Boolean> isFullExplored = (Belief<String, Boolean>) getCapability().getBeliefBase()
                         .getBelief(IS_FULL_EXPLORED);
-                if (map.getOpenNodes().size() == 0 && map.getClosedNodes().size() > 0 && !isFullExplored.getValue()) {
-                    Utils.saveOntology(map.model);
+                Boolean wasFullExplored = map.getOpenNodes().size() == 0 && map.getClosedNodes().size() > 0
+                        && !isFullExplored.getValue();
+                if (wasFullExplored) {
+                    // Utils.saveOntology(map.model);
                 }
-                isFullExplored.setValue(openNodes.size() == 0);
+                isFullExplored.setValue(wasFullExplored);
             }
 
             private void runMapUpdates() {
-                Belief mapOutOfSync = getCapability().getBeliefBase().getBelief(MAP_OUT_OF_SYNC);
-                if ((Boolean) mapOutOfSync.getValue()) {
-                    syncMap();
-                    mapOutOfSync.setValue(false);
-                }
                 Queue<Map> mapUpdates = (Queue<Map>) getCapability().getBeliefBase().getBelief(MAP_UPDATES).getValue();
                 if (mapUpdates.isEmpty())
                     return;
                 Map updateMap = mapUpdates.poll();
                 MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-                Belief mapBelief = getCapability().getBeliefBase().getBelief(MAP);
-                Map currentMap = (Map) mapBelief.getValue();
-                currentMap.update(updateMap, ontology);
-                mapBelief.setValue(currentMap);
-            }
-
-            private void syncMap() {
-                MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-                Belief mapBelief = getCapability().getBeliefBase().getBelief(MAP);
-                Map currentMap = (Map) mapBelief.getValue();
-                currentMap.syncWithOntology(ontology);
-                mapBelief.setValue(currentMap);
+                Utils.updateMap(updateMap, ontology);
             }
         });
 
@@ -200,9 +196,7 @@ public class BDIAgent extends SingleCapabilityAgent {
                 if (isExplorerAlive) {
                     Boolean situatedCommanded = (Boolean) getCapability().getBeliefBase()
                             .getBelief(SITUATED_COMMANDED).getValue();
-                    Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED)
-                            .getValue();
-                    if (!situatedCommanded && !isFullExplored) {
+                    if (!situatedCommanded) {
                         agentGoalUpdateSet.generateGoal(new CommandGoal(getNextExplorerCommand()));
                         Belief commandSent = getCapability().getBeliefBase().getBelief(SITUATED_COMMANDED);
                         commandSent.setValue(true);
@@ -214,37 +208,25 @@ public class BDIAgent extends SingleCapabilityAgent {
     }
 
     private String getOpenNode() {
-        Map map = (Map) getCapability().getBeliefBase().getBelief(MAP).getValue();
-        return map.getOpenNode();
+        MapaModel map = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+        return map.getOpenNodes().iterator().next();
     }
 
     private String getLeastVisitedNode() {
-        HashMap<String, Node> map = (HashMap<String, Node>) getCapability().getBeliefBase().getBelief(MAP).getValue();
-        HashSet<String> rejectedNodes = (HashSet<String>) getCapability().getBeliefBase().getBelief(REJECTED_NODES)
-                .getValue();
-        String currentPos = (String) getCapability().getBeliefBase().getBelief(CURRENT_SITUATED_POSITION).getValue();
-        Node currentNode = map.get(currentPos);
-        int min = Integer.MAX_VALUE;
-        String minNode = null;
-        for (String neighbor : currentNode.getNeighbors()) {
-            if (rejectedNodes.contains(neighbor))
-                continue;
-            Node node = map.get(neighbor);
-            if (node.getTimesVisited() < min) {
-                min = node.getTimesVisited();
-                minNode = neighbor;
-            }
-        }
+        MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+        return Utils.getLeastVisitedNode(ontology.model);
+    }
 
+    private Boolean isFullExplored() {
+        MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+        return ontology.getOpenNodes().size() == 0;
     }
 
     private String getNextExplorerCommand() {
-        Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED).getValue();
-        if (!isFullExplored) {
+        if (!this.isFullExplored()) {
             return getOpenNode();
         }
-        return "";
-        // return getLeastVisitedNode();
+        return getLeastVisitedNode();
     }
 
     // private String getNextCollectorCommand() {

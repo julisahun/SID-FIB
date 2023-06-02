@@ -26,6 +26,7 @@ public class Node {
   public Node(JSONObject json) {
     this.id = json.getString("id");
     this.status = json.getString("status").equals("closed") ? Status.CLOSED : Status.OPEN;
+    this.timeVisited = json.getInt("timesVisited");
     this.neighbors = new HashSet<>();
     JSONArray neighbors = json.getJSONArray("neighbors");
     for (int i = 0; i < neighbors.length(); i++) {
@@ -144,6 +145,7 @@ public class Node {
     JSONObject json = new JSONObject();
     json.put("id", this.id);
     json.put("status", this.status.equals(Status.OPEN) ? "open" : "closed");
+    json.put("timesVisited", this.timeVisited);
     JSONArray neighbors = new JSONArray();
     for (String neighbor : this.neighbors) {
       neighbors.put(neighbor);

@@ -63,8 +63,10 @@ public class MapaModel {
 		public long goldAmount;
 		public long diamondAmount;
 		public long lockpickLevel;
+		public long timesVisited;
 
-		public NodeInfo(long goldAmount, long diamondAmount, long lockpickLevel) {
+		public NodeInfo(long timesVisited, long goldAmount, long diamondAmount, long lockpickLevel) {
+			this.timesVisited = timesVisited;
 			this.goldAmount = goldAmount;
 			this.diamondAmount = diamondAmount;
 			this.lockpickLevel = lockpickLevel;
@@ -280,11 +282,19 @@ public class MapaModel {
 		updateEntityTime(agent);
 	}
 
-	public void addNodeInfo(String nodeId, long goldAmount, long diamondAmount, long lockpickLevel) {
+	public void addNodeInfo(String nodeId, long timesVisited, long goldAmount, long diamondAmount, long lockpickLevel) {
 		Resource node = getCell(nodeId);
+		ArrayList<Statement> stmtsTv;
 		ArrayList<Statement> stmtsLvl;
 		ArrayList<Statement> stmtsGold;
 		ArrayList<Statement> stmtsDiamond;
+		{
+			StmtIterator it = model.listStatements(node, model.getProperty(mapa("timesVisited")), (RDFNode) null);
+			stmtsTv = new ArrayList<Statement>();
+			while (it.hasNext())
+				stmtsTv.add(it.next());
+			it.close();
+		}
 		{
 			StmtIterator it = model.listStatements(node, model.getProperty(mapa("lockpickLevel")), (RDFNode) null);
 			stmtsLvl = new ArrayList<Statement>();
@@ -306,15 +316,21 @@ public class MapaModel {
 				stmtsDiamond.add(it.next());
 			it.close();
 		}
-		if (stmtsDiamond.size() == 1 && stmtsGold.size() == 1 && stmtsLvl.size() == 1
+		if (stmtsDiamond.size() == 1 && stmtsGold.size() == 1 && stmtsLvl.size() == 1 && stmtsTv.size() == 1
 				&& stmtsDiamond.get(0).getObject().asLiteral().getLong() == diamondAmount
 				&& stmtsGold.get(0).getObject().asLiteral().getLong() == goldAmount
-				&& stmtsLvl.get(0).getObject().asLiteral().getLong() == lockpickLevel) {
+				&& stmtsLvl.get(0).getObject().asLiteral().getLong() == lockpickLevel
+				&& stmtsTv.get(0).getObject().asLiteral().getInt() == timesVisited) {
 			return;
 		}
+		model.remove(stmtsTv);
 		model.remove(stmtsLvl);
 		model.remove(stmtsGold);
 		model.remove(stmtsDiamond);
+		addCheckStmt(new StatementImpl(
+				node,
+				model.getProperty(mapa("timesVisited")),
+				model.createTypedLiteral(timesVisited)));
 		addCheckStmt(new StatementImpl(
 				node,
 				model.getProperty(mapa("lockpickLevel")),
@@ -357,7 +373,8 @@ public class MapaModel {
 
 	public NodeInfo getCellInfo(String nodeId) {
 		Resource node = getCell(nodeId);
-		return new NodeInfo(getLong(node, "goldAmount"), getLong(node, "diamondAmount"), getLong(node, "lockpickLevel"));
+		return new NodeInfo(getLong(node, "timesVisited"), getLong(node, "goldAmount"), getLong(node, "diamondAmount"),
+				getLong(node, "lockpickLevel"));
 	}
 
 	public void addAgentPos(String agentName, String id) {
@@ -501,7 +518,7 @@ public class MapaModel {
 					continue;
 				}
 				NodeInfo info = otherModel.getCellInfo(cellUpdate.getKey());
-				addNodeInfo(cellUpdate.getKey(), info.goldAmount, info.diamondAmount, info.lockpickLevel);
+				addNodeInfo(cellUpdate.getKey(), info.timesVisited, info.goldAmount, info.diamondAmount, info.lockpickLevel);
 				updateEntityTime(getCell(cellUpdate.getKey()), cellUpdate.getValue());
 			}
 		}

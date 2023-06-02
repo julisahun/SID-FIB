@@ -103,12 +103,8 @@ public class WalkTo extends SimpleBehaviour {
     ((SituatedAgent) this.myAgent).closeNode(currentPosition);
   }
 
-  private void moveToOpenNode() {
-    String nextMove = this.map.getShortestPathToClosestOpenNode(currentPosition).get(0);
-    this.move(nextMove);
-  }
-
   private void move(String nextNode) {
+    ((SituatedAgent) this.agent).recordVisit(nextNode);
     this.agent.moveTo(new gsLocation(nextNode));
   }
 
