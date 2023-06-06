@@ -69,7 +69,6 @@ public class WalkTo extends SimpleBehaviour {
     }
     String nextNode = this.route.poll();
     this.move(nextNode);
-    this.currentPosition = nextNode;
     this.exploreAround();
   }
 
@@ -104,15 +103,20 @@ public class WalkTo extends SimpleBehaviour {
   }
 
   private void move(String nextNode) {
-    ((SituatedAgent) this.agent).recordVisit(nextNode);
-    this.agent.moveTo(new gsLocation(nextNode));
+    Boolean succeeded = this.agent.moveTo(new gsLocation(nextNode));
+    if (succeeded) {
+      ((SituatedAgent) this.agent).recordVisit(nextNode);
+      this.currentPosition = nextNode;
+    } else {
+      this.unreachable = true;
+    }
   }
 
   @Override
   public boolean done() {
     boolean done = this.currentPosition.equals(this.target);
     if (done) {
-      ((SituatedAgent) this.agent).setMap(this.map);
+      ((SituatedAgent) this.agent).mergeMap(this.map);
     }
     return done || this.unreachable;
   }

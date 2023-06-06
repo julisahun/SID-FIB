@@ -5,6 +5,7 @@ import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.MessageMapper;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.RegisterToDF;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.MessageSender;
 import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
@@ -31,20 +32,27 @@ public class SituatedAgent extends AbstractDedaleAgent {
     private HashMap<String, Couple<BehaviourStatus, Integer>> behavioursStatus = new HashMap<>();
     private HashMap<String, Behaviour> behaviours = new HashMap<>();
     private Object[] arguments;
+    private String ontology;
+    public String master;
 
     @Override
     protected void setup() {
         super.setup();
+        System.out.println("the  agent " + this.getLocalName() + " is started");
         List<Behaviour> lb = new ArrayList<>();
         this.arguments = getArguments();
-        lb.add(new RegisterToDF(this, "situated", this.getType()));
+        lb.add(new RegisterToDF(this, this.getAID().getLocalName(), this.getType()));
         lb.add(new MessageMapper(this));
         addBehaviour(new startMyBehaviours(this, lb));
         this.messages = new HashMap<>();
         this.nodes = new Map();
     }
 
-    public void setMap(MapRepresentation newMap) {
+    public void setMap(MapRepresentation map) {
+        this.map = map;
+    }
+
+    public void mergeMap(MapRepresentation newMap) {
         if (this.map == null)
             this.map = newMap;
         else
@@ -84,7 +92,6 @@ public class SituatedAgent extends AbstractDedaleAgent {
         if (!this.nodes.has(node))
             return;
         this.nodes.get(node).setStatus(Node.Status.CLOSED);
-
     }
 
     public void updateObs(String node, List<Couple<Observation, Integer>> observations) {
@@ -141,6 +148,11 @@ public class SituatedAgent extends AbstractDedaleAgent {
             json.put(node, nodeInfo.toJson());
         }
         return json.toString();
+    }
+
+    public void setOntology(String ontology) {
+        Behaviour b = new MessageSender(this, this.ontology);
+        this.ontology = ontology;
     }
 
     public String getType() {

@@ -25,6 +25,7 @@ import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.NodeType;
+import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
 import jade.lang.acl.MessageTemplate;
@@ -36,7 +37,9 @@ import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Queue;
+import java.util.Random;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.HashSet;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
@@ -44,11 +47,10 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 public class BDIAgent extends SingleCapabilityAgent {
 
     private ArrayList<String> messages = new ArrayList<>();
-    public final static String situatedName = "situated";
+    public String situatedName = "situated1";
     private Goal pingAgentGoal;
 
     public BDIAgent() {
-
         initBeliefs();
 
         initGoals();
@@ -79,11 +81,11 @@ public class BDIAgent extends SingleCapabilityAgent {
 
         Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
 
-        Belief<String, HashSet<String>> rejectedNodes = new TransientBelief<String, HashSet<String>>(REJECTED_NODES,
-                new HashSet<>());
+        Belief<String, HashMap<String, Integer>> rejectedNodes = new TransientBelief<String, HashMap<String, Integer>>(
+                REJECTED_NODES,
+                new HashMap<>());
         Belief<String, String> currentSituatedPosition = new TransientBelief<String, String>(CURRENT_SITUATED_POSITION,
                 null);
-        Belief<String, Boolean> mapOutOfSync = new TransientPredicate<String>(MAP_OUT_OF_SYNC, false);
 
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
@@ -98,13 +100,12 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(situatedPinged);
         getCapability().getBeliefBase().addBelief(situatedCommanded);
         getCapability().getBeliefBase().addBelief(currentSituatedPosition);
-        getCapability().getBeliefBase().addBelief(mapOutOfSync);
     }
 
     private void initGoals() {
         Goal registerGoal = new PredicateGoal<String>(I_AM_REGISTERED, true);
-        this.pingAgentGoal = new PingAgentGoal(BDIAgent.situatedName);
-        Goal commandGoal = new CommandGoal(BDIAgent.situatedName);
+        this.pingAgentGoal = new PingAgentGoal(situatedName);
+        Goal commandGoal = new CommandGoal(situatedName);
         addGoal(registerGoal);
 
         // Declare goal templates
@@ -130,6 +131,7 @@ public class BDIAgent extends SingleCapabilityAgent {
     }
 
     private void overrideBeliefRevisionStrategy() {
+        Agent that = this;
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
@@ -166,6 +168,9 @@ public class BDIAgent extends SingleCapabilityAgent {
                 Map updateMap = mapUpdates.poll();
                 MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
                 Utils.updateMap(updateMap, ontology);
+                JSONObject body = new JSONObject();
+                body.put("ontology", ontology.getOntology());
+                Utils.sendMessage(that, ACLMessage.INFORM, "map:" + body.toString(), situatedName);
             }
         });
 
@@ -184,9 +189,10 @@ public class BDIAgent extends SingleCapabilityAgent {
                 Boolean isTankerAlive = (Boolean) getCapability().getBeliefBase().getBelief(TANKER_ALIVE).getValue();
 
                 if (imRegistered) {
-                    if (!isExplorerAlive && !isCollectorAlive && !isTankerAlive) {
+                    if (!isExplorerAlive && !isCollectorAlive && !isTankerAlive && situatedName != null) {
                         Belief pingSent = getCapability().getBeliefBase().getBelief(SITUATED_PINGED);
                         if (!(Boolean) pingSent.getValue()) {
+                            ((PingAgentGoal) pingAgentGoal).setAgent(situatedName);
                             agentGoalUpdateSet.generateGoal(pingAgentGoal);
                             return;
                         }
@@ -207,9 +213,43 @@ public class BDIAgent extends SingleCapabilityAgent {
         });
     }
 
+    private String getRandomNode() {
+        MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+        HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getCapability().getBeliefBase()
+                .getBelief(REJECTED_NODES).getValue();
+        Set<String> closedNodes = ontology.getClosedNodes();
+        String arr[] = new String[closedNodes.size()];
+        closedNodes.toArray(arr);
+        int t = 0;
+        do {
+            String node = arr[new Random().nextInt(arr.length)];
+            if (!rejectedNodes.containsKey(node))
+                return node;
+            t++;
+        } while (t < 10);
+        return arr[new Random().nextInt(arr.length)];
+    }
+
+    private String commandNodeIfNotRejected(String node) {
+        HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getCapability().getBeliefBase()
+                .getBelief(REJECTED_NODES).getValue();
+        System.out.println("Node: " + node);
+        if (!rejectedNodes.containsKey(node)) {
+            return node;
+        } else if (rejectedNodes.get(node) > 3) {
+            // node rejected more than 3 times, remove from rejected nodes
+            rejectedNodes.remove(node);
+            return node;
+        } else {
+            // rejected node, increment counter
+            rejectedNodes.put(node, rejectedNodes.get(node) + 1);
+        }
+        return getRandomNode();
+    }
+
     private String getOpenNode() {
         MapaModel map = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-        return map.getOpenNodes().iterator().next();
+        return commandNodeIfNotRejected(map.getOpenNodes().iterator().next());
     }
 
     private String getLeastVisitedNode() {

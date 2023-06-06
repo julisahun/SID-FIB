@@ -3,7 +3,7 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.goals;
 import bdi4jade.goal.Goal;
 
 public class PingAgentGoal implements Goal {
-  private final String agent;
+  private String agent;
 
   public PingAgentGoal(String agent) {
     this.agent = agent;
@@ -11,5 +11,9 @@ public class PingAgentGoal implements Goal {
 
   public String getAgent() {
     return agent;
+  }
+
+  public void setAgent(String name) {
+    agent = name;
   }
 }

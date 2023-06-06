@@ -8,6 +8,8 @@ import java.util.Queue;
 import java.util.Set;
 
 import bdi4jade.plan.DefaultPlan;
+
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import bdi4jade.goal.*;
@@ -16,10 +18,12 @@ import bdi4jade.belief.Belief;
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedale.mas.agent.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.lang.acl.ACLMessage;
 import javafx.util.Pair;
 
@@ -37,7 +41,10 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		} else if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
 			handleReject(msg);
 		} else {
-
+			if (msg.getPerformative() == ACLMessage.PROPOSE) {
+				BDIAgent agent = (BDIAgent) this.myAgent;
+				agent.situatedName = msg.getContent();
+			}
 		}
 		setEndState(Plan.EndState.SUCCESSFUL);
 	}
@@ -47,7 +54,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		if (sender.equals("slave")) {
 			String content = msg.getContent();
 			JSONObject body = new JSONObject(content);
-			String rejectedNode = body.getString("position");
+			String rejectedNode = body.getString("command");
 			addRejectedNode(rejectedNode);
 
 			Belief commandSent = getBeliefBase().getBelief(COMMAND_SENT);
@@ -56,9 +63,10 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void addRejectedNode(String rejectedNode) {
+		System.out.println("rejected node: " + rejectedNode);
 		Belief rejectedNodeBelief = getBeliefBase().getBelief(REJECTED_NODES);
-		HashSet<String> rejectedNodes = (HashSet<String>) rejectedNodeBelief.getValue();
-		rejectedNodes.add(rejectedNode);
+		HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) rejectedNodeBelief.getValue();
+		rejectedNodes.put(rejectedNode, 0);
 		rejectedNodeBelief.setValue(rejectedNodes);
 	}
 
@@ -69,8 +77,8 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		String content = msg.getContent();
 		JSONObject body = new JSONObject(content);
 		String status = body.getString("status");
-		if (status.equals("failure")) {
-			String rejectedNode = body.getString("position");
+		if (status.equals("error")) {
+			String rejectedNode = body.getString("command");
 			addRejectedNode(rejectedNode);
 		} else if (status.equals("finished")) {
 		} else if (status.equals("pong")) {
@@ -111,8 +119,29 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		ontology.learnFromOtherOntology(newOntology);
 		ontologyBelief.setValue(ontology);
 
-		Belief mapOutOfSync = getBeliefBase().getBelief(MAP_OUT_OF_SYNC);
-		mapOutOfSync.setValue(true);
+		JSONObject newMap = new JSONObject();
+		JSONArray openNodes = new JSONArray();
+		for (String node : ontology.getOpenNodes()) {
+			openNodes.put(node);
+		}
+		JSONArray closedNodes = new JSONArray();
+		for (String node : ontology.getClosedNodes()) {
+			openNodes.put(node);
+		}
+		JSONArray edges = new JSONArray();
+		for (Pair<String, String> edge : ontology.getEdges()) {
+			JSONObject edgeJson = new JSONObject();
+			edgeJson.put("from", edge.getKey());
+			edgeJson.put("to", edge.getValue());
+			edges.put(edgeJson);
+		}
+		newMap.put("openNodes", openNodes);
+		newMap.put("closedNodes", closedNodes);
+		newMap.put("edges", edges);
+		JSONObject body = new JSONObject();
+		body.put("map", newMap);
+		Utils.sendMessage(myAgent, ACLMessage.INFORM, "map:" + body.toString(),
+				((BDIAgent) this.myAgent).situatedName);
 	}
 
 	@Parameter(direction = Parameter.Direction.IN)

@@ -22,13 +22,15 @@ public class MessageSender extends OneShotBehaviour {
     public MessageSender(Agent a, String message) {
         super(a);
         this.message = message;
-        this.receivers = new String[] { "master" };
+        String masterName = ((SituatedAgent) a).master;
+        this.receivers = new String[] { masterName };
     }
 
     public MessageSender(Agent a, int performative, String message) {
         super(a);
         this.message = message;
-        this.receivers = new String[] { "master" };
+        String masterName = ((SituatedAgent) a).master;
+        this.receivers = new String[] { masterName };
         this.performative = performative;
     }
 

@@ -18,7 +18,7 @@ public class PingAgentPlanBody extends AbstractPlanBody {
       setEndState(Plan.EndState.FAILED);
       return;
     }
-    Utils.sendMessage(myAgent, ACLMessage.REQUEST, "ping", agentToPing);
+    Utils.sendMessage(myAgent, ACLMessage.REQUEST, "ping:{}", agentToPing);
     getCapability().getBeliefBase().updateBelief(SITUATED_PINGED, true);
     setEndState(Plan.EndState.SUCCESSFUL);
   }

@@ -225,7 +225,9 @@ public class Principal {
         // bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[] {
-                newAgent("situated", new String[] {},
+                newAgent("situated1", new String[] {},
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class),
+                newAgent("situated2", new String[] {},
                         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class)
         };
 
@@ -239,7 +241,7 @@ public class Principal {
         try {
             AgentController nonDedaleAgent = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
                     .createNewAgent(
-                            "master", BDIAgent.class.getName(), new Object[] {});
+                            "master1", BDIAgent.class.getName(), new Object[] {});
             agentList.add(nonDedaleAgent);
         } catch (StaleProxyException e) {
             e.printStackTrace();

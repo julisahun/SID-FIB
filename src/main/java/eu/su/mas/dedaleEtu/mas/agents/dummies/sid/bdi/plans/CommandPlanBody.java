@@ -28,7 +28,7 @@ public class CommandPlanBody extends AbstractPlanBody {
   private void sendCommand(String position) {
     JSONObject body = new JSONObject();
     body.put("position", position);
-    String to = BDIAgent.situatedName;
+    String to = ((BDIAgent) myAgent).situatedName;
     Utils.sendMessage(myAgent, ACLMessage.REQUEST, "position:" + body.toString(), to);
   }
 }

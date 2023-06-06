@@ -4,6 +4,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
+import org.apache.jena.atlas.json.JSON;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import dataStructures.tuple.Couple;
@@ -11,6 +13,7 @@ import jade.core.behaviours.Behaviour;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.Agent;
 import eu.su.mas.dedale.env.Location;
@@ -18,11 +21,11 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
 public class MessageMapper extends OneShotBehaviour {
-  private final AbstractDedaleAgent agent;
+  private final SituatedAgent agent;
 
   public MessageMapper(Agent a) {
     super(a);
-    this.agent = (AbstractDedaleAgent) a;
+    this.agent = (SituatedAgent) a;
   }
 
   private void updatePosition(String body) {
@@ -30,18 +33,30 @@ public class MessageMapper extends OneShotBehaviour {
     try {
       JSONObject data = parsedJson.getJSONObject("data");
       String position = data.getString("position");
-      Boolean rejectNode = getSituatedAgent().isAlreadyRejected(position);
-      if (rejectNode) {
-        Utils.sendMessage(this.agent, ACLMessage.REJECT_PROPOSAL, body, "master");
+      if (position == "") {
+        {
+          JSONObject res = new JSONObject();
+          res.put("status", "success");
+          res.put("map", getSituatedAgent().stringifyNodes());
+          res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
+          res.put("command", position);
+          this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
+        }
         return;
       }
-      Utils.sendMessage(this.agent, ACLMessage.ACCEPT_PROPOSAL, body, "master");
+
+      Boolean rejectNode = getSituatedAgent().isAlreadyRejected(position);
+      if (rejectNode) {
+        Utils.sendMessage(this.agent, ACLMessage.REJECT_PROPOSAL, body, this.agent.master);
+        return;
+      }
+      Utils.sendMessage(this.agent, ACLMessage.ACCEPT_PROPOSAL, body, this.agent.master);
 
       String id = Utils.uuid();
       Behaviour walk = new WalkTo(this.agent, position, getSituatedAgent().getMapRepresentation(), id);
       Utils.registerBehaviour(this.agent, walk, id);
 
-      HashMap<Integer, Runnable> responses = mapResponses();
+      HashMap<Integer, Runnable> responses = mapResponses(position);
 
       Behaviour action = new Composer(this.agent, walk, new ConditionalBehaviour(this.agent, id, responses));
 
@@ -58,25 +73,28 @@ public class MessageMapper extends OneShotBehaviour {
     }
   }
 
-  private HashMap<Integer, Runnable> mapResponses() {
+  private HashMap<Integer, Runnable> mapResponses(String position) {
     HashMap<Integer, Runnable> responses = new HashMap<>();
     responses.put(0, () -> {
       JSONObject body = new JSONObject();
       body.put("status", "success");
       body.put("map", getSituatedAgent().stringifyNodes());
       body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
+      body.put("command", position);
       this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
     });
     responses.put(1, () -> {
       JSONObject body = new JSONObject();
       body.put("status", "finished");
       body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
+      body.put("command", position);
       body.put("map", getSituatedAgent().stringifyNodes());
       this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
     });
     responses.put(2, () -> {
       JSONObject body = new JSONObject();
       body.put("status", "error");
+      body.put("command", position);
       body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
       body.put("map", getSituatedAgent().stringifyNodes());
       this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
@@ -85,10 +103,41 @@ public class MessageMapper extends OneShotBehaviour {
   }
 
   private void updateMap(String body) {
-    System.out.println("Updating map");
+    JSONObject parsedJson = new JSONObject(body);
+    JSONObject data = parsedJson.getJSONObject("data");
+    try {
+      String ontology = data.getString("ontology");
+      ((SituatedAgent) this.agent).setOntology(ontology);
+    } catch (Exception e) {
+    }
+    try {
+      JSONObject mapJSON = data.getJSONObject("map");
+
+      JSONArray openNodes = mapJSON.getJSONArray("openNodes");
+      JSONArray closedNodes = mapJSON.getJSONArray("closedNodes");
+      JSONArray edges = mapJSON.getJSONArray("edges");
+
+      MapRepresentation map = new MapRepresentation();
+      for (Object openNode : openNodes) {
+        map.addNode(openNode.toString(), MapRepresentation.MapAttribute.open);
+      }
+      for (Object closedNode : closedNodes) {
+        map.addNode(closedNode.toString(), MapRepresentation.MapAttribute.closed);
+      }
+      for (Object edge : edges) {
+        JSONObject edgeJson = (JSONObject) edge;
+        String from = edgeJson.getString("from");
+        String to = edgeJson.getString("to");
+        map.addEdge(from, to);
+      }
+      getSituatedAgent().setMap(map);
+    } catch (Exception e) {
+    }
   }
 
   private void pong(String body) {
+    String master = new JSONObject(body).getString("sender");
+    this.agent.master = master;
     String currentPosition = getSituatedAgent().getCurrentPosition().getLocationId();
     getSituatedAgent().addNode(currentPosition);
     for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : getSituatedAgent().observe()) {

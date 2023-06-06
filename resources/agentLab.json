@@ -1,9 +1,20 @@
 [
   { 
     "agentType":"agentExplo",
-    "agentName": "situated",
+    "agentName": "situated1",
     "communicationRange": 3,
     "initialLocation": "free",
+    "backPackCapacityGold": -1,
+    "backPackCapacityDiamond":-1, 
+    "detectionRadius": 0,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
+  },
+  { 
+    "agentType":"agentExplo",
+    "agentName": "situated2",
+    "communicationRange": 3,
+    "initialLocation": "42",
     "backPackCapacityGold": -1,
     "backPackCapacityDiamond":-1, 
     "detectionRadius": 0,

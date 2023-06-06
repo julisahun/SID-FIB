@@ -190,7 +190,7 @@ public class Utils {
             break;
         }
       }
-      ontology.addNodeInfo(node, newNode.getTimesVisited(), goldAmount, diamondAmount, lockpickLevel);// , strength);
+      ontology.addNodeInfo(node, newNode.getTimesVisited(), goldAmount, diamondAmount, lockpickLevel, strength);
     }
   }
 
@@ -204,7 +204,7 @@ public class Utils {
       if (results.length > 0) {
         DFAgentDescription dfd = results[0];
         String result = dfd.getName().getLocalName();
-        System.out.println("Found agent: " + result);
+        System.out.println("Found agent " + result + " with name " + name);
         if (result.contains(name))
           return result;
       }
@@ -213,45 +213,6 @@ public class Utils {
     }
     return null;
   }
-
-  // public static void addProperty(OntModel ont, String from, String property,
-  // String to) {
-  // Individual fromEntity = ont.getIndividual(BASE_URI + from);
-  // Property nameProperty = ont.getProperty(BASE_URI + property);
-  // fromEntity.addProperty(nameProperty, to);
-  // }
-
-  // public static void addProperty(Agent a, String from, String property, String
-  // to) {
-  // OntModel ont = getOntology(a);
-  // addProperty(ont, from, property, to);
-  // }
-
-  // public static void addRelation(OntModel ont, String from, String property,
-  // String to) {
-  // Individual fromEntity = ont.getIndividual(BASE_URI + from);
-  // Property nameProperty = ont.getProperty(BASE_URI + property);
-  // Individual toEntity = ont.getIndividual(BASE_URI + to);
-  // fromEntity.addProperty(nameProperty, toEntity);
-  // }
-
-  // public static void addRelation(Agent a, String from, String property, String
-  // to) {
-  // OntModel ont = getOntology(a);
-  // addRelation(ont, from, property, to);
-  // }
-
-  // public static void addIndividual(OntModel ont, String className, String
-  // instance) {
-  // ont.createIndividual(BASE_URI + instance, ont.getOntClass(BASE_URI +
-  // className));
-  // }
-
-  // public static void addIndividual(Agent a, String className, String instance)
-  // {
-  // OntModel ont = getOntology(a);
-  // addIndividual(ont, className, instance);
-  // }
 
   public static OntModel getOntology(Agent a) {
     SingleCapabilityAgent agent = (SingleCapabilityAgent) a;
