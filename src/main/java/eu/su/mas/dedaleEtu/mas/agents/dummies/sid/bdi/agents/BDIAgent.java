@@ -29,7 +29,6 @@ import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
 import jade.lang.acl.MessageTemplate;
-import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.sql.Timestamp;
@@ -39,8 +38,6 @@ import java.util.HashMap;
 import java.util.Queue;
 import java.util.Random;
 import java.util.LinkedList;
-import java.util.List;
-import java.util.HashSet;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
@@ -226,7 +223,7 @@ public class BDIAgent extends SingleCapabilityAgent {
             if (!rejectedNodes.containsKey(node))
                 return node;
             t++;
-        } while (t < 10);
+        } while (t < 10); // try 10 times to get a node not rejected, otherwise return a random node
         return arr[new Random().nextInt(arr.length)];
     }
 
@@ -236,7 +233,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         System.out.println("Node: " + node);
         if (!rejectedNodes.containsKey(node)) {
             return node;
-        } else if (rejectedNodes.get(node) > 3) {
+        } else if (rejectedNodes.get(node) > WAITING_CYCLES) {
             // node rejected more than 3 times, remove from rejected nodes
             rejectedNodes.remove(node);
             return node;
