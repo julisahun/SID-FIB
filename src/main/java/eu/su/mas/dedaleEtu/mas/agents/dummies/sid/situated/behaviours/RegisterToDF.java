@@ -15,6 +15,7 @@ public class RegisterToDF extends OneShotBehaviour {
     super(a);
     this.name = name;
     this.type = type;
+    System.out.println("registering " + name + " to DF" + " of type " + type);
   }
 
   @Override
@@ -29,7 +30,7 @@ public class RegisterToDF extends OneShotBehaviour {
     dfd.addServices(sd);
     try {
       DFService.register(this.myAgent, dfd);
-      System.out.println("Situated agent registered!");
+      System.out.println("Situated agent " + this.myAgent.getLocalName() + " registered!");
     } catch (FIPAException e) {
       e.printStackTrace();
     }

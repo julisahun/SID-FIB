@@ -26,7 +26,6 @@ public class OntologySharer extends TickerBehaviour {
   }
 
   public void updateOntology(String ontology) {
-    System.out.println("Updating ontology");
     this.ontology = ontology;
     this.refreshMessage();
   }
@@ -50,6 +49,7 @@ public class OntologySharer extends TickerBehaviour {
         if (isMySelf || isMyMaster)
           // avoid adding itself or my master to the receivers
           continue;
+        System.out.println("Adding " + agent.getName().getLocalName() + " to receivers");
         AID provider = agent.getName();
         msg.addReceiver(provider);
       }

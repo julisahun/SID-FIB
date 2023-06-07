@@ -209,6 +209,16 @@ public class BDIAgent extends SingleCapabilityAgent {
                         return;
                     }
                 }
+                if (isCollectorAlive) {
+                    Boolean situatedCommanded = (Boolean) getCapability().getBeliefBase()
+                            .getBelief(SITUATED_COMMANDED).getValue();
+                    if (!situatedCommanded) {
+                        agentGoalUpdateSet.generateGoal(new CommandGoal(getNextExplorerCommand()));
+                        Belief commandSent = getCapability().getBeliefBase().getBelief(SITUATED_COMMANDED);
+                        commandSent.setValue(true);
+                        return;
+                    }
+                }
             }
         });
     }

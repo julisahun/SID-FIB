@@ -118,6 +118,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void updateOntology(String stringifiedOntology) {
+		System.out.println("Master in charge of " + ((BDIAgent) this.myAgent).situatedName + " received ontology");
 		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASH);
 		if (((Integer) currentOntologyHash.getValue()) == stringifiedOntology.hashCode())
 			// avoid getting spammed by some agent
