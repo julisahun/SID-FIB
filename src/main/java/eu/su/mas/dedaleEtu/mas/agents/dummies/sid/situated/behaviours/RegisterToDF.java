@@ -19,6 +19,7 @@ public class RegisterToDF extends OneShotBehaviour {
 
   @Override
   public void action() {
+    System.out.println("Registering situated agent to DF " + this.myAgent.getLocalName());
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.setName(this.myAgent.getAID());
     ServiceDescription sd = new ServiceDescription();
@@ -32,6 +33,5 @@ public class RegisterToDF extends OneShotBehaviour {
     } catch (FIPAException e) {
       e.printStackTrace();
     }
-
   }
 }

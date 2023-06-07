@@ -1,6 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
@@ -13,25 +14,42 @@ import jade.lang.acl.ACLMessage;
 //tried Cyclic behaviour but it was using too much CPU, so I switched to TickerBehaviour
 public class OntologySharer extends TickerBehaviour {
 
-  private final ACLMessage message;
+  private ACLMessage message;
+  String ontology;
+  Integer ticks = 0;
 
-  public OntologySharer(Agent a, String message) {
+  public OntologySharer(Agent a, String ontology) {
     super(a, 100);
+    this.ontology = ontology;
+    this.refreshMessage();
 
+  }
+
+  public void updateOntology(String ontology) {
+    System.out.println("Updating ontology");
+    this.ontology = ontology;
+    this.refreshMessage();
+  }
+
+  private void refreshMessage() {
     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
     msg.setSender(this.myAgent.getAID());
-    msg.setContent(message);
+    msg.setContent(this.ontology);
     msg.setProtocol("SHARE-ONTO");
     msg.setOntology("polydama-mapstate");
 
     DFAgentDescription template = new DFAgentDescription();
     ServiceDescription templateSd = new ServiceDescription();
-    templateSd.setType("dedale");
     template.addServices(templateSd);
     DFAgentDescription[] results;
     try {
       results = DFService.search(this.myAgent, template);
       for (DFAgentDescription agent : results) {
+        Boolean isMySelf = agent.getName().getLocalName().equals(this.myAgent.getLocalName());
+        Boolean isMyMaster = agent.getName().getLocalName().equals(((SituatedAgent) this.myAgent).master);
+        if (isMySelf || isMyMaster)
+          // avoid adding itself or my master to the receivers
+          continue;
         AID provider = agent.getName();
         msg.addReceiver(provider);
       }
@@ -40,10 +58,6 @@ public class OntologySharer extends TickerBehaviour {
     } finally {
       this.message = msg;
     }
-  }
-
-  public void updateOntology(String ontology) {
-    this.message.setContent(ontology);
   }
 
   @Override

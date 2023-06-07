@@ -44,9 +44,9 @@ import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 public class BDIAgent extends SingleCapabilityAgent {
 
     private ArrayList<String> messages = new ArrayList<>();
-    public String situatedName = "situated1";
+    public String situatedName;
     private Goal pingAgentGoal;
-    private Integer ontologyHash = null;
+    public String name;
 
     public BDIAgent() {
         initBeliefs();

@@ -133,6 +133,17 @@ public class MessageMapper extends OneShotBehaviour {
     }
   }
 
+  private void updateOntology(String body) {
+    JSONObject parsedJson = new JSONObject(body);
+    JSONObject data = parsedJson.getJSONObject("data");
+    try {
+      String ontology = data.getString("ontology");
+      ((SituatedAgent) this.agent).setOntology(ontology);
+      this.myAgent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
+    } catch (Exception e) {
+    }
+  }
+
   private void pong(String body) {
     String master = new JSONObject(body).getString("sender");
     this.agent.master = master;
@@ -158,6 +169,7 @@ public class MessageMapper extends OneShotBehaviour {
     HashMap<String, Consumer<String>> actions = new HashMap<>();
     actions.put("position", this::updatePosition);
     actions.put("map", this::updateMap);
+    actions.put("ontology", this::updateOntology);
     actions.put("ping", this::pong);
     this.myAgent.addBehaviour(new Listener(this.myAgent, actions));
   }

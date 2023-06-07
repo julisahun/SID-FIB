@@ -22,6 +22,13 @@ public class Listener extends CyclicBehaviour {
   }
 
   private Couple<String, String> getKeyValue(ACLMessage msg) {
+    Boolean isPolMarcetOntology = msg.getOntology().equals("polydama-mapstate")
+        && msg.getProtocol().equals("SHARE-ONTO");
+    if (isPolMarcetOntology) {
+      JSONObject content = new JSONObject();
+      content.put("ontology", msg.getContent());
+      return new Couple("ontology", content.toString());
+    }
     String[] contentArray = msg.getContent().split(":");
     String key = contentArray[0];
     String message = String.join(":", Arrays.copyOfRange(contentArray, 1,
@@ -53,6 +60,10 @@ public class Listener extends CyclicBehaviour {
     ACLMessage msg = this.myAgent.receive();
     if (msg == null) {
       block();
+      return;
+    }
+    if (this.myAgent.getLocalName().equals("situated2")) {
+      System.out.println("situated2 received message: " + msg.getContent());
       return;
     }
     Couple<String, JSONObject> mappedMessage = mapMessage(msg);

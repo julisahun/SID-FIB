@@ -76,8 +76,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 
 	private void handleInform(ACLMessage msg) {
 		if (msg.getProtocol().equals("SHARE-ONTO")) {
-			if (msg.getSender().getLocalName().equals(((BDIAgent) this.myAgent).situatedName))
-				return;
 			updateOntology(msg.getContent());
 			return;
 		}
