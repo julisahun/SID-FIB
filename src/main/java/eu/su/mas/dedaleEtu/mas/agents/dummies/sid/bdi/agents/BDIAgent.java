@@ -46,6 +46,7 @@ public class BDIAgent extends SingleCapabilityAgent {
     private ArrayList<String> messages = new ArrayList<>();
     public String situatedName = "situated1";
     private Goal pingAgentGoal;
+    private Integer ontologyHash = null;
 
     public BDIAgent() {
         initBeliefs();
@@ -83,6 +84,7 @@ public class BDIAgent extends SingleCapabilityAgent {
                 new HashMap<>());
         Belief<String, String> currentSituatedPosition = new TransientBelief<String, String>(CURRENT_SITUATED_POSITION,
                 null);
+        Belief<String, Integer> ontologyHash = new TransientBelief<String, Integer>(ONTOLOGY_HASH, null);
 
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
@@ -97,6 +99,7 @@ public class BDIAgent extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(situatedPinged);
         getCapability().getBeliefBase().addBelief(situatedCommanded);
         getCapability().getBeliefBase().addBelief(currentSituatedPosition);
+        getCapability().getBeliefBase().addBelief(ontologyHash);
     }
 
     private void initGoals() {
@@ -128,7 +131,7 @@ public class BDIAgent extends SingleCapabilityAgent {
     }
 
     private void overrideBeliefRevisionStrategy() {
-        Agent that = this;
+        final Agent that = this;
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
@@ -230,7 +233,6 @@ public class BDIAgent extends SingleCapabilityAgent {
     private String commandNodeIfNotRejected(String node) {
         HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getCapability().getBeliefBase()
                 .getBelief(REJECTED_NODES).getValue();
-        System.out.println("Node: " + node);
         if (!rejectedNodes.containsKey(node)) {
             return node;
         } else if (rejectedNodes.get(node) > WAITING_CYCLES) {

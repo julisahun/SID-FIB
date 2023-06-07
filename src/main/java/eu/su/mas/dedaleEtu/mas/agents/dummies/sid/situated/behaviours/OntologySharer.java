@@ -3,19 +3,20 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import jade.core.AID;
 import jade.core.Agent;
-import jade.core.behaviours.CyclicBehaviour;
+import jade.core.behaviours.TickerBehaviour;
 import jade.domain.DFService;
 import jade.domain.FIPAException;
 import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 
-public class OntologySharer extends CyclicBehaviour {
+//tried Cyclic behaviour but it was using too much CPU, so I switched to TickerBehaviour
+public class OntologySharer extends TickerBehaviour {
 
   private final ACLMessage message;
 
   public OntologySharer(Agent a, String message) {
-    super(a);
+    super(a, 100);
 
     ACLMessage msg = new ACLMessage(ACLMessage.INFORM);
     msg.setSender(this.myAgent.getAID());
@@ -41,8 +42,12 @@ public class OntologySharer extends CyclicBehaviour {
     }
   }
 
+  public void updateOntology(String ontology) {
+    this.message.setContent(ontology);
+  }
+
   @Override
-  public void action() {
+  public void onTick() {
     ((AbstractDedaleAgent) this.myAgent).sendMessage(this.message);
   }
 }

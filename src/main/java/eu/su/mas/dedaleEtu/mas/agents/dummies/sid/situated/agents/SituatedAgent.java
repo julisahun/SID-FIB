@@ -6,9 +6,11 @@ import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.MessageMapper;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.RegisterToDF;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.MessageSender;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.OntologySharer;
 import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
+import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils.BehaviourStatus;
 import jade.core.behaviours.Behaviour;
 import dataStructures.tuple.Couple;
@@ -33,6 +35,7 @@ public class SituatedAgent extends AbstractDedaleAgent {
     private HashMap<String, Behaviour> behaviours = new HashMap<>();
     private Object[] arguments;
     private String ontology;
+    private String ontologySharerId;
     public String master;
 
     @Override
@@ -151,7 +154,15 @@ public class SituatedAgent extends AbstractDedaleAgent {
     }
 
     public void setOntology(String ontology) {
-        Behaviour b = new MessageSender(this, this.ontology);
+        OntologySharer oldBehaviour = (OntologySharer) this.getBehaviour(this.ontologySharerId);
+        if (oldBehaviour == null) {
+            Behaviour b = new OntologySharer(this, this.ontology);
+            this.ontologySharerId = Utils.uuid();
+            this.registerBehaviour(this.ontologySharerId, b, BehaviourStatus.ACTIVE);
+            this.addBehaviour(b);
+        } else {
+            oldBehaviour.updateOntology(ontology);
+        }
         this.ontology = ontology;
     }
 

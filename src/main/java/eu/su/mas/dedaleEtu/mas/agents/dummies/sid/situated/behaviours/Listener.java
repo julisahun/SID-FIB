@@ -36,6 +36,7 @@ public class Listener extends CyclicBehaviour {
       String protocol = msg.getProtocol();
       String sender = msg.getSender().getLocalName();
       JSONObject body = new JSONObject();
+      body.put("performative", msg.getPerformative());
       body.put("protocol", protocol);
       body.put("sender", sender);
       body.put("data", content);
@@ -54,14 +55,13 @@ public class Listener extends CyclicBehaviour {
       block();
       return;
     }
-    if (msg.getPerformative() == ACLMessage.REQUEST) {
-      Couple<String, JSONObject> mappedMessage = mapMessage(msg);
-      String key = mappedMessage.getLeft();
-      JSONObject body = mappedMessage.getRight();
-      if (actions.containsKey(key))
-        this.actions.get(key).accept(body.toString());
-      // else
-      // ((SituatedAgent) this.myAgent).addMessage(key, body);
-    }
+    Couple<String, JSONObject> mappedMessage = mapMessage(msg);
+    String key = mappedMessage.getLeft();
+    JSONObject body = mappedMessage.getRight();
+    if (actions.containsKey(key))
+      this.actions.get(key).accept(body.toString());
+    // else
+    // ((SituatedAgent) this.myAgent).addMessage(key, body);
+
   }
 }

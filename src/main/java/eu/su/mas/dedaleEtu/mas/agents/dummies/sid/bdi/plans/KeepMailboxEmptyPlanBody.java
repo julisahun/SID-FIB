@@ -32,19 +32,24 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 
 	@Override
 	public void action() {
-		ACLMessage msg = this.msgReceived;
-		((BDIAgent) this.myAgent).addMessage(msg);
-		if (msg.getPerformative() == ACLMessage.INFORM) {
-			handleInform(msg);
-		} else if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
-			// NO OP
-		} else if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
-			handleReject(msg);
-		} else {
-			if (msg.getPerformative() == ACLMessage.PROPOSE) {
-				BDIAgent agent = (BDIAgent) this.myAgent;
-				agent.situatedName = msg.getContent();
+		try {
+			ACLMessage msg = this.msgReceived;
+			((BDIAgent) this.myAgent).addMessage(msg);
+			if (msg.getPerformative() == ACLMessage.INFORM) {
+				handleInform(msg);
+			} else if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+				// NO OP
+			} else if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
+				handleReject(msg);
+			} else {
+				if (msg.getPerformative() == ACLMessage.PROPOSE) {
+					BDIAgent agent = (BDIAgent) this.myAgent;
+					agent.situatedName = msg.getContent();
+				}
 			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			throw e;
 		}
 		setEndState(Plan.EndState.SUCCESSFUL);
 	}
@@ -63,7 +68,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void addRejectedNode(String rejectedNode) {
-		System.out.println("rejected node: " + rejectedNode);
 		Belief rejectedNodeBelief = getBeliefBase().getBelief(REJECTED_NODES);
 		HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) rejectedNodeBelief.getValue();
 		rejectedNodes.put(rejectedNode, 0);
@@ -72,7 +76,10 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 
 	private void handleInform(ACLMessage msg) {
 		if (msg.getProtocol().equals("SHARE-ONTO")) {
+			if (msg.getSender().getLocalName().equals(((BDIAgent) this.myAgent).situatedName))
+				return;
 			updateOntology(msg.getContent());
+			return;
 		}
 		String content = msg.getContent();
 		JSONObject body = new JSONObject(content);
@@ -113,11 +120,17 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void updateOntology(String stringifiedOntology) {
+		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASH);
+		if (((Integer) currentOntologyHash.getValue()) == stringifiedOntology.hashCode())
+			// avoid getting spammed by some agent
+			return;
+
 		MapaModel newOntology = MapaModel.importOntology(stringifiedOntology);
 		Belief ontologyBelief = getBeliefBase().getBelief(ONTOLOGY);
 		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
 		ontology.learnFromOtherOntology(newOntology);
 		ontologyBelief.setValue(ontology);
+		currentOntologyHash.setValue(ontology.getOntology().hashCode());
 
 		JSONObject newMap = new JSONObject();
 		JSONArray openNodes = new JSONArray();

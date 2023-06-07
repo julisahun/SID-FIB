@@ -24,4 +24,5 @@ public class Constants {
     public static String MAP_OUT_OF_SYNC = "mapOutOfSync";
     public static String TIMES_VISITED = "timesVisited";
     public static int WAITING_CYCLES = 3;
+    public static String ONTOLOGY_HASH = "ontologyHash";
 }

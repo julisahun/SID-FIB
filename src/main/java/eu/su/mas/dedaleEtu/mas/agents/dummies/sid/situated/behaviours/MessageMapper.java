@@ -4,14 +4,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.function.Consumer;
 
-import org.apache.jena.atlas.json.JSON;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import dataStructures.tuple.Couple;
 import jade.core.behaviours.Behaviour;
 import eu.su.mas.dedale.env.Observation;
-import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
