@@ -41,7 +41,6 @@ public class SituatedAgent extends AbstractDedaleAgent {
     @Override
     protected void setup() {
         super.setup();
-        System.out.println("the  agent " + this.getLocalName() + " is started");
         List<Behaviour> lb = new ArrayList<>();
         this.arguments = getArguments();
         lb.add(new RegisterToDF(this, this.getAID().getLocalName(), this.getType()));
@@ -71,6 +70,11 @@ public class SituatedAgent extends AbstractDedaleAgent {
     }
 
     public void addNode(String currentNode, String newNode, List<Couple<Observation, Integer>> observations) {
+        for (Couple<Observation, Integer> obs : observations) {
+            if (obs.getLeft().getName().equals("WIND")) {
+                return;
+            }
+        }
         if (!this.nodes.has(newNode)) {
             this.nodes.put(newNode, new Node(newNode, Node.Status.OPEN, new HashSet<String>(), observations));
         }
