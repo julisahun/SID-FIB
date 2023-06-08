@@ -6,7 +6,7 @@ import java.util.List;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.SequentialBehaviour;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 
 public class Composer extends SequentialBehaviour {

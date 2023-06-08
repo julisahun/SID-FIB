@@ -1,7 +1,7 @@
 [
   { 
     "agentType":"agentExplo",
-    "agentName": "situated1",
+    "agentName": "situatedAgent03",
     "communicationRange": 3,
     "initialLocation": "free",
     "backPackCapacityGold": -1,

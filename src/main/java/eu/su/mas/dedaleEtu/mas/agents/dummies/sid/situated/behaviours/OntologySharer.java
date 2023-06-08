@@ -1,7 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;
@@ -45,7 +45,7 @@ public class OntologySharer extends TickerBehaviour {
       results = DFService.search(this.myAgent, template);
       for (DFAgentDescription agent : results) {
         Boolean isMySelf = agent.getName().getLocalName().equals(this.myAgent.getLocalName());
-        Boolean isMyMaster = agent.getName().getLocalName().equals(((SituatedAgent) this.myAgent).master);
+        Boolean isMyMaster = agent.getName().getLocalName().equals(((SituatedAgent03) this.myAgent).master);
         if (isMySelf || isMyMaster)
           // avoid adding itself or my master to the receivers
           continue;

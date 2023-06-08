@@ -11,7 +11,7 @@ import java.util.function.Consumer;
 import org.json.JSONObject;
 
 import dataStructures.tuple.Couple;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03;
 
 public class Listener extends CyclicBehaviour {
   private HashMap<String, Consumer<String>> actions;

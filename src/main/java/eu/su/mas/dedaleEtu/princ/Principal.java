@@ -5,7 +5,7 @@ import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent03;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -225,10 +225,10 @@ public class Principal {
         // bound by name
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[] {
-                newAgent("situated1", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class),
-                newAgent("situated2", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class)
+                newAgent("SituatedAgent03", new String[] {},
+                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03.class)
+                // newAgent("situated2", new String[] {},
+                //         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class)
         };
 
         for (AgentController ac : agentsToAdd) {
@@ -241,12 +241,12 @@ public class Principal {
         try {
             AgentController nonDedaleAgent = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
                     .createNewAgent(
-                            "master1", BDIAgent.class.getName(), new Object[] {});
-            AgentController nonDedaleAgent2 = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
-                    .createNewAgent(
-                            "master2", BDIAgent.class.getName(), new Object[] {});
+                            "master1", BDIAgent03.class.getName(), new Object[] {});
+            // AgentController nonDedaleAgent2 = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
+            //         .createNewAgent(
+            //                 "master2", BDIAgent.class.getName(), new Object[] {});
             agentList.add(nonDedaleAgent);
-            agentList.add(nonDedaleAgent2);
+            // agentList.add(nonDedaleAgent2);
         } catch (StaleProxyException e) {
             e.printStackTrace();
         }

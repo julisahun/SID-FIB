@@ -10,7 +10,7 @@ import org.json.JSONObject;
 import dataStructures.tuple.Couple;
 import jade.core.behaviours.Behaviour;
 import eu.su.mas.dedale.env.Observation;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.core.Agent;
@@ -19,11 +19,11 @@ import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;
 
 public class MessageMapper extends OneShotBehaviour {
-  private final SituatedAgent agent;
+  private final SituatedAgent03 agent;
 
   public MessageMapper(Agent a) {
     super(a);
-    this.agent = (SituatedAgent) a;
+    this.agent = (SituatedAgent03) a;
   }
 
   private void updatePosition(String body) {
@@ -105,7 +105,7 @@ public class MessageMapper extends OneShotBehaviour {
     JSONObject data = parsedJson.getJSONObject("data");
     try {
       String ontology = data.getString("ontology");
-      ((SituatedAgent) this.agent).setOntology(ontology);
+      ((SituatedAgent03) this.agent).setOntology(ontology);
     } catch (Exception e) {
     }
     try {
@@ -138,7 +138,7 @@ public class MessageMapper extends OneShotBehaviour {
     JSONObject data = parsedJson.getJSONObject("data");
     try {
       String ontology = data.getString("ontology");
-      ((SituatedAgent) this.agent).setOntology(ontology);
+      ((SituatedAgent03) this.agent).setOntology(ontology);
       this.myAgent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
     } catch (Exception e) {
     }
@@ -158,7 +158,7 @@ public class MessageMapper extends OneShotBehaviour {
     JSONObject response = new JSONObject();
     response.put("status", "pong");
     response.put("map", getSituatedAgent().stringifyNodes());
-    response.put("agentType", ((SituatedAgent) this.agent).getType());
+    response.put("agentType", ((SituatedAgent03) this.agent).getType());
     response.put("position", currentPosition);
     Behaviour pong = new MessageSender(this.agent, response.toString());
     this.agent.addBehaviour(pong);
@@ -174,7 +174,7 @@ public class MessageMapper extends OneShotBehaviour {
     this.myAgent.addBehaviour(new Listener(this.myAgent, actions));
   }
 
-  private SituatedAgent getSituatedAgent() {
-    return (SituatedAgent) this.agent;
+  private SituatedAgent03 getSituatedAgent() {
+    return (SituatedAgent03) this.agent;
   }
 }

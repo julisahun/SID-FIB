@@ -24,7 +24,7 @@ import org.json.JSONArray;
 
 import java.util.HashSet;
 
-public class SituatedAgent extends AbstractDedaleAgent {
+public class SituatedAgent03 extends AbstractDedaleAgent {
 
     private MapRepresentation map;
     private Map nodes;

@@ -9,7 +9,7 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
 import eu.su.mas.dedale.env.Location;
@@ -88,10 +88,10 @@ public class WalkTo extends SimpleBehaviour {
         continue;
       this.map.addNewNode(nodeId);
       if (!currentPosition.equals(nodeId)) {
-        ((SituatedAgent) this.myAgent).addNode(currentPosition, nodeId, neighbor.getRight());
+        ((SituatedAgent03) this.myAgent).addNode(currentPosition, nodeId, neighbor.getRight());
         this.map.addEdge(currentPosition, nodeId);
       } else {
-        ((SituatedAgent) this.myAgent).updateObs(nodeId, neighbor.getRight());
+        ((SituatedAgent03) this.myAgent).updateObs(nodeId, neighbor.getRight());
       }
       Boolean noOpenNodes = !this.map.hasOpenNode();
       Boolean noUnexploredNodes = this.map.getOpenNodes().size() == 1
@@ -99,13 +99,13 @@ public class WalkTo extends SimpleBehaviour {
 
       this.fullExplored = noOpenNodes || noUnexploredNodes;
     }
-    ((SituatedAgent) this.myAgent).closeNode(currentPosition);
+    ((SituatedAgent03) this.myAgent).closeNode(currentPosition);
   }
 
   private void move(String nextNode) {
     Boolean succeeded = this.agent.moveTo(new gsLocation(nextNode));
     if (succeeded) {
-      ((SituatedAgent) this.agent).recordVisit(nextNode);
+      ((SituatedAgent03) this.agent).recordVisit(nextNode);
       this.currentPosition = nextNode;
     } else {
       this.unreachable = true;
@@ -116,7 +116,7 @@ public class WalkTo extends SimpleBehaviour {
   public boolean done() {
     boolean done = this.currentPosition.equals(this.target);
     if (done) {
-      ((SituatedAgent) this.agent).mergeMap(this.map);
+      ((SituatedAgent03) this.agent).mergeMap(this.map);
     }
     return done || this.unreachable;
   }

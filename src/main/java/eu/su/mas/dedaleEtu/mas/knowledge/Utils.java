@@ -1,7 +1,7 @@
 package eu.su.mas.dedaleEtu.mas.knowledge;
 
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent03;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours.MessageSender;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.NodeType;
 
@@ -59,7 +59,7 @@ public class Utils {
   }
 
   public static String registerBehaviour(Agent a, Behaviour b, String id) {
-    SituatedAgent agent = (SituatedAgent) a;
+    SituatedAgent03 agent = (SituatedAgent03) a;
     agent.registerBehaviour(id, b, BehaviourStatus.NOT_ACTIVE);
     return id;
   }
@@ -74,17 +74,17 @@ public class Utils {
   }
 
   public static void activateBehaviour(Agent a, String id) {
-    SituatedAgent agent = (SituatedAgent) a;
+    SituatedAgent03 agent = (SituatedAgent03) a;
     agent.updateStatus(id, BehaviourStatus.ACTIVE);
   }
 
   public static void finishBehaviour(Agent a, String id, Integer code) {
-    SituatedAgent agent = (SituatedAgent) a;
+    SituatedAgent03 agent = (SituatedAgent03) a;
     agent.updateStatus(id, code == 0 ? BehaviourStatus.SUCCEEDED : BehaviourStatus.FAILED, code);
   }
 
   public static Integer getStatusCode(Agent a, String id) {
-    SituatedAgent agent = (SituatedAgent) a;
+    SituatedAgent03 agent = (SituatedAgent03) a;
     return agent.getStatus(id).getRight();
   }
 
@@ -96,7 +96,7 @@ public class Utils {
     msg.setContent(content);
     a.send(msg);
     if (to.equals("slave"))
-      ((BDIAgent) a).addMessage(msg);
+      ((BDIAgent03) a).addMessage(msg);
   }
 
   public static MapaModel loadOntology() {

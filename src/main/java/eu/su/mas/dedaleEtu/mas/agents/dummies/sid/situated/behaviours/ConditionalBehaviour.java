@@ -2,7 +2,7 @@ package eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.behaviours;
 
 import java.util.HashMap;
 
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03;
 import jade.core.Agent;
 import jade.core.behaviours.Behaviour;
 import jade.core.behaviours.OneShotBehaviour;
@@ -20,7 +20,7 @@ public class ConditionalBehaviour extends OneShotBehaviour {
 
   @Override
   public void action() {
-    SituatedAgent agent = (SituatedAgent) this.myAgent;
+    SituatedAgent03 agent = (SituatedAgent03) this.myAgent;
     Integer status = agent.getStatus(dependant).getRight();
     if (actions.containsKey(status)) {
       actions.get(status).run();

@@ -21,10 +21,8 @@ import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.KeepMailboxEmptyPlan
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.PingAgentPlanBody;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.plans.RegisterPlanBody;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
-import eu.su.mas.dedaleEtu.mas.knowledge.Node;
 import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
-import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel.NodeType;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
@@ -41,14 +39,14 @@ import java.util.LinkedList;
 
 import static eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.Constants.*;
 
-public class BDIAgent extends SingleCapabilityAgent {
+public class BDIAgent03 extends SingleCapabilityAgent {
 
     private ArrayList<String> messages = new ArrayList<>();
-    public String situatedName;
+    public String situatedName = "SituatedAgent03";
     private Goal pingAgentGoal;
     public String name;
 
-    public BDIAgent() {
+    public BDIAgent03() {
         initBeliefs();
 
         initGoals();

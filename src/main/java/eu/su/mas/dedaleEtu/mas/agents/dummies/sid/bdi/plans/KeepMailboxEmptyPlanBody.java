@@ -19,7 +19,7 @@ import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.mas.agent.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent03;
 import eu.su.mas.dedaleEtu.mas.knowledge.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapaModel;
 import eu.su.mas.dedaleEtu.mas.knowledge.Node;
@@ -34,7 +34,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	public void action() {
 		try {
 			ACLMessage msg = this.msgReceived;
-			((BDIAgent) this.myAgent).addMessage(msg);
+			((BDIAgent03) this.myAgent).addMessage(msg);
 			if (msg.getPerformative() == ACLMessage.INFORM) {
 				handleInform(msg);
 			} else if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
@@ -43,7 +43,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 				handleReject(msg);
 			} else {
 				if (msg.getPerformative() == ACLMessage.PROPOSE) {
-					BDIAgent agent = (BDIAgent) this.myAgent;
+					BDIAgent03 agent = (BDIAgent03) this.myAgent;
 					agent.situatedName = msg.getContent();
 				}
 			}
@@ -118,7 +118,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void updateOntology(String stringifiedOntology) {
-		System.out.println("Master in charge of " + ((BDIAgent) this.myAgent).situatedName + " received ontology");
+		System.out.println("Master in charge of " + ((BDIAgent03) this.myAgent).situatedName + " received ontology");
 		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASH);
 		if (((Integer) currentOntologyHash.getValue()) == stringifiedOntology.hashCode())
 			// avoid getting spammed by some agent
@@ -153,7 +153,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		JSONObject body = new JSONObject();
 		body.put("map", newMap);
 		Utils.sendMessage(myAgent, ACLMessage.INFORM, "map:" + body.toString(),
-				((BDIAgent) this.myAgent).situatedName);
+				((BDIAgent03) this.myAgent).situatedName);
 	}
 
 	@Parameter(direction = Parameter.Direction.IN)

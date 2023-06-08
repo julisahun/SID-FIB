@@ -6,7 +6,7 @@ import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
 import bdi4jade.plan.planbody.BeliefGoalPlanBody;
 import dataStructures.tuple.Couple;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent;
+import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent03;
 import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.goals.CommandGoal;
 import eu.su.mas.dedaleEtu.mas.knowledge.Utils;
 import jade.lang.acl.ACLMessage;
@@ -28,7 +28,7 @@ public class CommandPlanBody extends AbstractPlanBody {
   private void sendCommand(String position) {
     JSONObject body = new JSONObject();
     body.put("position", position);
-    String to = ((BDIAgent) myAgent).situatedName;
+    String to = ((BDIAgent03) myAgent).situatedName;
     Utils.sendMessage(myAgent, ACLMessage.REQUEST, "position:" + body.toString(), to);
   }
 }
