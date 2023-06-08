@@ -3,9 +3,7 @@ package eu.su.mas.dedaleEtu.princ;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.*;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.explo.ExploreCoopAgent;
-import eu.su.mas.dedaleEtu.mas.agents.dummies.sid.bdi.agents.BDIAgent03;
+import eu.su.mas.dedaleEtu.sid.bdi.agents.BDIAgent03;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -226,9 +224,9 @@ public class Principal {
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[] {
                 newAgent("SituatedAgent03", new String[] {},
-                        eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent03.class)
+                        eu.su.mas.dedaleEtu.sid.situated.agents.SituatedAgent03.class)
                 // newAgent("situated2", new String[] {},
-                //         eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class)
+                // eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class)
         };
 
         for (AgentController ac : agentsToAdd) {
@@ -242,9 +240,10 @@ public class Principal {
             AgentController nonDedaleAgent = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
                     .createNewAgent(
                             "master1", BDIAgent03.class.getName(), new Object[] {});
-            // AgentController nonDedaleAgent2 = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
-            //         .createNewAgent(
-            //                 "master2", BDIAgent.class.getName(), new Object[] {});
+            // AgentController nonDedaleAgent2 =
+            // containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
+            // .createNewAgent(
+            // "master2", BDIAgent.class.getName(), new Object[] {});
             agentList.add(nonDedaleAgent);
             // agentList.add(nonDedaleAgent2);
         } catch (StaleProxyException e) {
@@ -280,28 +279,6 @@ public class Principal {
     private AgentController newAgent(String agentName, Object[] entityParameters,
             Class<? extends AbstractDedaleAgent> agentClass) {
         return newAgent(agentName, entityParameters, agentClass, ConfigurationFile.LOCAL_CONTAINER_NAME_AGENTS);
-    }
-
-    private AgentController newTankerAgent(String agentName) {
-        return newAgent(agentName, new Object[] { "My parameters" }, DummyTankerAgent.class);
-    }
-
-    private AgentController newCollectorAgent(String agentName) {
-        return newAgent(agentName, new Object[] { "My parameters" }, DummyCollectorAgent.class);
-    }
-
-    private AgentController newExploreSoloAgent(String agentName) {
-        return newAgent(agentName, new Object[] { "My parameters" }, ExploreSoloAgent.class);
-    }
-
-    private AgentController newDummyMovingAgent(String agentName) {
-        return newAgent(agentName, new Object[] { "My parameters" }, DummyMovingAgent.class);
-    }
-
-    private AgentController newExploreCoopAgent(String agentName, String[] agentNamesToShare) {
-        // agentNamesToShare is a list of agent names
-        // this agent will share its internal exploration map with
-        return newAgent(agentName, agentNamesToShare, ExploreCoopAgent.class);
     }
 
     private AgentController newGolem(String agentName) {
