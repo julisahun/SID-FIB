@@ -38,9 +38,9 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			} else if (performative == ACLMessage.REJECT_PROPOSAL) {
 				handleReject(message);
 			} else {
-				if (performative == ACLMessage.PROPOSE) {
+				if (performative == ACLMessage.NOT_UNDERSTOOD) {
 					BDIAgent03 agent = (BDIAgent03) this.myAgent;
-					agent.situatedName = message.content;
+					agent.situatedName = "SituatedAgent0" + message.content;
 				}
 			}
 		} catch (Exception e) {
@@ -71,11 +71,13 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 
 	private void handleInform(Message msg) {
 		final String content = msg.content;
-		if (msg.protocol.equals("SHARE-ONTO")) {
-			updateOntology(content);
+		JSONObject body = new JSONObject(content);
+		if (body.has("ontology")) {
+			System.out.println("Master in charge of " + ((BDIAgent03) this.myAgent).situatedName
+					+ " received ontology from " + msg.sender);
+			updateOntology(body.getString("ontology"));
 			return;
 		}
-		JSONObject body = new JSONObject(content);
 		String status = body.getString("status");
 		if (status.equals("error")) {
 			String rejectedNode = body.getString("command");
@@ -147,6 +149,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		newMap.put("edges", edges);
 		JSONObject body = new JSONObject();
 		body.put("map", newMap);
+		body.put("ontology", ontology.getOntology());
 		Utils.sendMessage(myAgent, ACLMessage.INFORM, "map:" + body.toString(),
 				((BDIAgent03) this.myAgent).situatedName);
 	}

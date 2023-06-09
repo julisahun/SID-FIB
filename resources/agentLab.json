@@ -12,9 +12,9 @@
   },
   { 
     "agentType":"agentExplo",
-    "agentName": "situated2",
+    "agentName": "situatedAgent04",
     "communicationRange": 3,
-    "initialLocation": "42",
+    "initialLocation": "free",
     "backPackCapacityGold": -1,
     "backPackCapacityDiamond":-1, 
     "detectionRadius": 0,

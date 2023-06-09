@@ -70,7 +70,7 @@ public class Listener extends CyclicBehaviour {
       if (actions.containsKey(key))
         this.actions.get(key).accept(body.toString());
     } catch (Exception e) {
-      System.out.println("Message error" + e.getMessage());
+      System.out.println("Message error " + e.getMessage());
     }
 
   }

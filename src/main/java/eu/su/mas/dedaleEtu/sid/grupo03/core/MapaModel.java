@@ -115,7 +115,6 @@ public class MapaModel {
 
 	private void addCheckStmt(StatementImpl stmt) {
 		if (!model.contains(stmt)) {
-			// System.out.println("Adding: " + stmt);
 			++revision;
 			model.add(stmt);
 		}

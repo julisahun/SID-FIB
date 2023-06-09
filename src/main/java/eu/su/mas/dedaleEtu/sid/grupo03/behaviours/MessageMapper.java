@@ -136,12 +136,8 @@ public class MessageMapper extends OneShotBehaviour {
   private void updateOntology(String body) {
     JSONObject parsedJson = new JSONObject(body);
     JSONObject data = parsedJson.getJSONObject("data");
-    try {
-      String ontology = data.getString("ontology");
-      ((SituatedAgent03) this.agent).setOntology(ontology);
-      this.myAgent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
-    } catch (Exception e) {
-    }
+    System.out.println("Updating ontology " + this.agent.getLocalName());
+    this.myAgent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, data.toString()));
   }
 
   private void pong(String body) {

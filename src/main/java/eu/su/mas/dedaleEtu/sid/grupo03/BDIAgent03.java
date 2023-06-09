@@ -41,9 +41,8 @@ import java.util.LinkedList;
 public class BDIAgent03 extends SingleCapabilityAgent {
 
     private ArrayList<String> messages = new ArrayList<>();
-    public String situatedName = "SituatedAgent03";
+    public String situatedName;
     private Goal pingAgentGoal;
-    public String name;
 
     public BDIAgent03() {
         initBeliefs();

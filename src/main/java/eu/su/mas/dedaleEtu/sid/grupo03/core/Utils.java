@@ -204,6 +204,8 @@ public class Utils {
   public static Message messageMiddleware(Agent a, ACLMessage msg) {
     final String receiver = a.getLocalName();
     Message message = new Message(msg, receiver);
+    if (IS_DEV)
+      return message;
     if (receiver.equals(MASTER_NAME)) {
       if (!message.sender.equals(SITUATED_NAME)) {
         throw new RuntimeException("Message sent to master from " + message.sender);

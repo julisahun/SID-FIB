@@ -49,7 +49,6 @@ public class OntologySharer extends TickerBehaviour {
         if (isMySelf || isMyMaster)
           // avoid adding itself or my master to the receivers
           continue;
-        System.out.println("Adding " + agent.getName().getLocalName() + " to receivers");
         AID provider = agent.getName();
         msg.addReceiver(provider);
       }
