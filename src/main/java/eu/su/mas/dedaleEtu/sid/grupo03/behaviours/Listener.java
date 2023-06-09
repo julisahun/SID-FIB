@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.sid.situated.behaviours;
+package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
 import jade.core.Agent;
 import jade.core.behaviours.CyclicBehaviour;
@@ -12,8 +12,8 @@ import java.util.function.Supplier;
 import org.json.JSONObject;
 
 import dataStructures.tuple.Couple;
-import eu.su.mas.dedaleEtu.sid.core.Message;
-import eu.su.mas.dedaleEtu.sid.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Message;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
 
 public class Listener extends CyclicBehaviour {
   private HashMap<String, Consumer<String>> actions;

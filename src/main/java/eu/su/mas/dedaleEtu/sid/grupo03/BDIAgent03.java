@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.sid.bdi.agents;
+package eu.su.mas.dedaleEtu.sid.grupo03;
 
 import bdi4jade.belief.Belief;
 import bdi4jade.belief.TransientBelief;
@@ -13,22 +13,22 @@ import bdi4jade.plan.Plan;
 import bdi4jade.reasoning.*;
 import bdi4jade.core.Capability;
 import bdi4jade.core.GoalUpdateSet.GoalDescription;
-import eu.su.mas.dedaleEtu.sid.bdi.goals.CommandGoal;
-import eu.su.mas.dedaleEtu.sid.bdi.goals.PingAgentGoal;
-import eu.su.mas.dedaleEtu.sid.bdi.plans.CommandPlanBody;
-import eu.su.mas.dedaleEtu.sid.bdi.plans.KeepMailboxEmptyPlanBody;
-import eu.su.mas.dedaleEtu.sid.bdi.plans.PingAgentPlanBody;
-import eu.su.mas.dedaleEtu.sid.bdi.plans.RegisterPlanBody;
-import eu.su.mas.dedaleEtu.sid.core.Map;
-import eu.su.mas.dedaleEtu.sid.core.MapaModel;
-import eu.su.mas.dedaleEtu.sid.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Map;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.MapaModel;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.goals.CommandGoal;
+import eu.su.mas.dedaleEtu.sid.grupo03.goals.PingAgentGoal;
+import eu.su.mas.dedaleEtu.sid.grupo03.plans.CommandPlanBody;
+import eu.su.mas.dedaleEtu.sid.grupo03.plans.KeepMailboxEmptyPlanBody;
+import eu.su.mas.dedaleEtu.sid.grupo03.plans.PingAgentPlanBody;
+import eu.su.mas.dedaleEtu.sid.grupo03.plans.RegisterPlanBody;
 import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
 import jade.lang.acl.MessageTemplate;
 import org.json.JSONObject;
 
-import static eu.su.mas.dedaleEtu.sid.core.Constants.*;
+import static eu.su.mas.dedaleEtu.sid.grupo03.core.Constants.*;
 
 import java.sql.Timestamp;
 import java.util.Set;

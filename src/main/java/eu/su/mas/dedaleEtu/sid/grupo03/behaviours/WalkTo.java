@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.sid.situated.behaviours;
+package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -9,9 +9,9 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.env.gs.gsLocation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.sid.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation.MapAttribute;
-import eu.su.mas.dedaleEtu.sid.situated.agents.SituatedAgent03;
 import eu.su.mas.dedale.env.Location;
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;

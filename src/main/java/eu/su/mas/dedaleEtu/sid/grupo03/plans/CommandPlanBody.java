@@ -1,10 +1,10 @@
-package eu.su.mas.dedaleEtu.sid.bdi.plans;
+package eu.su.mas.dedaleEtu.sid.grupo03.plans;
 
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
-import eu.su.mas.dedaleEtu.sid.bdi.agents.BDIAgent03;
-import eu.su.mas.dedaleEtu.sid.bdi.goals.CommandGoal;
-import eu.su.mas.dedaleEtu.sid.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.BDIAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.goals.CommandGoal;
 import jade.lang.acl.ACLMessage;
 
 import org.json.JSONObject;

@@ -1,16 +1,16 @@
-package eu.su.mas.dedaleEtu.sid.situated.agents;
+package eu.su.mas.dedaleEtu.sid.grupo03;
 
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
-import eu.su.mas.dedaleEtu.sid.core.Map;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.sid.core.Node;
-import eu.su.mas.dedaleEtu.sid.core.Utils;
-import eu.su.mas.dedaleEtu.sid.core.Utils.BehaviourStatus;
-import eu.su.mas.dedaleEtu.sid.situated.behaviours.MessageMapper;
-import eu.su.mas.dedaleEtu.sid.situated.behaviours.RegisterToDF;
-import eu.su.mas.dedaleEtu.sid.situated.behaviours.OntologySharer;
+import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.MessageMapper;
+import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.OntologySharer;
+import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.RegisterToDF;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Map;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Node;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils.BehaviourStatus;
 import jade.core.behaviours.Behaviour;
 import dataStructures.tuple.Couple;
 
@@ -173,14 +173,12 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         String typeField = this.arguments[0].toString().split(";")[1];
         String type = typeField.split(":")[1].trim();
         if (type.equals("AgentExplo"))
-            return "explorer";
+            return "agentExplo";
         if (type.equals("AgentTanker"))
-            return "tanker";
+            return "agentTanker";
         if (type.equals("AgentCollect"))
-            return "collector";
-        if (type.equals("AgentGolem"))
-            return "golem";
+            return "agentCollect";
 
-        return "explorer";
+        return "agentExplo";
     }
 }

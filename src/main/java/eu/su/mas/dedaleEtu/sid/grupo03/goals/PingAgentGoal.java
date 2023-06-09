@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.sid.bdi.goals;
+package eu.su.mas.dedaleEtu.sid.grupo03.goals;
 
 import bdi4jade.goal.Goal;
 

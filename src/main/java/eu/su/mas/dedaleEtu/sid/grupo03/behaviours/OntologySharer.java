@@ -1,7 +1,7 @@
-package eu.su.mas.dedaleEtu.sid.situated.behaviours;
+package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
-import eu.su.mas.dedaleEtu.sid.situated.agents.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
 import jade.core.AID;
 import jade.core.Agent;
 import jade.core.behaviours.TickerBehaviour;

@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.sid.situated.behaviours;
+package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
 import java.util.HashMap;
 import java.util.List;
@@ -11,8 +11,8 @@ import dataStructures.tuple.Couple;
 import jade.core.behaviours.Behaviour;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
-import eu.su.mas.dedaleEtu.sid.core.Utils;
-import eu.su.mas.dedaleEtu.sid.situated.agents.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
 import jade.core.Agent;
 import eu.su.mas.dedale.env.Location;
 import jade.core.behaviours.OneShotBehaviour;

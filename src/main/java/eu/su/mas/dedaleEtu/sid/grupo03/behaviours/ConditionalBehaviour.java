@@ -1,8 +1,8 @@
-package eu.su.mas.dedaleEtu.sid.situated.behaviours;
+package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
 import java.util.HashMap;
 
-import eu.su.mas.dedaleEtu.sid.situated.agents.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 

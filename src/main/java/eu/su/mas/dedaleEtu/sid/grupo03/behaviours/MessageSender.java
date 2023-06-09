@@ -1,7 +1,7 @@
-package eu.su.mas.dedaleEtu.sid.situated.behaviours;
+package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
-import eu.su.mas.dedaleEtu.sid.core.Utils;
-import eu.su.mas.dedaleEtu.sid.situated.agents.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
 import jade.lang.acl.ACLMessage;

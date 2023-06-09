@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.sid.core;
+package eu.su.mas.dedaleEtu.sid.grupo03.core;
 
 import java.util.HashMap;
 import java.util.HashSet;

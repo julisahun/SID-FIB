@@ -1,11 +1,11 @@
-package eu.su.mas.dedaleEtu.sid.bdi.plans;
+package eu.su.mas.dedaleEtu.sid.grupo03.plans;
 
-import static eu.su.mas.dedaleEtu.sid.core.Constants.*;
+import static eu.su.mas.dedaleEtu.sid.grupo03.core.Constants.*;
 
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
-import eu.su.mas.dedaleEtu.sid.bdi.goals.PingAgentGoal;
-import eu.su.mas.dedaleEtu.sid.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.goals.PingAgentGoal;
 import jade.lang.acl.ACLMessage;
 
 public class PingAgentPlanBody extends AbstractPlanBody {

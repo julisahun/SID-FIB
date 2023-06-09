@@ -1,9 +1,9 @@
-package eu.su.mas.dedaleEtu.sid.core;
+package eu.su.mas.dedaleEtu.sid.grupo03.core;
 
-import eu.su.mas.dedaleEtu.sid.bdi.agents.BDIAgent03;
-import eu.su.mas.dedaleEtu.sid.core.MapaModel.NodeType;
-import eu.su.mas.dedaleEtu.sid.situated.agents.SituatedAgent03;
-import eu.su.mas.dedaleEtu.sid.situated.behaviours.MessageSender;
+import eu.su.mas.dedaleEtu.sid.grupo03.BDIAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.MessageSender;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.MapaModel.NodeType;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -12,7 +12,7 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.net.URL;
 
-import static eu.su.mas.dedaleEtu.sid.core.Constants.*;
+import static eu.su.mas.dedaleEtu.sid.grupo03.core.Constants.*;
 
 import java.io.File;
 import java.io.FileOutputStream;

@@ -1,4 +1,4 @@
-package eu.su.mas.dedaleEtu.sid.situated.behaviours;
+package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
 import jade.core.Agent;
 import jade.core.behaviours.OneShotBehaviour;
@@ -15,12 +15,10 @@ public class RegisterToDF extends OneShotBehaviour {
     super(a);
     this.name = name;
     this.type = type;
-    System.out.println("registering " + name + " to DF" + " of type " + type);
   }
 
   @Override
   public void action() {
-    System.out.println("Registering situated agent to DF " + this.myAgent.getLocalName());
     DFAgentDescription dfd = new DFAgentDescription();
     dfd.setName(this.myAgent.getAID());
     ServiceDescription sd = new ServiceDescription();
@@ -30,7 +28,6 @@ public class RegisterToDF extends OneShotBehaviour {
     dfd.addServices(sd);
     try {
       DFService.register(this.myAgent, dfd);
-      System.out.println("Situated agent " + this.myAgent.getLocalName() + " registered!");
     } catch (FIPAException e) {
       e.printStackTrace();
     }

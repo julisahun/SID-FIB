@@ -1,6 +1,6 @@
-package eu.su.mas.dedaleEtu.sid.bdi.plans;
+package eu.su.mas.dedaleEtu.sid.grupo03.plans;
 
-import static eu.su.mas.dedaleEtu.sid.core.Constants.*;
+import static eu.su.mas.dedaleEtu.sid.grupo03.core.Constants.*;
 
 import java.util.HashMap;
 import java.util.Queue;
@@ -12,12 +12,12 @@ import bdi4jade.annotation.Parameter;
 import bdi4jade.belief.Belief;
 import bdi4jade.plan.Plan;
 import bdi4jade.plan.planbody.AbstractPlanBody;
-import eu.su.mas.dedaleEtu.sid.bdi.agents.BDIAgent03;
-import eu.su.mas.dedaleEtu.sid.core.Map;
-import eu.su.mas.dedaleEtu.sid.core.MapaModel;
-import eu.su.mas.dedaleEtu.sid.core.Message;
-import eu.su.mas.dedaleEtu.sid.core.Node;
-import eu.su.mas.dedaleEtu.sid.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.BDIAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Map;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.MapaModel;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Message;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Node;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
 import jade.lang.acl.ACLMessage;
 import javafx.util.Pair;
 

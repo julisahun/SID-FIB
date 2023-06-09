@@ -1,11 +1,11 @@
-package eu.su.mas.dedaleEtu.sid.core;
+package eu.su.mas.dedaleEtu.sid.grupo03.core;
 
 public class Constants {
     public static String I_AM_REGISTERED = "IAmRegistered";
     public static String ONTOLOGY = "ontology";
-    public static String EXPLORER_ALIVE = "explorerAlive";
-    public static String COLLECTOR_ALIVE = "collectorAlive";
-    public static String TANKER_ALIVE = "tankerAlive";
+    public static String EXPLORER_ALIVE = "agentExploAlive";
+    public static String COLLECTOR_ALIVE = "agentCollectAlive";
+    public static String TANKER_ALIVE = "agentTankerAlive";
     public static String IS_FULL_EXPLORED = "isFullExplored";
     public static String COMMAND_SENT = "commandSent";
     public static String REJECTED_NODES = "rejectedNodes";

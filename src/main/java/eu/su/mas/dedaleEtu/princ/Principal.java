@@ -3,7 +3,7 @@ package eu.su.mas.dedaleEtu.princ;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agents.GateKeeperAgent;
 import eu.su.mas.dedale.mas.agents.dedaleDummyAgents.DummyWumpusShift;
-import eu.su.mas.dedaleEtu.sid.bdi.agents.BDIAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.BDIAgent03;
 import jade.core.Profile;
 import jade.core.ProfileImpl;
 import jade.core.Runtime;
@@ -224,7 +224,7 @@ public class Principal {
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[] {
                 newAgent("SituatedAgent03", new String[] {},
-                        eu.su.mas.dedaleEtu.sid.situated.agents.SituatedAgent03.class)
+                        eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03.class)
                 // newAgent("situated2", new String[] {},
                 // eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class)
         };
