@@ -20,7 +20,7 @@ public class ConditionalBehaviour extends OneShotBehaviour {
   @Override
   public void action() {
     SituatedAgent03 agent = (SituatedAgent03) this.myAgent;
-    Integer status = agent.getStatus(dependant).getRight();
+    Integer status = agent.getStatus(dependant);
     if (actions.containsKey(status)) {
       actions.get(status).run();
     }

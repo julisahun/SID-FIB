@@ -8,6 +8,8 @@ import eu.su.mas.dedaleEtu.sid.situated.behaviours.MessageSender;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.net.URL;
 
 import static eu.su.mas.dedaleEtu.sid.core.Constants.*;
@@ -35,6 +37,7 @@ import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
+import org.json.JSONObject;
 
 import bdi4jade.belief.Belief;
 import bdi4jade.core.SingleCapabilityAgent;
@@ -56,32 +59,13 @@ public class Utils {
 
   public static String registerBehaviour(Agent a, Behaviour b, String id) {
     SituatedAgent03 agent = (SituatedAgent03) a;
-    agent.registerBehaviour(id, b, BehaviourStatus.NOT_ACTIVE);
+    agent.registerBehaviour(id, b);
     return id;
-  }
-
-  public static HashMap<Integer, Behaviour> exitMsgMapper(Agent a, String success, String error) {
-    return new HashMap<Integer, Behaviour>() {
-      {
-        put(0, new MessageSender(a, success));
-        put(1, new MessageSender(a, error));
-      }
-    };
-  }
-
-  public static void activateBehaviour(Agent a, String id) {
-    SituatedAgent03 agent = (SituatedAgent03) a;
-    agent.updateStatus(id, BehaviourStatus.ACTIVE);
   }
 
   public static void finishBehaviour(Agent a, String id, Integer code) {
     SituatedAgent03 agent = (SituatedAgent03) a;
-    agent.updateStatus(id, code == 0 ? BehaviourStatus.SUCCEEDED : BehaviourStatus.FAILED, code);
-  }
-
-  public static Integer getStatusCode(Agent a, String id) {
-    SituatedAgent03 agent = (SituatedAgent03) a;
-    return agent.getStatus(id).getRight();
+    agent.updateStatus(id, code);
   }
 
   public static void sendMessage(Agent a, int performative, String content, String to) {
@@ -215,5 +199,22 @@ public class Utils {
     Belief b = agent.getCapability().getBeliefBase().getBelief(ONTOLOGY);
     Model model = (Model) b.getValue();
     return (OntModel) model;
+  }
+
+  public static Message messageMiddleware(Agent a, ACLMessage msg) {
+    final String receiver = a.getLocalName();
+    Message message = new Message(msg, receiver);
+    if (receiver.equals(MASTER_NAME)) {
+      if (!message.sender.equals(SITUATED_NAME)) {
+        throw new RuntimeException("Message sent to master from " + message.sender);
+      }
+    }
+    if (receiver.equals(SITUATED_NAME)) {
+      if (!message.sender.equals(MASTER_NAME)
+          && (!message.ontology.equals(ONTOLOGY_NAME) || !message.protocol.equals(ONTOLOGY_PROTOCOL))) {
+        throw new RuntimeException("Message sent to situated from " + message.sender);
+      }
+    }
+    return message;
   }
 }

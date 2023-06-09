@@ -30,7 +30,7 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
     private HashSet<String> rejectedNodes = new HashSet<>();
     private HashMap<String, List<String>> messages;
 
-    private HashMap<String, Couple<BehaviourStatus, Integer>> behavioursStatus = new HashMap<>();
+    private HashMap<String, Integer> behavioursStatus = new HashMap<>();
     private HashMap<String, Behaviour> behaviours = new HashMap<>();
     private Object[] arguments;
     private String ontology;
@@ -122,20 +122,20 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         return this.messages.containsKey(header) && !this.messages.get(header).isEmpty();
     }
 
-    public void registerBehaviour(String id, Behaviour b, BehaviourStatus status) {
-        this.behavioursStatus.put(id, new Couple<>(status, null));
+    public void registerBehaviour(String id, Behaviour b) {
+        this.behavioursStatus.put(id, null);
         this.behaviours.put(id, b);
     }
 
-    public void updateStatus(String id, BehaviourStatus status) {
-        this.behavioursStatus.put(id, new Couple<>(status, null));
+    public void updateStatus(String id) {
+        this.behavioursStatus.put(id, null);
     }
 
-    public void updateStatus(String id, BehaviourStatus status, Integer code) {
-        this.behavioursStatus.put(id, new Couple<>(status, code));
+    public void updateStatus(String id, Integer code) {
+        this.behavioursStatus.put(id, code);
     }
 
-    public Couple<BehaviourStatus, Integer> getStatus(String id) {
+    public Integer getStatus(String id) {
         return this.behavioursStatus.get(id);
     }
 
@@ -161,7 +161,7 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         if (oldBehaviour == null) {
             Behaviour b = new OntologySharer(this, this.ontology);
             this.ontologySharerId = Utils.uuid();
-            this.registerBehaviour(this.ontologySharerId, b, BehaviourStatus.ACTIVE);
+            this.registerBehaviour(this.ontologySharerId, b);
             this.addBehaviour(b);
         } else {
             oldBehaviour.updateOntology(ontology);

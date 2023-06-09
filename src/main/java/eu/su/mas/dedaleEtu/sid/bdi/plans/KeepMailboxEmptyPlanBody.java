@@ -15,6 +15,7 @@ import bdi4jade.plan.planbody.AbstractPlanBody;
 import eu.su.mas.dedaleEtu.sid.bdi.agents.BDIAgent03;
 import eu.su.mas.dedaleEtu.sid.core.Map;
 import eu.su.mas.dedaleEtu.sid.core.MapaModel;
+import eu.su.mas.dedaleEtu.sid.core.Message;
 import eu.su.mas.dedaleEtu.sid.core.Node;
 import eu.su.mas.dedaleEtu.sid.core.Utils;
 import jade.lang.acl.ACLMessage;
@@ -27,30 +28,31 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	public void action() {
 		try {
 			ACLMessage msg = this.msgReceived;
+			Message message = Utils.messageMiddleware(this.myAgent, msg);
 			((BDIAgent03) this.myAgent).addMessage(msg);
-			if (msg.getPerformative() == ACLMessage.INFORM) {
-				handleInform(msg);
-			} else if (msg.getPerformative() == ACLMessage.ACCEPT_PROPOSAL) {
+			final int performative = message.performative;
+			if (performative == ACLMessage.INFORM) {
+				handleInform(message);
+			} else if (performative == ACLMessage.ACCEPT_PROPOSAL) {
 				// NO OP
-			} else if (msg.getPerformative() == ACLMessage.REJECT_PROPOSAL) {
-				handleReject(msg);
+			} else if (performative == ACLMessage.REJECT_PROPOSAL) {
+				handleReject(message);
 			} else {
-				if (msg.getPerformative() == ACLMessage.PROPOSE) {
+				if (performative == ACLMessage.PROPOSE) {
 					BDIAgent03 agent = (BDIAgent03) this.myAgent;
-					agent.situatedName = msg.getContent();
+					agent.situatedName = message.content;
 				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
-			throw e;
+			System.out.println("Message Error " + e.getMessage());
 		}
 		setEndState(Plan.EndState.SUCCESSFUL);
 	}
 
-	private void handleReject(ACLMessage msg) {
-		String sender = msg.getSender().getLocalName();
+	private void handleReject(Message msg) {
+		String sender = msg.sender;
 		if (sender.equals("slave")) {
-			String content = msg.getContent();
+			String content = msg.content;
 			JSONObject body = new JSONObject(content);
 			String rejectedNode = body.getString("command");
 			addRejectedNode(rejectedNode);
@@ -67,12 +69,12 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		rejectedNodeBelief.setValue(rejectedNodes);
 	}
 
-	private void handleInform(ACLMessage msg) {
-		if (msg.getProtocol().equals("SHARE-ONTO")) {
-			updateOntology(msg.getContent());
+	private void handleInform(Message msg) {
+		final String content = msg.content;
+		if (msg.protocol.equals("SHARE-ONTO")) {
+			updateOntology(content);
 			return;
 		}
-		String content = msg.getContent();
 		JSONObject body = new JSONObject(content);
 		String status = body.getString("status");
 		if (status.equals("error")) {

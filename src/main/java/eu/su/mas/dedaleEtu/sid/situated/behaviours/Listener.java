@@ -7,10 +7,13 @@ import jade.lang.acl.ACLMessage;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 import org.json.JSONObject;
 
 import dataStructures.tuple.Couple;
+import eu.su.mas.dedaleEtu.sid.core.Message;
+import eu.su.mas.dedaleEtu.sid.core.Utils;
 
 public class Listener extends CyclicBehaviour {
   private HashMap<String, Consumer<String>> actions;
@@ -20,31 +23,29 @@ public class Listener extends CyclicBehaviour {
     this.actions = actions;
   }
 
-  private Couple<String, String> getKeyValue(ACLMessage msg) {
-    Boolean isPolMarcetOntology = msg.getOntology() != null && msg.getOntology().equals("polydama-mapstate")
-        && msg.getProtocol() != null && msg.getProtocol().equals("SHARE-ONTO");
+  private Couple<String, String> getKeyValue(Message msg) {
+    final Boolean isPolMarcetOntology = msg.ontology.equals("polydama-mapstate") &&
+        msg.protocol.equals("SHARE-ONTO");
     if (isPolMarcetOntology) {
-      JSONObject content = new JSONObject();
-      content.put("ontology", msg.getContent());
-      return new Couple("ontology", content.toString());
+      JSONObject jsonContent = new JSONObject();
+      jsonContent.put("ontology", msg.content);
+      return new Couple("ontology", jsonContent.toString());
     }
-    String[] contentArray = msg.getContent().split(":");
+    String[] contentArray = msg.content.split(":");
     String key = contentArray[0];
     String message = String.join(":", Arrays.copyOfRange(contentArray, 1,
         contentArray.length));
     return new Couple(key, message);
   }
 
-  private Couple<String, JSONObject> mapMessage(ACLMessage msg) {
+  private Couple<String, JSONObject> mapMessage(Message msg) {
     Couple<String, String> keyValue = getKeyValue(msg);
     try {
       JSONObject content = new JSONObject(keyValue.getRight());
-      String protocol = msg.getProtocol();
-      String sender = msg.getSender().getLocalName();
       JSONObject body = new JSONObject();
-      body.put("performative", msg.getPerformative());
-      body.put("protocol", protocol);
-      body.put("sender", sender);
+      body.put("performative", msg.performative);
+      body.put("protocol", msg.protocol);
+      body.put("sender", msg.sender);
       body.put("data", content);
 
       return new Couple<String, JSONObject>(keyValue.getLeft(), body);
@@ -61,13 +62,16 @@ public class Listener extends CyclicBehaviour {
       block();
       return;
     }
-    Couple<String, JSONObject> mappedMessage = mapMessage(msg);
-    String key = mappedMessage.getLeft();
-    JSONObject body = mappedMessage.getRight();
-    if (actions.containsKey(key))
-      this.actions.get(key).accept(body.toString());
-    // else
-    // ((SituatedAgent) this.myAgent).addMessage(key, body);
+    try {
+      Message message = Utils.messageMiddleware(this.myAgent, msg);
+      Couple<String, JSONObject> mappedMessage = mapMessage(message);
+      String key = mappedMessage.getLeft();
+      JSONObject body = mappedMessage.getRight();
+      if (actions.containsKey(key))
+        this.actions.get(key).accept(body.toString());
+    } catch (Exception e) {
+      System.out.println("Message error" + e.getMessage());
+    }
 
   }
 }

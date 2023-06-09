@@ -239,7 +239,7 @@ public class Principal {
         try {
             AgentController nonDedaleAgent = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
                     .createNewAgent(
-                            "master1", BDIAgent03.class.getName(), new Object[] {});
+                            "BDIAgent03", BDIAgent03.class.getName(), new Object[] {});
             // AgentController nonDedaleAgent2 =
             // containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
             // .createNewAgent(
