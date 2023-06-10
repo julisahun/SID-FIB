@@ -144,16 +144,6 @@ public class BDIAgent03 extends SingleCapabilityAgent {
             public void reviewBeliefs() {
                 runMapUpdates();
                 updateMapStatus();
-                runTestQueries();
-            }
-
-            private void runTestQueries() {
-                Boolean isFullExplored = (Boolean) getCapability().getBeliefBase().getBelief(IS_FULL_EXPLORED)
-                        .getValue();
-                if (!isFullExplored)
-                    return;
-                MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-                // Utils.getNodesWith(ontology.model, "goldAmount > 0");
             }
 
             private void updateMapStatus() {
