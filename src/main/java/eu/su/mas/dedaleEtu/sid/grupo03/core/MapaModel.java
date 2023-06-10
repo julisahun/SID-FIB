@@ -131,7 +131,6 @@ public class MapaModel {
 		it.close();
 		System.out.println(res.getURI() + " does not have " + literalName);
 		Platform.exit();
-		// System.out.println(getOntology());
 		Integer i = null;
 		i = i + 1;
 		return 0;
@@ -533,7 +532,13 @@ public class MapaModel {
 					continue;
 				}
 				NodeInfo info = otherModel.getCellInfo(cellUpdate.getKey());
-				addNodeInfo(cellUpdate.getKey(), getLong(getCell(cellUpdate.getKey()), "timesVisited"), info.goldAmount,
+				long timesVisited = 0;
+				try {
+					timesVisited = getLong(getCell(cellUpdate.getKey()), "timesVisited");
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+				}
+				addNodeInfo(cellUpdate.getKey(), timesVisited, info.goldAmount,
 						info.diamondAmount,
 						info.lockpickLevel,
 						info.strength);

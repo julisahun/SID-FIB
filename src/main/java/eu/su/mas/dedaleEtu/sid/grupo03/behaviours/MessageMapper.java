@@ -136,8 +136,7 @@ public class MessageMapper extends OneShotBehaviour {
   private void updateOntology(String body) {
     JSONObject parsedJson = new JSONObject(body);
     JSONObject data = parsedJson.getJSONObject("data");
-    System.out.println("Updating ontology " + this.agent.getLocalName());
-    this.myAgent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, data.toString()));
+    this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, data.toString()));
   }
 
   private void pong(String body) {

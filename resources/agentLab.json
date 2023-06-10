@@ -11,7 +11,7 @@
     "lockPickingExpertise":1
   },
   { 
-    "agentType":"agentExplo",
+    "agentType":"agentCollect",
     "agentName": "situatedAgent04",
     "communicationRange": 3,
     "initialLocation": "free",

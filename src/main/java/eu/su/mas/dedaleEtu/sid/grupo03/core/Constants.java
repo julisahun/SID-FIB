@@ -7,6 +7,12 @@ public class Constants {
     public static String COLLECTOR_ALIVE = "agentCollectAlive";
     public static String TANKER_ALIVE = "agentTankerAlive";
     public static String IS_FULL_EXPLORED = "isFullExplored";
+
+    public static String GOLD_CAPACITY = "goldCapacity";
+    public static String GOLD_CARRIED = "goldCarried";
+    public static String DIAMOND_CAPACITY = "diamondCapacity";
+    public static String DIAMOND_CARRIED = "diamondCarried";
+
     public static String COMMAND_SENT = "commandSent";
     public static String REJECTED_NODES = "rejectedNodes";
     public static String SITUATED_PINGED = "situatedPinged";

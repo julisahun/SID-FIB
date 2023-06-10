@@ -42,9 +42,14 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 					BDIAgent03 agent = (BDIAgent03) this.myAgent;
 					agent.situatedName = "SituatedAgent0" + message.content;
 				}
+				if (performative == ACLMessage.CONFIRM) {
+					MapaModel mapa = (MapaModel) getBeliefBase().getBelief(ONTOLOGY).getValue();
+					Utils.saveOntology(mapa.model);
+				}
 			}
 		} catch (Exception e) {
 			System.out.println("Message Error " + e.getMessage());
+			e.printStackTrace();
 		}
 		setEndState(Plan.EndState.SUCCESSFUL);
 	}
@@ -73,8 +78,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		final String content = msg.content;
 		JSONObject body = new JSONObject(content);
 		if (body.has("ontology")) {
-			System.out.println("Master in charge of " + ((BDIAgent03) this.myAgent).situatedName
-					+ " received ontology from " + msg.sender);
 			updateOntology(body.getString("ontology"));
 			return;
 		}
@@ -115,7 +118,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void updateOntology(String stringifiedOntology) {
-		System.out.println("Master in charge of " + ((BDIAgent03) this.myAgent).situatedName + " received ontology");
 		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASH);
 		if (((Integer) currentOntologyHash.getValue()) == stringifiedOntology.hashCode())
 			// avoid getting spammed by some agent

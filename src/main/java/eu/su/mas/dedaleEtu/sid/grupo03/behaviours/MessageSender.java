@@ -43,6 +43,8 @@ public class MessageSender extends OneShotBehaviour {
     @Override
     public void action() {
         for (String receiver : this.receivers) {
+            if (receiver == null)
+                continue;
             Utils.sendMessage(this.myAgent, this.performative, this.message, receiver);
         }
     }

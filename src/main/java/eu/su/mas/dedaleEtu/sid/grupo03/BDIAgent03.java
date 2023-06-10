@@ -34,6 +34,7 @@ import java.sql.Timestamp;
 import java.util.Set;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Queue;
 import java.util.Random;
 import java.util.LinkedList;
@@ -73,6 +74,11 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         Belief<String, Boolean> situatedPinged = new TransientPredicate<String>(SITUATED_PINGED, false);
         Belief<String, Boolean> situatedCommanded = new TransientPredicate<String>(SITUATED_COMMANDED, false);
 
+        Belief<String, Integer> goldCapacity = new TransientBelief<String, Integer>(GOLD_CAPACITY, 0);
+        Belief<String, Integer> goldCarried = new TransientBelief<String, Integer>(GOLD_CARRIED, 0);
+        Belief<String, Integer> diamondCapacity = new TransientBelief<String, Integer>(DIAMOND_CAPACITY, 0);
+        Belief<String, Integer> diamondCarried = new TransientBelief<String, Integer>(DIAMOND_CARRIED, 0);
+
         Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
 
         Belief<String, HashMap<String, Integer>> rejectedNodes = new TransientBelief<String, HashMap<String, Integer>>(
@@ -80,7 +86,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                 new HashMap<>());
         Belief<String, String> currentSituatedPosition = new TransientBelief<String, String>(CURRENT_SITUATED_POSITION,
                 null);
-        Belief<String, Integer> ontologyHash = new TransientBelief<String, Integer>(ONTOLOGY_HASH, null);
+        Belief<String, Integer> ontologyHash = new TransientBelief<String, Integer>(ONTOLOGY_HASH, 0);
 
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
@@ -88,6 +94,11 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(mapUpdates);
         getCapability().getBeliefBase().addBelief(isFullExplored);
         getCapability().getBeliefBase().addBelief(rejectedNodes);
+
+        getCapability().getBeliefBase().addBelief(goldCapacity);
+        getCapability().getBeliefBase().addBelief(goldCarried);
+        getCapability().getBeliefBase().addBelief(diamondCapacity);
+        getCapability().getBeliefBase().addBelief(diamondCarried);
 
         getCapability().getBeliefBase().addBelief(isExplorerAlive);
         getCapability().getBeliefBase().addBelief(isCollectorAlive);
@@ -209,7 +220,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                     Boolean situatedCommanded = (Boolean) getCapability().getBeliefBase()
                             .getBelief(SITUATED_COMMANDED).getValue();
                     if (!situatedCommanded) {
-                        agentGoalUpdateSet.generateGoal(new CommandGoal(getNextExplorerCommand()));
+                        agentGoalUpdateSet.generateGoal(new CommandGoal(getNextCollectorCommand()));
                         Belief commandSent = getCapability().getBeliefBase().getBelief(SITUATED_COMMANDED);
                         commandSent.setValue(true);
                         return;
@@ -274,9 +285,25 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         return getLeastVisitedNode();
     }
 
-    // private String getNextCollectorCommand() {
+    private String resourceToGet() {
+        Integer goldCapacity = (Integer) getCapability().getBeliefBase().getBelief(GOLD_CAPACITY).getValue();
+        Integer diamondCapacity = (Integer) getCapability().getBeliefBase().getBelief(DIAMOND_CAPACITY).getValue();
+        if (goldCapacity > diamondCapacity) {
+            return "gold";
+        } else {
+            return "diamond";
+        }
+    }
 
-    // }
+    private String getNextCollectorCommand() {
+        String resource = this.resourceToGet();
+        MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+        HashSet<String> a = Utils.getNodesWith(ontology.model, resource + " > 0");
+        if (a.size() == 0) {
+            return "";
+        }
+        return commandNodeIfNotRejected(a.iterator().next());
+    }
 
     public void addMessage(ACLMessage msg) {
         String content = msg.getContent();

@@ -245,13 +245,9 @@ public class Principal {
             AgentController nonDedaleAgent2 = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
                     .createNewAgent(
                             "BDIAgent04", BDIAgent03.class.getName(), new Object[] {});
-            // AgentController nonDedaleAgent2 =
-            // containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
-            // .createNewAgent(
-            // "master2", BDIAgent.class.getName(), new Object[] {});
+
             agentList.add(nonDedaleAgent);
             agentList.add(nonDedaleAgent2);
-            // agentList.add(nonDedaleAgent2);
         } catch (StaleProxyException e) {
             e.printStackTrace();
         }
