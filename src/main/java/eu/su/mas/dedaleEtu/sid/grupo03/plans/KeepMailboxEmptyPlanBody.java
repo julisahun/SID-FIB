@@ -136,7 +136,8 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		ontology.learnFromOtherOntology(newOntology);
 		ontologyBelief.setValue(ontology);
 		if (collectorAlive) {
-			ontology.exportOntology();
+			System.out.println("Exporting ontology");
+			// ontology.exportOntology();
 		}
 		currentOntologyHash.setValue(ontology.getOntology().hashCode());
 

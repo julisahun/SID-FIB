@@ -77,13 +77,10 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         if (!this.nodes.has(newNode)) {
             this.nodes.put(newNode, new Node(newNode, Node.Status.OPEN, new HashSet<String>(), observations));
         }
+        if (currentNode.equals(newNode))
+            return;
         Node value = this.nodes.get(currentNode);
         HashSet<String> neighbors = value.getNeighbors();
-        for (String neighbor : neighbors) {
-            if (neighbor.equals(newNode)) {
-                return;
-            }
-        }
         neighbors.add(newNode);
     }
 

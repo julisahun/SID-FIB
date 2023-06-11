@@ -227,8 +227,6 @@ public class Principal {
                         eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03.class),
                 newAgent("SituatedAgent04", new String[] {},
                         eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03.class)
-                // newAgent("situated2", new String[] {},
-                // eu.su.mas.dedaleEtu.mas.agents.dummies.sid.situated.agents.SituatedAgent.class)
         };
 
         for (AgentController ac : agentsToAdd) {

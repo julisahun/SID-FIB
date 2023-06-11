@@ -16,6 +16,7 @@ import bdi4jade.core.GoalUpdateSet.GoalDescription;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.Map;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.MapaModel;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.MapaModel.NodeInfo;
 import eu.su.mas.dedaleEtu.sid.grupo03.goals.CommandGoal;
 import eu.su.mas.dedaleEtu.sid.grupo03.goals.PingAgentGoal;
 import eu.su.mas.dedaleEtu.sid.grupo03.plans.CommandPlanBody;
@@ -26,10 +27,13 @@ import jade.core.Agent;
 import jade.lang.acl.ACLMessage;
 
 import jade.lang.acl.MessageTemplate;
+import javafx.util.Pair;
+
 import org.json.JSONObject;
 
 import static eu.su.mas.dedaleEtu.sid.grupo03.core.Constants.*;
 
+import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.util.Set;
 import java.util.ArrayList;
@@ -147,11 +151,10 @@ public class BDIAgent03 extends SingleCapabilityAgent {
             }
 
             private void updateMapStatus() {
-                MapaModel map = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-                Belief<String, Boolean> isFullExplored = (Belief<String, Boolean>) getCapability().getBeliefBase()
-                        .getBelief(IS_FULL_EXPLORED);
+                MapaModel map = (MapaModel) getBelief(ONTOLOGY).getValue();
+                Belief isFullExplored = getBelief(IS_FULL_EXPLORED).getKey();
                 Boolean wasFullExplored = map.getOpenNodes().size() == 0 && map.getClosedNodes().size() > 0
-                        && !isFullExplored.getValue();
+                        && !((Boolean) isFullExplored.getValue());
                 if (wasFullExplored) {
                     // map.exportOntology();
                 }
@@ -159,11 +162,11 @@ public class BDIAgent03 extends SingleCapabilityAgent {
             }
 
             private void runMapUpdates() {
-                Queue<Map> mapUpdates = (Queue<Map>) getCapability().getBeliefBase().getBelief(MAP_UPDATES).getValue();
+                Queue<Map> mapUpdates = (Queue<Map>) getBelief(MAP_UPDATES).getValue();
                 if (mapUpdates.isEmpty())
                     return;
                 Map updateMap = mapUpdates.poll();
-                MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+                MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
                 Utils.updateMap(updateMap, ontology);
                 JSONObject body = new JSONObject();
                 body.put("ontology", ontology.getOntology());
@@ -177,17 +180,17 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         this.getCapability().setOptionGenerationFunction(new DefaultOptionGenerationFunction() {
             @Override
             public void generateGoals(GoalUpdateSet agentGoalUpdateSet) {
-                Boolean imRegistered = (Boolean) getCapability().getBeliefBase().getBelief(I_AM_REGISTERED)
+                Boolean imRegistered = (Boolean) getBelief(I_AM_REGISTERED)
                         .getValue();
-                Boolean isExplorerAlive = (Boolean) getCapability().getBeliefBase().getBelief(EXPLORER_ALIVE)
+                Boolean isExplorerAlive = (Boolean) getBelief(EXPLORER_ALIVE)
                         .getValue();
-                Boolean isCollectorAlive = (Boolean) getCapability().getBeliefBase().getBelief(COLLECTOR_ALIVE)
+                Boolean isCollectorAlive = (Boolean) getBelief(COLLECTOR_ALIVE)
                         .getValue();
-                Boolean isTankerAlive = (Boolean) getCapability().getBeliefBase().getBelief(TANKER_ALIVE).getValue();
+                Boolean isTankerAlive = (Boolean) getBelief(TANKER_ALIVE).getValue();
 
                 if (imRegistered) {
                     if (!isExplorerAlive && !isCollectorAlive && !isTankerAlive && situatedName != null) {
-                        Belief pingSent = getCapability().getBeliefBase().getBelief(SITUATED_PINGED);
+                        Belief pingSent = getBelief(SITUATED_PINGED).getKey();
                         if (!(Boolean) pingSent.getValue()) {
                             ((PingAgentGoal) pingAgentGoal).setAgent(situatedName);
                             agentGoalUpdateSet.generateGoal(pingAgentGoal);
@@ -197,23 +200,23 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                 }
 
                 if (isExplorerAlive) {
-                    Boolean situatedCommanded = (Boolean) getCapability().getBeliefBase()
-                            .getBelief(SITUATED_COMMANDED).getValue();
+                    Boolean situatedCommanded = (Boolean) getBelief(SITUATED_COMMANDED).getValue();
                     if (!situatedCommanded) {
-                        agentGoalUpdateSet.generateGoal(new CommandGoal(getNextExplorerCommand()));
-                        Belief commandSent = getCapability().getBeliefBase().getBelief(SITUATED_COMMANDED);
+                        final String command = getNextExplorerCommand();
+                        agentGoalUpdateSet.generateGoal(new CommandGoal(command));
+
+                        Belief commandSent = getBelief(SITUATED_COMMANDED).getKey();
                         commandSent.setValue(true);
                         return;
                     }
                 }
                 if (isCollectorAlive) {
-                    Boolean situatedCommanded = (Boolean) getCapability().getBeliefBase()
-                            .getBelief(SITUATED_COMMANDED).getValue();
+                    Boolean situatedCommanded = (Boolean) getBelief(SITUATED_COMMANDED).getValue();
                     if (!situatedCommanded) {
-                        String command = getNextCollectorCommand();
-                        System.out.println("Collector command: " + command);
+                        final String command = getNextCollectorCommand();
                         agentGoalUpdateSet.generateGoal(new CommandGoal(command));
-                        Belief commandSent = getCapability().getBeliefBase().getBelief(SITUATED_COMMANDED);
+
+                        Belief commandSent = getBelief(SITUATED_COMMANDED).getKey();
                         commandSent.setValue(true);
                         return;
                     }
@@ -222,64 +225,68 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         });
     }
 
-    private String getRandomNode() {
-        MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-        HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getCapability().getBeliefBase()
-                .getBelief(REJECTED_NODES).getValue();
-        Set<String> closedNodes = ontology.getClosedNodes();
-        String arr[] = new String[closedNodes.size()];
-        closedNodes.toArray(arr);
-        int t = 0;
-        do {
-            String node = arr[new Random().nextInt(arr.length)];
-            if (!rejectedNodes.containsKey(node))
+    private String commandNotRejected(Set<String> nodes) {
+        HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getBelief(REJECTED_NODES).getValue();
+        for (final String node : nodes) {
+            if (!rejectedNodes.containsKey(node)) {
                 return node;
-            t++;
-        } while (t < 10); // try 10 times to get a node not rejected, otherwise return a random node
-        return arr[new Random().nextInt(arr.length)];
-    }
-
-    private String commandNodeIfNotRejected(String node) {
-        HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getCapability().getBeliefBase()
-                .getBelief(REJECTED_NODES).getValue();
-        if (!rejectedNodes.containsKey(node)) {
-            return node;
-        } else if (rejectedNodes.get(node) > WAITING_CYCLES) {
-            // node rejected more than 3 times, remove from rejected nodes
-            rejectedNodes.remove(node);
-            return node;
-        } else {
-            // rejected node, increment counter
-            rejectedNodes.put(node, rejectedNodes.get(node) + 1);
+            } else if (rejectedNodes.get(node) > WAITING_CYCLES) {
+                // node rejected more than 3 times, remove from rejected nodes
+                rejectedNodes.remove(node);
+                return node;
+            } else {
+                // rejected node, increment counter
+                rejectedNodes.put(node, rejectedNodes.get(node) + 1);
+            }
         }
-        return getRandomNode();
+        if (nodes.size() == rejectedNodes.size()) {
+            return this.getRandomClosedNode();
+        }
+        return this.commandNotRejected(nodes);
     }
 
     private String getOpenNode() {
-        MapaModel map = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-        return commandNodeIfNotRejected(map.getOpenNodes().iterator().next());
+        MapaModel map = (MapaModel) getBelief(ONTOLOGY).getValue();
+        Set<String> openNodes = map.getOpenNodes();
+        return commandNotRejected(openNodes);
     }
 
     private String getLeastVisitedNode() {
-        MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+        MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
         return Utils.getLeastVisitedNode(ontology.model);
     }
 
     private Boolean isFullExplored() {
-        MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
+        MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
         return ontology.getOpenNodes().size() == 0;
     }
 
     private String getNextExplorerCommand() {
         if (!this.isFullExplored()) {
-            return getOpenNode();
+            return this.getOpenNode();
         }
-        return getLeastVisitedNode();
+        return this.getLeastVisitedNode();
+    }
+
+    private String getRandomNode(ArrayList<String> nodes) {
+        return nodes.get(new Random().nextInt(nodes.size()));
+    }
+
+    private String getRandomOpenNode() {
+        MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
+        ArrayList<String> nodes = new ArrayList<String>(ontology.getOpenNodes());
+        return this.getRandomNode(nodes);
+    }
+
+    private String getRandomClosedNode() {
+        MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
+        ArrayList<String> nodes = new ArrayList<String>(ontology.getClosedNodes());
+        return this.getRandomNode(nodes);
     }
 
     private String resourceToGet() {
-        Integer goldCapacity = (Integer) getCapability().getBeliefBase().getBelief(GOLD_CAPACITY).getValue();
-        Integer diamondCapacity = (Integer) getCapability().getBeliefBase().getBelief(DIAMOND_CAPACITY).getValue();
+        Integer goldCapacity = (Integer) getBelief(GOLD_CAPACITY).getValue();
+        Integer diamondCapacity = (Integer) getBelief(DIAMOND_CAPACITY).getValue();
         if (goldCapacity > diamondCapacity) {
             return "gold";
         } else {
@@ -289,14 +296,17 @@ public class BDIAgent03 extends SingleCapabilityAgent {
 
     private String getNextCollectorCommand() {
         String resource = this.resourceToGet();
-        System.out.println("Resource to get: " + resource);
         MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-        HashSet<String> a = Utils.getNodesWith(ontology.model, resource + " > 0");
-        if (a.size() == 0) {
-            System.out.println("No nodes with " + resource + " > 0");
-            return getRandomNode();
+        String currentPosition = (String) getBelief(CURRENT_SITUATED_POSITION).getValue();
+        NodeInfo nodeInfo = ontology.getCellInfo(currentPosition);
+        // if (nodeInfo.hasResource(resource)) {
+        // return "collect";
+        // }
+        HashSet<String> nodes = ontology.getResourceNodes(resource);
+        if (nodes.size() == 0) {
+            return this.getRandomOpenNode();
         }
-        return commandNodeIfNotRejected(a.iterator().next());
+        return this.commandNotRejected(nodes);
     }
 
     public void addMessage(ACLMessage msg) {
@@ -311,6 +321,11 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         body.put("content", content);
         body.put("timestamp", timestamp);
         this.messages.add(body.toString());
+    }
+
+    private Pair<Belief, Object> getBelief(String beliefName) {
+        Belief b = getCapability().getBeliefBase().getBelief(beliefName);
+        return new Pair<Belief, Object>(b, b.getValue());
     }
 
     public void printMessages() {

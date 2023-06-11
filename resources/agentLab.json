@@ -14,7 +14,7 @@
     "agentType":"agentCollect",
     "agentName": "situatedAgent04",
     "communicationRange": 3,
-    "initialLocation": "free",
+    "initialLocation": "66",
     "backPackCapacityGold": 100,
     "backPackCapacityDiamond":-1, 
     "detectionRadius": 3,

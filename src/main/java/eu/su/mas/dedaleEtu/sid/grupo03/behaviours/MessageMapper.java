@@ -26,6 +26,47 @@ public class MessageMapper extends OneShotBehaviour {
     this.agent = (SituatedAgent03) a;
   }
 
+  private JSONArray observeCurrentNode() {
+    final String currentPosition = this.agent.getCurrentPosition().toString();
+    for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : this.agent.observe()) {
+      if (!neighbor.getLeft().toString().equals(currentPosition))
+        continue;
+      JSONArray observations = new JSONArray();
+      for (Couple<Observation, Integer> obs : neighbor.getRight()) {
+        JSONObject observation = new JSONObject();
+        Integer value = obs.getRight();
+        if (value == null)
+          value = 0;
+        observation.put("observation", obs.getLeft().getName());
+        observation.put("value", value);
+        observations.put(observation);
+      }
+      return observations;
+    }
+    return null;
+  }
+
+  private void pickup(String body) {
+    String id = Utils.uuid();
+    Behaviour pickItem = new PickItem(this.agent, id);
+    Utils.registerBehaviour(this.agent, pickItem, id);
+
+    HashMap<Integer, Runnable> responses = new HashMap<>();
+    responses.put(0, () -> {
+      JSONObject res = new JSONObject();
+      res.put("status", "success");
+      res.put("node", this.observeCurrentNode());
+    });
+    responses.put(1, () -> {
+      JSONObject res = new JSONObject();
+      res.put("status", "error");
+      res.put("node", this.observeCurrentNode());
+    });
+    Behaviour action = new Composer(this.agent, pickItem, new ConditionalBehaviour(this.agent, id, responses));
+
+    this.agent.addBehaviour(action);
+  }
+
   private void updatePosition(String body) {
     JSONObject parsedJson = new JSONObject(body);
     try {
@@ -145,9 +186,6 @@ public class MessageMapper extends OneShotBehaviour {
     String currentPosition = getSituatedAgent().getCurrentPosition().getLocationId();
     getSituatedAgent().addNode(currentPosition);
     for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : getSituatedAgent().observe()) {
-      String neighborId = neighbor.getLeft().getLocationId();
-      if (currentPosition == neighborId)
-        continue;
       getSituatedAgent().addNode(currentPosition, neighbor.getLeft().getLocationId(), neighbor.getRight());
     }
     SituatedAgent03 myself = (SituatedAgent03) this.agent;
@@ -169,6 +207,7 @@ public class MessageMapper extends OneShotBehaviour {
   public void action() {
     HashMap<String, Consumer<String>> actions = new HashMap<>();
     actions.put("position", this::updatePosition);
+    actions.put("collect", this::pickup);
     actions.put("map", this::updateMap);
     actions.put("ontology", this::updateOntology);
     actions.put("ping", this::pong);

@@ -79,6 +79,16 @@ public class MapaModel {
 			this.lockpickLevel = lockpickLevel;
 			this.strength = strength;
 		}
+
+		public Boolean hasResource(String resourceType) {
+			if (resourceType.equals("gold")) {
+				return goldAmount > 0;
+			}
+			if (resourceType.equals("diamond")) {
+				return diamondAmount > 0;
+			}
+			return false;
+		}
 	};
 
 	public class AgentConstantInfo {
@@ -663,6 +673,22 @@ public class MapaModel {
 		}
 		statements.close();
 		return returnedList;
+	}
+
+	public HashSet<String> getResourceNodes(String resource) {
+		StmtIterator statements = model.listStatements((Resource) null,
+				model.getProperty(mapa(resource + "Amount")), (RDFNode) null);
+		HashSet<String> returnList = new HashSet<String>();
+		while (statements.hasNext()) {
+			Statement entry = statements.next();
+			Matcher matcher = patternIdCell.matcher(entry.getSubject().getURI());
+			if (matcher.find() && entry.getObject().asLiteral().getInt() > 0) {
+				System.out.println("Resource " + resource + " found in " + matcher.group(1));
+				returnList.add(matcher.group(1));
+			}
+		}
+		// throw new RuntimeException("Resource " + resource + " not found");
+		return returnList;
 	}
 
 	public void replaceModel(MapaModel mapa) {
