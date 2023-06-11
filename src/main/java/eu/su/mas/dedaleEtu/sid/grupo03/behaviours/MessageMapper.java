@@ -83,15 +83,15 @@ public class MessageMapper extends OneShotBehaviour {
     });
     responses.put(1, () -> {
       JSONObject body = new JSONObject();
-      body.put("status", "finished");
-      body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
+      body.put("status", "error");
       body.put("command", position);
+      body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
       body.put("map", getSituatedAgent().stringifyNodes());
       this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
     });
     responses.put(2, () -> {
       JSONObject body = new JSONObject();
-      body.put("status", "error");
+      body.put("status", "finished");
       body.put("command", position);
       body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
       body.put("map", getSituatedAgent().stringifyNodes());
@@ -150,11 +150,17 @@ public class MessageMapper extends OneShotBehaviour {
         continue;
       getSituatedAgent().addNode(currentPosition, neighbor.getLeft().getLocationId(), neighbor.getRight());
     }
+    SituatedAgent03 myself = (SituatedAgent03) this.agent;
     JSONObject response = new JSONObject();
     response.put("status", "pong");
     response.put("map", getSituatedAgent().stringifyNodes());
-    response.put("agentType", ((SituatedAgent03) this.agent).getType());
+    response.put("agentType", myself.getType());
     response.put("position", currentPosition);
+    JSONObject resources = new JSONObject();
+    for (Couple<Observation, Integer> resource : myself.getBackPackFreeSpace()) {
+      resources.put(resource.getLeft().getName().toLowerCase(), resource.getRight());
+    }
+    response.put("resourcesCapacity", resources);
     Behaviour pong = new MessageSender(this.agent, response.toString());
     this.agent.addBehaviour(pong);
   }

@@ -27,4 +27,5 @@ public class Constants {
     public static String ONTOLOGY_NAME = "polydama-mapstate";
     public static String ONTOLOGY_PROTOCOL = "SHARE-ONTO";
     public static Boolean IS_DEV = true;
+    public static String FILE_NAME = "mapa";
 }

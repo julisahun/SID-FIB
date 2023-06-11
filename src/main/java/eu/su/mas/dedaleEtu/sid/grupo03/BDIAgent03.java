@@ -62,7 +62,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
 
     private void initBeliefs() {
         Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
-        Belief<String, MapaModel> ontology = new TransientBelief<String, MapaModel>(ONTOLOGY, Utils.loadOntology());
+        Belief<String, MapaModel> ontology = new TransientBelief<String, MapaModel>(ONTOLOGY, new MapaModel());
         Belief<String, HashMap<String, Integer>> timesVisited = new TransientBelief<String, HashMap<String, Integer>>(
                 TIMES_VISITED, new HashMap<>());
         Belief<String, Queue<Map>> mapUpdates = new TransientBelief<String, Queue<Map>>(MAP_UPDATES,
@@ -153,7 +153,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                 Boolean wasFullExplored = map.getOpenNodes().size() == 0 && map.getClosedNodes().size() > 0
                         && !isFullExplored.getValue();
                 if (wasFullExplored) {
-                    // Utils.saveOntology(map.model);
+                    // map.exportOntology();
                 }
                 isFullExplored.setValue(wasFullExplored);
             }
@@ -210,7 +210,9 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                     Boolean situatedCommanded = (Boolean) getCapability().getBeliefBase()
                             .getBelief(SITUATED_COMMANDED).getValue();
                     if (!situatedCommanded) {
-                        agentGoalUpdateSet.generateGoal(new CommandGoal(getNextCollectorCommand()));
+                        String command = getNextCollectorCommand();
+                        System.out.println("Collector command: " + command);
+                        agentGoalUpdateSet.generateGoal(new CommandGoal(command));
                         Belief commandSent = getCapability().getBeliefBase().getBelief(SITUATED_COMMANDED);
                         commandSent.setValue(true);
                         return;
@@ -287,10 +289,12 @@ public class BDIAgent03 extends SingleCapabilityAgent {
 
     private String getNextCollectorCommand() {
         String resource = this.resourceToGet();
+        System.out.println("Resource to get: " + resource);
         MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
         HashSet<String> a = Utils.getNodesWith(ontology.model, resource + " > 0");
         if (a.size() == 0) {
-            return "";
+            System.out.println("No nodes with " + resource + " > 0");
+            return getRandomNode();
         }
         return commandNodeIfNotRejected(a.iterator().next());
     }

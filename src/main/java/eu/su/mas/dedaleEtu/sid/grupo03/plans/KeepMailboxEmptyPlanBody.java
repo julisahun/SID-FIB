@@ -44,7 +44,7 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 				}
 				if (performative == ACLMessage.CONFIRM) {
 					MapaModel mapa = (MapaModel) getBeliefBase().getBelief(ONTOLOGY).getValue();
-					Utils.saveOntology(mapa.model);
+					mapa.exportOntology();
 				}
 			}
 		} catch (Exception e) {
@@ -90,6 +90,11 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			String agentType = body.getString("agentType");
 			Belief b = getBeliefBase().getBelief(agentType + "Alive");
 			b.setValue(true);
+			JSONObject resourcesCapacity = body.getJSONObject("resourcesCapacity");
+			for (String resource : resourcesCapacity.keySet()) {
+				b = getBeliefBase().getBelief(resource + "Capacity");
+				b.setValue(resourcesCapacity.getInt(resource));
+			}
 		}
 		Belief currentPosition = getBeliefBase().getBelief(CURRENT_SITUATED_POSITION);
 		currentPosition.setValue(body.getString("position"));
@@ -118,6 +123,8 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void updateOntology(String stringifiedOntology) {
+		Boolean collectorAlive = (Boolean) getBeliefBase().getBelief(COLLECTOR_ALIVE).getValue();
+
 		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASH);
 		if (((Integer) currentOntologyHash.getValue()) == stringifiedOntology.hashCode())
 			// avoid getting spammed by some agent
@@ -128,6 +135,9 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
 		ontology.learnFromOtherOntology(newOntology);
 		ontologyBelief.setValue(ontology);
+		if (collectorAlive) {
+			ontology.exportOntology();
+		}
 		currentOntologyHash.setValue(ontology.getOntology().hashCode());
 
 		JSONObject newMap = new JSONObject();

@@ -79,30 +79,6 @@ public class Utils {
       ((BDIAgent03) a).addMessage(msg);
   }
 
-  public static MapaModel loadOntology() {
-    OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
-    OntDocumentManager dm = model.getDocumentManager();
-    URL fileAsResource = Utils.class.getClassLoader().getResource(FILE_NAME + ".owl");
-    dm.addAltEntry(FILE_NAME, fileAsResource.toString());
-    model.read(FILE_NAME);
-    return new MapaModel(model);
-  }
-
-  public static void saveOntology(Model ont) {
-    try {
-      System.out.println("Saving ontology..." + ont.isClosed());
-      if (!ont.isClosed()) {
-        String sep = File.separator;
-        Path resourcePath = Paths.get(Utils.class.getResource(sep).getPath());
-        ont.write(new FileOutputStream(resourcePath + sep + FILE_NAME +
-            "-modified.owl", false));
-        ont.close();
-      }
-    } catch (Exception e) {
-      e.printStackTrace();
-    }
-  }
-
   public static HashSet<String> getNodesWith(Model model, String query) {
     HashSet<String> nodes = new HashSet<String>();
     String[] params = query.split(" ");

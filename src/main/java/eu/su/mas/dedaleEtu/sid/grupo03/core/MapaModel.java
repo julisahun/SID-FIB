@@ -2,8 +2,13 @@ package eu.su.mas.dedaleEtu.sid.grupo03.core;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -13,6 +18,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
 import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.Query;
@@ -28,6 +34,8 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StatementImpl;
+
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Constants;
 
 import javafx.application.Platform;
 import javafx.util.Pair;
@@ -98,6 +106,16 @@ public class MapaModel {
 		this.revision = 0;
 	}
 
+	public MapaModel() {
+		OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM_MICRO_RULE_INF);
+		OntDocumentManager dm = model.getDocumentManager();
+		URL fileAsResource = Utils.class.getClassLoader().getResource(Constants.FILE_NAME + ".owl");
+		dm.addAltEntry(Constants.FILE_NAME, fileAsResource.toString());
+		model.read(Constants.FILE_NAME);
+		this.model = model;
+		this.revision = 0;
+	}
+
 	static Pattern patternIdCell = Pattern.compile("^http://mapa#Instance_(.+?)_cell$");
 	static Pattern patternIdAgent = Pattern.compile("^http://mapa#Instance_(.+?)_agent$");
 
@@ -129,7 +147,7 @@ public class MapaModel {
 			return v;
 		}
 		it.close();
-		System.out.println(res.getURI() + " does not have " + literalName);
+		// System.out.println(res.getURI() + " does not have " + literalName);
 		Platform.exit();
 		Integer i = null;
 		i = i + 1;
@@ -573,6 +591,21 @@ public class MapaModel {
 		InputStream stream = new ByteArrayInputStream(onto.getBytes(StandardCharsets.UTF_8));
 		model.read(stream, null, "N-TRIPLE");
 		return new MapaModel(model);
+	}
+
+	public void exportOntology() {
+		try {
+			System.out.println("Saving ontology..." + this.model.isClosed());
+			if (!this.model.isClosed()) {
+				String sep = File.separator;
+				Path resourcePath = Paths.get(Utils.class.getResource(sep).getPath());
+				this.model.write(new FileOutputStream(resourcePath + sep + Constants.FILE_NAME +
+						"-modified.owl", false));
+				this.model.close();
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public Set<String> getClosedNodes() {

@@ -78,7 +78,11 @@ public class WalkTo extends SimpleBehaviour {
     for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : neighbors) {
       String nodeId = neighbor.getLeft().getLocationId();
       boolean safeNeighbor = true;
+      // if (!neighbor.getRight().isEmpty())
+      // System.out.println();
       for (Couple<Observation, Integer> observation : neighbor.getRight()) {
+        // System.out.print("Observation " + observation.getLeft().getName() + " " +
+        // observation.getRight() + " ; ");
         if (observation.getLeft().getName().equals("WIND")) {
           safeNeighbor = false;
           // break;
@@ -125,9 +129,9 @@ public class WalkTo extends SimpleBehaviour {
   public int onEnd() {
     int status;
     if (this.fullExplored) {
-      status = 1;
-    } else if (this.unreachable) {
       status = 2;
+    } else if (this.unreachable) {
+      status = 1;
     } else {
       status = 0;
     }

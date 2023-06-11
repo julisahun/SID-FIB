@@ -4,15 +4,18 @@ import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
 import jade.core.Agent;
 import jade.core.behaviours.SimpleBehaviour;
 
-public class PickItem extends SimpleBehaviour {
-  private int amountPicked = 0;
+public class DropItem extends SimpleBehaviour {
 
-  PickItem(Agent a) {
+  private String tankerName;
+  private Boolean dropped;
+
+  DropItem(Agent a, String tankerName) {
     super(a);
+    this.tankerName = tankerName;
   }
 
   public void action() {
-    this.amountPicked = ((SituatedAgent03) this.myAgent).pick();
+    this.dropped = ((SituatedAgent03) this.myAgent).emptyMyBackPack(this.tankerName);
   }
 
   public boolean done() {
@@ -20,7 +23,7 @@ public class PickItem extends SimpleBehaviour {
   }
 
   public int onEnd() {
-    if (this.amountPicked > 0)
+    if (this.dropped)
       return 0;
     return 1;
   }

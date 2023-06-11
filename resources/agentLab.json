@@ -6,7 +6,7 @@
     "initialLocation": "free",
     "backPackCapacityGold": -1,
     "backPackCapacityDiamond":-1, 
-    "detectionRadius": 0,
+    "detectionRadius": 3,
     "strengthExpertise": 1,
     "lockPickingExpertise":1
   },
@@ -15,9 +15,9 @@
     "agentName": "situatedAgent04",
     "communicationRange": 3,
     "initialLocation": "free",
-    "backPackCapacityGold": -1,
+    "backPackCapacityGold": 100,
     "backPackCapacityDiamond":-1, 
-    "detectionRadius": 0,
+    "detectionRadius": 3,
     "strengthExpertise": 1,
     "lockPickingExpertise":1
   }

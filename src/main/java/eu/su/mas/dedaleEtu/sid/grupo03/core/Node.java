@@ -153,9 +153,15 @@ public class Node {
     json.put("neighbors", neighbors);
     JSONArray observations = new JSONArray();
     for (Couple<String, Integer> observation : this.observations) {
+      final String name = observation.getLeft();
+      final Integer value = observation.getRight();
       JSONObject observationJson = new JSONObject();
-      observationJson.put("observation", observation.getLeft());
-      observationJson.put("value", observation.getRight());
+      observationJson.put("observation", name);
+      if (value != null) {
+        observationJson.put("value", observation.getRight());
+      } else {
+        observationJson.put("value", 0);
+      }
       observations.put(observationJson);
     }
     json.put("observations", observations);
