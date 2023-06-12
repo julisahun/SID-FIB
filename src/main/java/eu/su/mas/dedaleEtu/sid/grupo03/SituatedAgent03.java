@@ -64,10 +64,6 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         return this.map;
     }
 
-    public void printNodes() {
-        System.out.println(this.stringifyNodes());
-    }
-
     public void addNode(String currentNode, String newNode, List<Couple<Observation, Integer>> observations) {
         for (Couple<Observation, Integer> obs : observations) {
             if (obs.getLeft().getName().equals("WIND")) {
@@ -144,13 +140,8 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         this.nodes.visit(nodeId);
     }
 
-    public String stringifyNodes() {
-        JSONObject json = new JSONObject();
-        for (String node : this.nodes.keySet()) {
-            Node nodeInfo = this.nodes.get(node);
-            json.put(node, nodeInfo.toJson());
-        }
-        return json.toString();
+    public String getMap() {
+        return this.nodes.stringifyNodes();
     }
 
     public void setOntology(String ontology) {

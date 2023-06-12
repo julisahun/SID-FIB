@@ -23,23 +23,25 @@ public class PickItem extends SimpleBehaviour {
   }
 
   public void action() {
+    System.out.println("Picking items");
     SituatedAgent03 situated = (SituatedAgent03) this.myAgent;
     for (Couple<Location, List<Couple<Observation, Integer>>> obs : situated.observe()) {
       if (!obs.getLeft().equals(situated.getCurrentPosition()))
         continue;
       for (Couple<Observation, Integer> ob : obs.getRight()) {
-        if (ob.getLeft().getName().equals("LockIsOpen")) {
-          if (ob.getRight() == 0) {
-            Boolean lockOpen = situated.openLock(ob.getLeft());
-            if (lockOpen) {
-              this.amountPicked = situated.pick();
-              return;
-            }
+        if (isResource(ob.getLeft().getName())) {
+          final Boolean lockOpen = situated.openLock(ob.getLeft());
+          if (lockOpen) {
+            this.amountPicked = situated.pick();
+            return;
           }
-          return;
         }
       }
     }
+  }
+
+  private boolean isResource(String name) {
+    return name.equals("Gold") || name.equals("Diamond");
   }
 
   public boolean done() {
@@ -53,6 +55,7 @@ public class PickItem extends SimpleBehaviour {
     status = 1;
 
     Utils.finishBehaviour(this.myAgent, this.id, status);
+    System.out.println("Picked " + this.amountPicked + " items, status: " + status);
     return status;
   }
 }

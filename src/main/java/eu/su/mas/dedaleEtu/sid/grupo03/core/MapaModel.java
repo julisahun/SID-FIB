@@ -676,6 +676,7 @@ public class MapaModel {
 	}
 
 	public HashSet<String> getResourceNodes(String resource) {
+		System.out.println("Searching for resource " + resource);
 		StmtIterator statements = model.listStatements((Resource) null,
 				model.getProperty(mapa(resource + "Amount")), (RDFNode) null);
 		HashSet<String> returnList = new HashSet<String>();
@@ -687,7 +688,6 @@ public class MapaModel {
 				returnList.add(matcher.group(1));
 			}
 		}
-		// throw new RuntimeException("Resource " + resource + " not found");
 		return returnList;
 	}
 

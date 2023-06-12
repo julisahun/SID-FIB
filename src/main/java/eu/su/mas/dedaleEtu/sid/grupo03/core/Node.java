@@ -46,26 +46,23 @@ public class Node {
     this.id = id;
   }
 
-  public Node(String id, Status status, List<Couple<String, Integer>> observations) {
-    this.status = status;
-    this.id = id;
-    this.observations = observations;
-  }
-
-  public Node(String id, Status status, HashSet<String> neighbors, List<Couple<Observation, Integer>> observations) {
-    this.status = status;
-    this.neighbors = neighbors;
-    this.id = id;
+  public Node(String id, Status status, List<Couple<Observation, Integer>> observations) {
+    this(id, status);
     this.observations = new ArrayList<Couple<String, Integer>>();
     for (Couple<Observation, Integer> observation : observations) {
       this.observations.add(new Couple<String, Integer>(observation.getLeft().getName(), observation.getRight()));
     }
   }
 
+  public Node(String id, Status status, HashSet<String> neighbors, List<Couple<Observation, Integer>> observations) {
+    this(id, status, observations);
+    this.neighbors = neighbors;
+  }
+
   public Node(String id, Status status, HashSet<String> neighbors) {
     this.status = status;
-    this.neighbors = neighbors;
     this.id = id;
+    this.neighbors = neighbors;
   }
 
   public Status getStatus() {

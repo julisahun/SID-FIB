@@ -12,6 +12,8 @@ import jade.core.behaviours.Behaviour;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
 import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Map;
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Node;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
 import jade.core.Agent;
 import eu.su.mas.dedale.env.Location;
@@ -26,24 +28,16 @@ public class MessageMapper extends OneShotBehaviour {
     this.agent = (SituatedAgent03) a;
   }
 
-  private JSONArray observeCurrentNode() {
+  private String observeCurrentNode() {
+    Map map = new Map();
     final String currentPosition = this.agent.getCurrentPosition().toString();
     for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : this.agent.observe()) {
       if (!neighbor.getLeft().toString().equals(currentPosition))
         continue;
-      JSONArray observations = new JSONArray();
-      for (Couple<Observation, Integer> obs : neighbor.getRight()) {
-        JSONObject observation = new JSONObject();
-        Integer value = obs.getRight();
-        if (value == null)
-          value = 0;
-        observation.put("observation", obs.getLeft().getName());
-        observation.put("value", value);
-        observations.put(observation);
-      }
-      return observations;
+      Node n = new Node(currentPosition, Node.Status.CLOSED, neighbor.getRight());
+      map.put(currentPosition, n);
     }
-    return null;
+    return map.stringifyNodes();
   }
 
   private void pickup(String body) {
@@ -55,12 +49,18 @@ public class MessageMapper extends OneShotBehaviour {
     responses.put(0, () -> {
       JSONObject res = new JSONObject();
       res.put("status", "success");
-      res.put("node", this.observeCurrentNode());
+      res.put("command", "collect");
+      res.put("position", this.agent.getCurrentPosition().toString());
+      res.put("map", this.observeCurrentNode());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
     });
     responses.put(1, () -> {
       JSONObject res = new JSONObject();
       res.put("status", "error");
-      res.put("node", this.observeCurrentNode());
+      res.put("command", "collect");
+      res.put("position", this.agent.getCurrentPosition().toString());
+      res.put("map", this.observeCurrentNode());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
     });
     Behaviour action = new Composer(this.agent, pickItem, new ConditionalBehaviour(this.agent, id, responses));
 
@@ -71,14 +71,15 @@ public class MessageMapper extends OneShotBehaviour {
     JSONObject parsedJson = new JSONObject(body);
     try {
       JSONObject data = parsedJson.getJSONObject("data");
-      String position = data.getString("position");
+      final String position = data.getString("position");
       if (position == "") {
         {
           JSONObject res = new JSONObject();
           res.put("status", "success");
-          res.put("map", getSituatedAgent().stringifyNodes());
+          res.put("map", getSituatedAgent().getMap());
           res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
-          res.put("command", position);
+          res.put("req", position);
+          res.put("command", "move");
           this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
         }
         return;
@@ -115,28 +116,31 @@ public class MessageMapper extends OneShotBehaviour {
   private HashMap<Integer, Runnable> mapResponses(String position) {
     HashMap<Integer, Runnable> responses = new HashMap<>();
     responses.put(0, () -> {
-      JSONObject body = new JSONObject();
-      body.put("status", "success");
-      body.put("map", getSituatedAgent().stringifyNodes());
-      body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
-      body.put("command", position);
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
+      JSONObject res = new JSONObject();
+      res.put("status", "success");
+      res.put("map", getSituatedAgent().getMap());
+      res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
+      res.put("req", position);
+      res.put("command", "move");
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
     });
     responses.put(1, () -> {
-      JSONObject body = new JSONObject();
-      body.put("status", "error");
-      body.put("command", position);
-      body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
-      body.put("map", getSituatedAgent().stringifyNodes());
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
+      JSONObject res = new JSONObject();
+      res.put("status", "error");
+      res.put("req", position);
+      res.put("command", "move");
+      res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
+      res.put("map", getSituatedAgent().getMap());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
     });
     responses.put(2, () -> {
-      JSONObject body = new JSONObject();
-      body.put("status", "finished");
-      body.put("command", position);
-      body.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
-      body.put("map", getSituatedAgent().stringifyNodes());
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
+      JSONObject res = new JSONObject();
+      res.put("status", "finished");
+      res.put("req", position);
+      res.put("command", "move");
+      res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
+      res.put("map", getSituatedAgent().getMap());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
     });
     return responses;
   }
@@ -190,8 +194,9 @@ public class MessageMapper extends OneShotBehaviour {
     }
     SituatedAgent03 myself = (SituatedAgent03) this.agent;
     JSONObject response = new JSONObject();
-    response.put("status", "pong");
-    response.put("map", getSituatedAgent().stringifyNodes());
+    response.put("status", "suceess");
+    response.put("command", "pong");
+    response.put("map", getSituatedAgent().getMap());
     response.put("agentType", myself.getType());
     response.put("position", currentPosition);
     JSONObject resources = new JSONObject();

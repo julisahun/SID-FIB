@@ -81,26 +81,52 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			updateOntology(body.getString("ontology"));
 			return;
 		}
-		String status = body.getString("status");
-		if (status.equals("error")) {
-			String rejectedNode = body.getString("command");
-			addRejectedNode(rejectedNode);
-		} else if (status.equals("finished")) {
-		} else if (status.equals("pong")) {
-			String agentType = body.getString("agentType");
-			Belief b = getBeliefBase().getBelief(agentType + "Alive");
-			b.setValue(true);
-			JSONObject resourcesCapacity = body.getJSONObject("resourcesCapacity");
-			for (String resource : resourcesCapacity.keySet()) {
-				b = getBeliefBase().getBelief(resource + "Capacity");
-				b.setValue(resourcesCapacity.getInt(resource));
-			}
+		final String command = body.getString("command");
+		if (command.equals("move")) {
+			handleMoveInform(body);
+		} else if (command.equals("collect")) {
+			handleCollectInform(body);
+		} else if (command.equals("pong")) {
+			handlePongInform(body);
 		}
+		updateCurrentPositionAndExit(body.getString("position"));
+	}
+
+	private void updateCurrentPositionAndExit(String position) {
 		Belief currentPosition = getBeliefBase().getBelief(CURRENT_SITUATED_POSITION);
-		currentPosition.setValue(body.getString("position"));
+		currentPosition.setValue(position);
+
 		Belief commandSent = getBeliefBase().getBelief(SITUATED_COMMANDED);
 		commandSent.setValue(false);
-		pushMapUpdate(body.getString("map"));
+	}
+
+	private void handlePongInform(JSONObject body) {
+		String agentType = body.getString("agentType");
+		Belief b = getBeliefBase().getBelief(agentType + "Alive");
+		b.setValue(true);
+		JSONObject resourcesCapacity = body.getJSONObject("resourcesCapacity");
+		for (String resource : resourcesCapacity.keySet()) {
+			b = getBeliefBase().getBelief(resource + "Capacity");
+			b.setValue(resourcesCapacity.getInt(resource));
+		}
+		final String map = body.getString("map");
+		pushMapUpdate(map);
+	}
+
+	private void handleCollectInform(JSONObject body) {
+		final String nodeUpdate = body.getString("map");
+		System.out.println("Collect Inform: " + nodeUpdate);
+		pushMapUpdate(nodeUpdate);
+	}
+
+	private void handleMoveInform(JSONObject body) {
+		String status = body.getString("status");
+		if (status.equals("error")) {
+			String rejectedNode = body.getString("req");
+			addRejectedNode(rejectedNode);
+		}
+		final String map = body.getString("map");
+		pushMapUpdate(map);
 	}
 
 	private Map parseMap(String stringMap) {
@@ -123,8 +149,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void updateOntology(String stringifiedOntology) {
-		Boolean collectorAlive = (Boolean) getBeliefBase().getBelief(COLLECTOR_ALIVE).getValue();
-
 		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASH);
 		if (((Integer) currentOntologyHash.getValue()) == stringifiedOntology.hashCode())
 			// avoid getting spammed by some agent
@@ -135,10 +159,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
 		ontology.learnFromOtherOntology(newOntology);
 		ontologyBelief.setValue(ontology);
-		if (collectorAlive) {
-			System.out.println("Exporting ontology");
-			// ontology.exportOntology();
-		}
 		currentOntologyHash.setValue(ontology.getOntology().hashCode());
 
 		JSONObject newMap = new JSONObject();

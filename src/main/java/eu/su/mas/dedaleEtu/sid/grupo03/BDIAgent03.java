@@ -239,10 +239,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                 rejectedNodes.put(node, rejectedNodes.get(node) + 1);
             }
         }
-        if (nodes.size() == rejectedNodes.size()) {
-            return this.getRandomClosedNode();
-        }
-        return this.commandNotRejected(nodes);
+        return this.getRandomClosedNode();
     }
 
     private String getOpenNode() {
@@ -263,7 +260,8 @@ public class BDIAgent03 extends SingleCapabilityAgent {
 
     private String getNextExplorerCommand() {
         if (!this.isFullExplored()) {
-            return this.getOpenNode();
+            final String node = this.getOpenNode();
+            return node;
         }
         return this.getLeastVisitedNode();
     }
@@ -299,9 +297,9 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
         String currentPosition = (String) getBelief(CURRENT_SITUATED_POSITION).getValue();
         NodeInfo nodeInfo = ontology.getCellInfo(currentPosition);
-        // if (nodeInfo.hasResource(resource)) {
-        // return "collect";
-        // }
+        if (nodeInfo.hasResource(resource)) {
+            return "collect";
+        }
         HashSet<String> nodes = ontology.getResourceNodes(resource);
         if (nodes.size() == 0) {
             return this.getRandomOpenNode();

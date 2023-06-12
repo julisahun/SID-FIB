@@ -3,7 +3,7 @@
     "agentType":"agentExplo",
     "agentName": "situatedAgent03",
     "communicationRange": 3,
-    "initialLocation": "free",
+    "initialLocation": "20",
     "backPackCapacityGold": -1,
     "backPackCapacityDiamond":-1, 
     "detectionRadius": 3,

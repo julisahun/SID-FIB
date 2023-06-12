@@ -3,6 +3,9 @@ package eu.su.mas.dedaleEtu.sid.grupo03.core;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+
+import org.json.JSONObject;
+
 import java.io.Serializable;
 
 public class Map implements Serializable {
@@ -39,5 +42,14 @@ public class Map implements Serializable {
 
   public void visit(String nodeId) {
     this.nodes.get(nodeId).visit();
+  }
+
+  public String stringifyNodes() {
+    JSONObject json = new JSONObject();
+    for (String node : this.nodes.keySet()) {
+      Node nodeInfo = this.nodes.get(node);
+      json.put(node, nodeInfo.toJson());
+    }
+    return json.toString();
   }
 }
