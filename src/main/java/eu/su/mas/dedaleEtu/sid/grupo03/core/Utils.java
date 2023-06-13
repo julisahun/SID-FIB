@@ -116,7 +116,7 @@ public class Utils {
     return null;
   }
 
-  public static void updateMap(Map patchUpdate, MapaModel ontology) {
+  public static void updateMap(Map patchUpdate, MapaModel ontology, boolean debug) {
     for (String node : patchUpdate.keySet()) {
       Node newNode = patchUpdate.get(node);
       ontology.addNode(node,
@@ -146,7 +146,7 @@ public class Utils {
             break;
         }
       }
-      ontology.addNodeInfo(node, newNode.getTimesVisited(), goldAmount, diamondAmount, lockpickLevel, strength);
+      ontology.addNodeInfo(node, newNode.getTimesVisited(), goldAmount, diamondAmount, lockpickLevel, strength, debug);
     }
   }
 
@@ -159,7 +159,6 @@ public class Utils {
       if (results.length > 0) {
         for (DFAgentDescription dfd : results) {
           String result = dfd.getName().getLocalName();
-          System.out.println("Found agent " + result + " with name " + name);
           if (result.contains(name))
             return result;
         }

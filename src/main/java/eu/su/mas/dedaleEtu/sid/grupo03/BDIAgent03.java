@@ -92,6 +92,8 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                 null);
         Belief<String, Integer> ontologyHash = new TransientBelief<String, Integer>(ONTOLOGY_HASH, 0);
 
+        Belief<String, Integer> backPackFreeSpace = new TransientBelief<String, Integer>(FREE_SPACE, 0);
+
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
         getCapability().getBeliefBase().addBelief(timesVisited);
@@ -111,6 +113,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(situatedCommanded);
         getCapability().getBeliefBase().addBelief(currentSituatedPosition);
         getCapability().getBeliefBase().addBelief(ontologyHash);
+        getCapability().getBeliefBase().addBelief(backPackFreeSpace);
     }
 
     private void initGoals() {
@@ -142,7 +145,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
     }
 
     private void overrideBeliefRevisionStrategy() {
-        final Agent that = this;
+        final BDIAgent03 that = this;
         this.getCapability().setBeliefRevisionStrategy(new DefaultBeliefRevisionStrategy() {
             @Override
             public void reviewBeliefs() {
@@ -167,7 +170,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                     return;
                 Map updateMap = mapUpdates.poll();
                 MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
-                Utils.updateMap(updateMap, ontology);
+                Utils.updateMap(updateMap, ontology, that.situatedName.contains("4"));
                 JSONObject body = new JSONObject();
                 body.put("ontology", ontology.getOntology());
                 Utils.sendMessage(that, ACLMessage.INFORM, "map:" + body.toString(), situatedName);
@@ -214,6 +217,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                     Boolean situatedCommanded = (Boolean) getBelief(SITUATED_COMMANDED).getValue();
                     if (!situatedCommanded) {
                         final String command = getNextCollectorCommand();
+                        System.out.println("Command: " + command);
                         agentGoalUpdateSet.generateGoal(new CommandGoal(command));
 
                         Belief commandSent = getBelief(SITUATED_COMMANDED).getKey();
@@ -227,6 +231,9 @@ public class BDIAgent03 extends SingleCapabilityAgent {
 
     private String commandNotRejected(Set<String> nodes) {
         HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getBelief(REJECTED_NODES).getValue();
+        if (this.situatedName.contains("4")) {
+            System.out.println("Nodes to go: " + nodes);
+        }
         for (final String node : nodes) {
             if (!rejectedNodes.containsKey(node)) {
                 return node;
@@ -285,6 +292,9 @@ public class BDIAgent03 extends SingleCapabilityAgent {
     private String resourceToGet() {
         Integer goldCapacity = (Integer) getBelief(GOLD_CAPACITY).getValue();
         Integer diamondCapacity = (Integer) getBelief(DIAMOND_CAPACITY).getValue();
+        if (goldCapacity == 0 && diamondCapacity == 0) {
+            return null;
+        }
         if (goldCapacity > diamondCapacity) {
             return "gold";
         } else {
@@ -293,15 +303,19 @@ public class BDIAgent03 extends SingleCapabilityAgent {
     }
 
     private String getNextCollectorCommand() {
-        String resource = this.resourceToGet();
+        final String resource = this.resourceToGet();
         MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
         String currentPosition = (String) getBelief(CURRENT_SITUATED_POSITION).getValue();
         NodeInfo nodeInfo = ontology.getCellInfo(currentPosition);
+        if (resource == null) {
+            return this.getRandomOpenNode();
+        }
         if (nodeInfo.hasResource(resource)) {
             return "collect";
         }
         HashSet<String> nodes = ontology.getResourceNodes(resource);
         if (nodes.size() == 0) {
+            // System.out.println("No nodes with resource " + resource);
             return this.getRandomOpenNode();
         }
         return this.commandNotRejected(nodes);

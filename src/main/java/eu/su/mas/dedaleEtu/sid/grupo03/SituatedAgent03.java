@@ -65,6 +65,7 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
     }
 
     public void addNode(String currentNode, String newNode, List<Couple<Observation, Integer>> observations) {
+
         for (Couple<Observation, Integer> obs : observations) {
             if (obs.getLeft().getName().equals("WIND")) {
                 return;
@@ -98,6 +99,16 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
             return;
         Node nodeInfo = this.nodes.get(node);
         nodeInfo.mergeObs(observations);
+    }
+
+    public void updateObs(String node, Couple<String, Integer> observation) {
+        System.out.println("Updating obs" + observation);
+        if (!this.nodes.has(node))
+            return;
+        if (observation.getLeft() == null || observation.getLeft().equals("Gold")
+                || observation.getLeft().equals("Diamond")) {
+            this.nodes.get(node).updateResource(node, observation.getRight());
+        }
     }
 
     public Boolean isAlreadyRejected(String node) {

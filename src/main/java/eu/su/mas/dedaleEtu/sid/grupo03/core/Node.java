@@ -10,6 +10,8 @@ import org.json.JSONObject;
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Observation;
 
+import java.lang.Math;
+
 public class Node {
 
   public enum Status {
@@ -49,6 +51,9 @@ public class Node {
   public Node(String id, Status status, List<Couple<Observation, Integer>> observations) {
     this(id, status);
     this.observations = new ArrayList<Couple<String, Integer>>();
+    if (id.equals("42")) {
+      // System.out.println("Observations: " + observations);
+    }
     for (Couple<Observation, Integer> observation : observations) {
       this.observations.add(new Couple<String, Integer>(observation.getLeft().getName(), observation.getRight()));
     }
@@ -93,8 +98,11 @@ public class Node {
     return this.observations;
   }
 
-  public void setObservations(List<Couple<String, Integer>> observations) {
-    this.observations = observations;
+  public void setObservations(List<Couple<Observation, Integer>> observations) {
+    this.observations = new ArrayList<Couple<String, Integer>>();
+    for (Couple<Observation, Integer> observation : observations) {
+      this.observations.add(new Couple<String, Integer>(observation.getLeft().getName(), observation.getRight()));
+    }
   }
 
   public void addObservation(Couple<String, Integer> observation) {
@@ -119,6 +127,24 @@ public class Node {
 
   public void addNeighbor(String neighbor) {
     this.neighbors.add(neighbor);
+  }
+
+  public void updateResource(String resource, Integer amount) {
+    List<Couple<String, Integer>> newObs = new ArrayList<Couple<String, Integer>>();
+    System.out.println("Updating resource " + resource + " with amount " + amount);
+    for (Couple<String, Integer> observation : this.observations) {
+      if (observation.getLeft().equals("Gold") || observation.getLeft().equals("Diamond")) {
+        Integer value = observation.getRight();
+        if (value == null) {
+          value = 0;
+        }
+        if (resource != null)
+          newObs.add(new Couple<String, Integer>(resource, Math.max(value - amount, 0)));
+      } else {
+        newObs.add(observation);
+      }
+    }
+    this.observations = newObs;
   }
 
   public void mergeObs(List<Couple<Observation, Integer>> observations) {

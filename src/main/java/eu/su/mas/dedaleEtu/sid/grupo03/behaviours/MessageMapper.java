@@ -36,8 +36,26 @@ public class MessageMapper extends OneShotBehaviour {
         continue;
       Node n = new Node(currentPosition, Node.Status.CLOSED, neighbor.getRight());
       map.put(currentPosition, n);
+      String resource = null;
+      Integer amount = 0;
+
+      for (Couple<Observation, Integer> observation : neighbor.getRight()) {
+        if (observation.getLeft().getName().equals("Diamond") || observation.getLeft().getName().equals("Gold")) {
+          resource = observation.getLeft().getName().toLowerCase();
+          amount = observation.getRight();
+        }
+      }
+      this.agent.updateObs(currentPosition, new Couple<String, Integer>(resource, amount));
     }
     return map.stringifyNodes();
+  }
+
+  private JSONObject getBackPackFreeSpace() {
+    JSONObject resources = new JSONObject();
+    for (Couple<Observation, Integer> resource : this.agent.getBackPackFreeSpace()) {
+      resources.put(resource.getLeft().getName().toLowerCase(), resource.getRight());
+    }
+    return resources;
   }
 
   private void pickup(String body) {
@@ -50,6 +68,7 @@ public class MessageMapper extends OneShotBehaviour {
       JSONObject res = new JSONObject();
       res.put("status", "success");
       res.put("command", "collect");
+      res.put("resourcesCapacity", getBackPackFreeSpace());
       res.put("position", this.agent.getCurrentPosition().toString());
       res.put("map", this.observeCurrentNode());
       this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
@@ -58,6 +77,7 @@ public class MessageMapper extends OneShotBehaviour {
       JSONObject res = new JSONObject();
       res.put("status", "error");
       res.put("command", "collect");
+      res.put("resourcesCapacity", getBackPackFreeSpace());
       res.put("position", this.agent.getCurrentPosition().toString());
       res.put("map", this.observeCurrentNode());
       this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
@@ -199,11 +219,7 @@ public class MessageMapper extends OneShotBehaviour {
     response.put("map", getSituatedAgent().getMap());
     response.put("agentType", myself.getType());
     response.put("position", currentPosition);
-    JSONObject resources = new JSONObject();
-    for (Couple<Observation, Integer> resource : myself.getBackPackFreeSpace()) {
-      resources.put(resource.getLeft().getName().toLowerCase(), resource.getRight());
-    }
-    response.put("resourcesCapacity", resources);
+    response.put("resourcesCapacity", getBackPackFreeSpace());
     Behaviour pong = new MessageSender(this.agent, response.toString());
     this.agent.addBehaviour(pong);
   }

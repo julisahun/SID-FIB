@@ -309,7 +309,12 @@ public class MapaModel {
 	}
 
 	public void addNodeInfo(String nodeId, long timesVisited, long goldAmount, long diamondAmount, long lockpickLevel,
-			long strength) {
+			long strength, boolean debug) {
+		if (debug) {
+			// System.out.println("Adding node info for " + nodeId + " " + timesVisited + "
+			// " + goldAmount + " "
+			// + diamondAmount + " " + lockpickLevel + " " + strength);
+		}
 		Resource node = getCell(nodeId);
 		ArrayList<Statement> stmtsTv;
 		ArrayList<Statement> stmtsLvl;
@@ -569,7 +574,7 @@ public class MapaModel {
 				addNodeInfo(cellUpdate.getKey(), timesVisited, info.goldAmount,
 						info.diamondAmount,
 						info.lockpickLevel,
-						info.strength);
+						info.strength, false);
 				updateEntityTime(getCell(cellUpdate.getKey()), cellUpdate.getValue());
 			}
 		}
@@ -600,6 +605,8 @@ public class MapaModel {
 		OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
 		InputStream stream = new ByteArrayInputStream(onto.getBytes(StandardCharsets.UTF_8));
 		model.read(stream, null, "N-TRIPLE");
+		// MapaModel m = new MapaModel(model);
+		// System.out.println("Imported ontology..." + m.getUpdatetimesCells());
 		return new MapaModel(model);
 	}
 
@@ -676,7 +683,6 @@ public class MapaModel {
 	}
 
 	public HashSet<String> getResourceNodes(String resource) {
-		System.out.println("Searching for resource " + resource);
 		StmtIterator statements = model.listStatements((Resource) null,
 				model.getProperty(mapa(resource + "Amount")), (RDFNode) null);
 		HashSet<String> returnList = new HashSet<String>();
@@ -684,7 +690,6 @@ public class MapaModel {
 			Statement entry = statements.next();
 			Matcher matcher = patternIdCell.matcher(entry.getSubject().getURI());
 			if (matcher.find() && entry.getObject().asLiteral().getInt() > 0) {
-				System.out.println("Resource " + resource + " found in " + matcher.group(1));
 				returnList.add(matcher.group(1));
 			}
 		}

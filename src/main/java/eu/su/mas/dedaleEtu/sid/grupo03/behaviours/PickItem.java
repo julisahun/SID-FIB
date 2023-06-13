@@ -2,8 +2,6 @@ package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
 import java.util.List;
 
-import org.apache.jena.sparql.function.library.leviathan.cot;
-
 import dataStructures.tuple.Couple;
 import eu.su.mas.dedale.env.Location;
 import eu.su.mas.dedale.env.Observation;
@@ -23,7 +21,6 @@ public class PickItem extends SimpleBehaviour {
   }
 
   public void action() {
-    System.out.println("Picking items");
     SituatedAgent03 situated = (SituatedAgent03) this.myAgent;
     for (Couple<Location, List<Couple<Observation, Integer>>> obs : situated.observe()) {
       if (!obs.getLeft().equals(situated.getCurrentPosition()))
@@ -49,13 +46,12 @@ public class PickItem extends SimpleBehaviour {
   }
 
   public int onEnd() {
-    int status;
+    int status = 1;
     if (this.amountPicked > 0)
       status = 0;
-    status = 1;
 
     Utils.finishBehaviour(this.myAgent, this.id, status);
-    System.out.println("Picked " + this.amountPicked + " items, status: " + status);
+    System.out.println("Picked " + this.amountPicked + " items");
     return status;
   }
 }

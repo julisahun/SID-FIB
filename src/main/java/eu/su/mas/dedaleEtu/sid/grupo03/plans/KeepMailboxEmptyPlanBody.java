@@ -38,13 +38,15 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			} else if (performative == ACLMessage.REJECT_PROPOSAL) {
 				handleReject(message);
 			} else {
-				if (performative == ACLMessage.NOT_UNDERSTOOD) {
-					BDIAgent03 agent = (BDIAgent03) this.myAgent;
-					agent.situatedName = "SituatedAgent0" + message.content;
-				}
-				if (performative == ACLMessage.CONFIRM) {
-					MapaModel mapa = (MapaModel) getBeliefBase().getBelief(ONTOLOGY).getValue();
-					mapa.exportOntology();
+				{ // dev code
+					if (performative == ACLMessage.NOT_UNDERSTOOD) {
+						BDIAgent03 agent = (BDIAgent03) this.myAgent;
+						agent.situatedName = "SituatedAgent0" + message.content;
+					}
+					if (performative == ACLMessage.CONFIRM) {
+						MapaModel mapa = (MapaModel) getBeliefBase().getBelief(ONTOLOGY).getValue();
+						mapa.exportOntology();
+					}
 				}
 			}
 		} catch (Exception e) {
@@ -101,22 +103,21 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void handlePongInform(JSONObject body) {
-		String agentType = body.getString("agentType");
+		final String agentType = body.getString("agentType");
 		Belief b = getBeliefBase().getBelief(agentType + "Alive");
 		b.setValue(true);
 		JSONObject resourcesCapacity = body.getJSONObject("resourcesCapacity");
-		for (String resource : resourcesCapacity.keySet()) {
-			b = getBeliefBase().getBelief(resource + "Capacity");
-			b.setValue(resourcesCapacity.getInt(resource));
-		}
+		updateResourcesCapacity(resourcesCapacity);
 		final String map = body.getString("map");
 		pushMapUpdate(map);
 	}
 
 	private void handleCollectInform(JSONObject body) {
 		final String nodeUpdate = body.getString("map");
-		System.out.println("Collect Inform: " + nodeUpdate);
 		pushMapUpdate(nodeUpdate);
+
+		JSONObject resourcesCapacity = body.getJSONObject("resourcesCapacity");
+		updateResourcesCapacity(resourcesCapacity);
 	}
 
 	private void handleMoveInform(JSONObject body) {
@@ -127,6 +128,13 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		}
 		final String map = body.getString("map");
 		pushMapUpdate(map);
+	}
+
+	private void updateResourcesCapacity(JSONObject resourcesCapacity) {
+		for (String resource : resourcesCapacity.keySet()) {
+			Belief b = getBeliefBase().getBelief(resource + "Capacity");
+			b.setValue(resourcesCapacity.getInt(resource));
+		}
 	}
 
 	private Map parseMap(String stringMap) {
@@ -149,12 +157,17 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	}
 
 	private void updateOntology(String stringifiedOntology) {
+
 		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASH);
 		if (((Integer) currentOntologyHash.getValue()) == stringifiedOntology.hashCode())
 			// avoid getting spammed by some agent
 			return;
 
 		MapaModel newOntology = MapaModel.importOntology(stringifiedOntology);
+		if (((BDIAgent03) this.myAgent).situatedName.contains("4")) {
+			System.out.println("Ontology update");
+			System.out.println("Gold Nodes: " + newOntology.getResourceNodes("gold"));
+		}
 		Belief ontologyBelief = getBeliefBase().getBelief(ONTOLOGY);
 		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
 		ontology.learnFromOtherOntology(newOntology);
