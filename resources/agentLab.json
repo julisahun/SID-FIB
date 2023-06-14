@@ -20,5 +20,16 @@
     "detectionRadius": 3,
     "strengthExpertise": 1,
     "lockPickingExpertise":1
+  },
+  { 
+    "agentType":"agentTanker",
+    "agentName": "situatedAgent05",
+    "communicationRange": 3,
+    "initialLocation": "45",
+    "backPackCapacityGold": 1000,
+    "backPackCapacityDiamond":-1, 
+    "detectionRadius": 3,
+    "strengthExpertise": 1,
+    "lockPickingExpertise":1
   }
 ]

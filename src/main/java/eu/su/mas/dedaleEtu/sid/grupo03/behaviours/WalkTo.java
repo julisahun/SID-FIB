@@ -18,7 +18,7 @@ import jade.core.behaviours.SimpleBehaviour;
 
 public class WalkTo extends SimpleBehaviour {
   private String target;
-  private AbstractDedaleAgent agent;
+  private SituatedAgent03 agent;
   private MapRepresentation map;
   private Queue<String> route;
   private String currentPosition;
@@ -29,7 +29,7 @@ public class WalkTo extends SimpleBehaviour {
   public WalkTo(Agent a, String position, MapRepresentation map, String id) {
     super(a);
     this.target = position;
-    this.agent = (AbstractDedaleAgent) a;
+    this.agent = (SituatedAgent03) a;
     this.map = map;
     if (map != null)
       this.fullExplored = !this.map.hasOpenNode();
@@ -40,7 +40,7 @@ public class WalkTo extends SimpleBehaviour {
     super(a);
     this.id = id;
     this.target = position;
-    this.agent = (AbstractDedaleAgent) a;
+    this.agent = (SituatedAgent03) a;
   }
 
   @Override
@@ -63,7 +63,6 @@ public class WalkTo extends SimpleBehaviour {
           this.unreachable = true;
           return;
         }
-        // this.moveToOpenNode();
         return;
       }
     }
@@ -78,38 +77,32 @@ public class WalkTo extends SimpleBehaviour {
     for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : neighbors) {
       String nodeId = neighbor.getLeft().getLocationId();
       boolean safeNeighbor = true;
-      // if (!neighbor.getRight().isEmpty())
-      // System.out.println();
       for (Couple<Observation, Integer> observation : neighbor.getRight()) {
-        // System.out.print("Observation " + observation.getLeft().getName() + " " +
-        // observation.getRight() + " ; ");
         if (observation.getLeft().getName().equals("WIND")) {
           safeNeighbor = false;
-          // break;
         }
       }
       if (!safeNeighbor)
         continue;
       this.map.addNewNode(nodeId);
+      this.agent.addNode(currentPosition, nodeId, neighbor.getRight());
       if (!currentPosition.equals(nodeId)) {
-        ((SituatedAgent03) this.myAgent).addNode(currentPosition, nodeId, neighbor.getRight());
         this.map.addEdge(currentPosition, nodeId);
       } else {
-        ((SituatedAgent03) this.myAgent).updateObs(nodeId, neighbor.getRight());
+        this.agent.updateObs(nodeId, neighbor.getRight());
       }
-      Boolean noOpenNodes = !this.map.hasOpenNode();
-      Boolean noUnexploredNodes = this.map.getOpenNodes().size() == 1
-          && this.map.getOpenNodes().get(0).equals(currentPosition);
-
-      this.fullExplored = noOpenNodes || noUnexploredNodes;
     }
-    ((SituatedAgent03) this.myAgent).closeNode(currentPosition);
+    Boolean noOpenNodes = !this.map.hasOpenNode();
+    Boolean noUnexploredNodes = this.map.getOpenNodes().size() == 1
+        && this.map.getOpenNodes().get(0).equals(currentPosition);
+    this.fullExplored = noOpenNodes || noUnexploredNodes;
+    this.agent.closeNode(currentPosition);
   }
 
   private void move(String nextNode) {
     Boolean succeeded = this.agent.moveTo(new gsLocation(nextNode));
     if (succeeded) {
-      ((SituatedAgent03) this.agent).recordVisit(nextNode);
+      this.agent.recordVisit(nextNode);
       this.currentPosition = nextNode;
     } else {
       this.unreachable = true;
@@ -120,7 +113,7 @@ public class WalkTo extends SimpleBehaviour {
   public boolean done() {
     boolean done = this.currentPosition.equals(this.target);
     if (done) {
-      ((SituatedAgent03) this.agent).mergeMap(this.map);
+      this.agent.mergeMap(this.map);
     }
     return done || this.unreachable;
   }

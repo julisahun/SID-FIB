@@ -13,10 +13,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Map.Entry;
 import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.LinkedList;
 
 import org.apache.jena.ontology.OntDocumentManager;
 import org.apache.jena.ontology.OntModel;
@@ -34,8 +36,6 @@ import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StatementImpl;
-
-import eu.su.mas.dedaleEtu.sid.grupo03.core.Constants;
 
 import javafx.application.Platform;
 import javafx.util.Pair;
@@ -105,11 +105,11 @@ public class MapaModel {
 		}
 	};
 
-	HashSet<String> adjacencyCache = new HashSet<String>();
 	HashMap<String, NodeType> nodeCache = new HashMap<String, NodeType>();
 	HashSet<String> windyCache = new HashSet<String>();
 	HashMap<String, AgentConstantInfo> agentCache = new HashMap<String, AgentConstantInfo>();
 	HashMap<String, String> agentPosCache = new HashMap<String, String>();
+	HashMap<String, HashSet<String>> adjacencyCache = new HashMap<String, HashSet<String>>();
 
 	public MapaModel(Model model) {
 		this.model = model;
@@ -157,11 +157,8 @@ public class MapaModel {
 			return v;
 		}
 		it.close();
-		// System.out.println(res.getURI() + " does not have " + literalName);
 		Platform.exit();
-		Integer i = null;
-		i = i + 1;
-		return 0;
+		throw new RuntimeException();
 	}
 
 	private void updateEntityTime(Resource resource, long time) {
@@ -172,29 +169,30 @@ public class MapaModel {
 		it.close();
 		model.remove(rm);
 		model.addLiteral(resource, model.getProperty(mapa("lastUpdate")), time);
-		// System.out.println("Updating: " + resource);
 	}
 
 	private void updateEntityTime(Resource resource) {
-		// System.out.println("Updating: " + resource + " time " +
-		// System.currentTimeMillis());
 		updateEntityTime(resource, System.currentTimeMillis());
 	}
 
-	// Number of changes since last time
 	public long revision() {
 		return this.revision;
 	}
 
 	public void addAdjancency(String node1id, String node2id) {
-		String cacheID = node1id + "-" + node2id;
-		if (adjacencyCache.contains(cacheID))
+		if (adjacencyCache.containsKey(node1id) && adjacencyCache.get(node1id).contains(node2id))
 			return;
-		adjacencyCache.add(cacheID);
 		Resource node1 = getCell(node1id);
 		Resource node2 = getCell(node2id);
 		addCheckStmt(new StatementImpl(node1, model.getProperty(mapa("Adjacent")), node2));
 		addCheckStmt(new StatementImpl(node2, model.getProperty(mapa("Adjacent")), node1));
+
+		if (!adjacencyCache.containsKey(node1id))
+			adjacencyCache.put(node1id, new HashSet<String>());
+		adjacencyCache.get(node1id).add(node2id);
+		if (!adjacencyCache.containsKey(node2id))
+			adjacencyCache.put(node2id, new HashSet<String>());
+		adjacencyCache.get(node2id).add(node1id);
 	}
 
 	public void addNode(String id, NodeType type) {
@@ -309,12 +307,7 @@ public class MapaModel {
 	}
 
 	public void addNodeInfo(String nodeId, long timesVisited, long goldAmount, long diamondAmount, long lockpickLevel,
-			long strength, boolean debug) {
-		if (debug) {
-			// System.out.println("Adding node info for " + nodeId + " " + timesVisited + "
-			// " + goldAmount + " "
-			// + diamondAmount + " " + lockpickLevel + " " + strength);
-		}
+			long strength) {
 		Resource node = getCell(nodeId);
 		ArrayList<Statement> stmtsTv;
 		ArrayList<Statement> stmtsLvl;
@@ -539,15 +532,11 @@ public class MapaModel {
 		}
 		{
 			Map<String, Long> ourUpdateTimes = getUpdatetimesAgents();
-			// System.out.println("Our times: " + ourUpdateTimes);
 			for (Entry<String, Long> agentUpdate : otherModel.getUpdatetimesAgents().entrySet()) {
-				// System.out.println("Info Agent: " + agentUpdate);
 				if (ourUpdateTimes.containsKey(agentUpdate.getKey())
 						&& ourUpdateTimes.get(agentUpdate.getKey()) > agentUpdate.getValue()) {
-					// System.out.println("We have: " + ourUpdateTimes.get(agentUpdate.getKey()));
 					continue;
 				}
-				// System.out.println("Importing: " + agentUpdate);
 				AgentConstantInfo infoConstant = otherModel.getAgentConstantInfo(agentUpdate.getKey());
 				addAgent(agentUpdate.getKey(), infoConstant.type, infoConstant.goldCapacity, infoConstant.diamondCapacity,
 						infoConstant.lockpickLevel);
@@ -574,7 +563,7 @@ public class MapaModel {
 				addNodeInfo(cellUpdate.getKey(), timesVisited, info.goldAmount,
 						info.diamondAmount,
 						info.lockpickLevel,
-						info.strength, false);
+						info.strength);
 				updateEntityTime(getCell(cellUpdate.getKey()), cellUpdate.getValue());
 			}
 		}
@@ -605,8 +594,6 @@ public class MapaModel {
 		OntModel model = ModelFactory.createOntologyModel(OntModelSpec.OWL_MEM);
 		InputStream stream = new ByteArrayInputStream(onto.getBytes(StandardCharsets.UTF_8));
 		model.read(stream, null, "N-TRIPLE");
-		// MapaModel m = new MapaModel(model);
-		// System.out.println("Imported ontology..." + m.getUpdatetimesCells());
 		return new MapaModel(model);
 	}
 
@@ -680,6 +667,42 @@ public class MapaModel {
 		}
 		statements.close();
 		return returnedList;
+	}
+
+	private HashSet<String> getNeighbors(String nodeId) {
+		return this.adjacencyCache.get(nodeId);
+	}
+
+	private Boolean canReach(String node1, String node2, String blockedNode) {
+		Queue<String> queue = new LinkedList<>();
+		HashSet<String> visited = new HashSet<>();
+		queue.add(node1);
+		while (!queue.isEmpty()) {
+			String node = queue.poll();
+			if (node.equals(node2))
+				return true;
+			visited.add(node);
+			HashSet<String> neighbors = this.getNeighbors(node);
+			for (String neighbor : neighbors) {
+				if (!visited.contains(neighbor) && !neighbor.equals(blockedNode))
+					queue.add(neighbor);
+			}
+		}
+		return false;
+	}
+
+	public Boolean isNonBlockingNode(String nodeId) {
+		HashSet<String> neighbors = this.getNeighbors(nodeId);
+		for (String neighbor : neighbors) {
+			for (String neighbor2 : neighbors) {
+				if (neighbor.equals(neighbor2))
+					continue;
+				Boolean canReach = this.canReach(neighbor, neighbor2, nodeId);
+				if (!this.canReach(neighbor, neighbor2, nodeId))
+					return false;
+			}
+		}
+		return true;
 	}
 
 	public HashSet<String> getResourceNodes(String resource) {

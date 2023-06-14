@@ -4,22 +4,19 @@ import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedale.mas.AbstractDedaleAgent;
 import eu.su.mas.dedale.mas.agent.behaviours.platformManagment.startMyBehaviours;
 import eu.su.mas.dedaleEtu.mas.knowledge.MapRepresentation;
+import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.BackpackEmptier;
 import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.MessageMapper;
 import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.OntologySharer;
 import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.RegisterToDF;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.Map;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.Node;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
-import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils.BehaviourStatus;
 import jade.core.behaviours.Behaviour;
 import dataStructures.tuple.Couple;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-
-import org.json.JSONObject;
-import org.json.JSONArray;
 
 import java.util.HashSet;
 
@@ -44,6 +41,9 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         this.arguments = getArguments();
         lb.add(new RegisterToDF(this, this.getAID().getLocalName(), this.getType()));
         lb.add(new MessageMapper(this));
+        if (this.getType().equals("agentCollect")) {
+            lb.add(new BackpackEmptier(this));
+        }
         addBehaviour(new startMyBehaviours(this, lb));
         this.messages = new HashMap<>();
         this.nodes = new Map();
@@ -73,6 +73,8 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         }
         if (!this.nodes.has(newNode)) {
             this.nodes.put(newNode, new Node(newNode, Node.Status.OPEN, new HashSet<String>(), observations));
+        } else {
+            this.nodes.get(newNode).mergeObs(observations);
         }
         if (currentNode.equals(newNode))
             return;
@@ -102,11 +104,12 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
     }
 
     public void updateObs(String node, Couple<String, Integer> observation) {
-        System.out.println("Updating obs" + observation);
+        System.out.println("Updating obs " + observation);
         if (!this.nodes.has(node))
             return;
         if (observation.getLeft() == null || observation.getLeft().equals("Gold")
                 || observation.getLeft().equals("Diamond")) {
+            System.out.println("Updating resource " + observation);
             this.nodes.get(node).updateResource(node, observation.getRight());
         }
     }
@@ -151,8 +154,14 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         this.nodes.visit(nodeId);
     }
 
-    public String getMap() {
+    public String getBuffer() {
         return this.nodes.stringifyNodes();
+    }
+
+    public String clearBuffer() {
+        String buffer = this.nodes.stringifyNodes();
+        this.nodes.clear();
+        return buffer;
     }
 
     public void setOntology(String ontology) {

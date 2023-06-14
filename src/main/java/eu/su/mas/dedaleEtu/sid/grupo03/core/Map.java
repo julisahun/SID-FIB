@@ -40,6 +40,11 @@ public class Map implements Serializable {
     }
   }
 
+  public void clear() {
+    this.nodes = new HashMap<String, Node>();
+    this.openNodes = new HashSet<String>();
+  }
+
   public void visit(String nodeId) {
     this.nodes.get(nodeId).visit();
   }

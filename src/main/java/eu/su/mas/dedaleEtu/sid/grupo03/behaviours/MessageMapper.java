@@ -28,65 +28,6 @@ public class MessageMapper extends OneShotBehaviour {
     this.agent = (SituatedAgent03) a;
   }
 
-  private String observeCurrentNode() {
-    Map map = new Map();
-    final String currentPosition = this.agent.getCurrentPosition().toString();
-    for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : this.agent.observe()) {
-      if (!neighbor.getLeft().toString().equals(currentPosition))
-        continue;
-      Node n = new Node(currentPosition, Node.Status.CLOSED, neighbor.getRight());
-      map.put(currentPosition, n);
-      String resource = null;
-      Integer amount = 0;
-
-      for (Couple<Observation, Integer> observation : neighbor.getRight()) {
-        if (observation.getLeft().getName().equals("Diamond") || observation.getLeft().getName().equals("Gold")) {
-          resource = observation.getLeft().getName().toLowerCase();
-          amount = observation.getRight();
-        }
-      }
-      this.agent.updateObs(currentPosition, new Couple<String, Integer>(resource, amount));
-    }
-    return map.stringifyNodes();
-  }
-
-  private JSONObject getBackPackFreeSpace() {
-    JSONObject resources = new JSONObject();
-    for (Couple<Observation, Integer> resource : this.agent.getBackPackFreeSpace()) {
-      resources.put(resource.getLeft().getName().toLowerCase(), resource.getRight());
-    }
-    return resources;
-  }
-
-  private void pickup(String body) {
-    String id = Utils.uuid();
-    Behaviour pickItem = new PickItem(this.agent, id);
-    Utils.registerBehaviour(this.agent, pickItem, id);
-
-    HashMap<Integer, Runnable> responses = new HashMap<>();
-    responses.put(0, () -> {
-      JSONObject res = new JSONObject();
-      res.put("status", "success");
-      res.put("command", "collect");
-      res.put("resourcesCapacity", getBackPackFreeSpace());
-      res.put("position", this.agent.getCurrentPosition().toString());
-      res.put("map", this.observeCurrentNode());
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
-    });
-    responses.put(1, () -> {
-      JSONObject res = new JSONObject();
-      res.put("status", "error");
-      res.put("command", "collect");
-      res.put("resourcesCapacity", getBackPackFreeSpace());
-      res.put("position", this.agent.getCurrentPosition().toString());
-      res.put("map", this.observeCurrentNode());
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
-    });
-    Behaviour action = new Composer(this.agent, pickItem, new ConditionalBehaviour(this.agent, id, responses));
-
-    this.agent.addBehaviour(action);
-  }
-
   private void updatePosition(String body) {
     JSONObject parsedJson = new JSONObject(body);
     try {
@@ -96,11 +37,10 @@ public class MessageMapper extends OneShotBehaviour {
         {
           JSONObject res = new JSONObject();
           res.put("status", "success");
-          res.put("map", getSituatedAgent().getMap());
-          res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
+          res.put("map", getSituatedAgent().clearBuffer());
           res.put("req", position);
           res.put("command", "move");
-          this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, body.toString()));
+          this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res));
         }
         return;
       }
@@ -122,47 +62,35 @@ public class MessageMapper extends OneShotBehaviour {
 
       this.agent.addBehaviour(action);
     } catch (Exception e) {
-      e.printStackTrace();
-      this.agent.addBehaviour(
-          new MessageSender(
-              this.agent,
-              ACLMessage.NOT_UNDERSTOOD,
-              "Error parsing JSON message",
-              new String[] { parsedJson.get("sender").toString() }));
       System.out.println("Error parsing JSON message");
     }
   }
 
-  private HashMap<Integer, Runnable> mapResponses(String position) {
+  private void pickup(String body) {
+    String id = Utils.uuid();
+    Behaviour pickItem = new PickItem(this.agent, id);
+    Utils.registerBehaviour(this.agent, pickItem, id);
+
     HashMap<Integer, Runnable> responses = new HashMap<>();
     responses.put(0, () -> {
       JSONObject res = new JSONObject();
       res.put("status", "success");
-      res.put("map", getSituatedAgent().getMap());
-      res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
-      res.put("req", position);
-      res.put("command", "move");
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
+      res.put("command", "collect");
+      res.put("resourcesCapacity", Utils.getBackPackFreeSpace(this.agent));
+      res.put("map", this.observeCurrentNode());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res));
     });
     responses.put(1, () -> {
       JSONObject res = new JSONObject();
       res.put("status", "error");
-      res.put("req", position);
-      res.put("command", "move");
-      res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
-      res.put("map", getSituatedAgent().getMap());
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
+      res.put("command", "collect");
+      res.put("resourcesCapacity", Utils.getBackPackFreeSpace(this.agent));
+      res.put("map", this.observeCurrentNode());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res));
     });
-    responses.put(2, () -> {
-      JSONObject res = new JSONObject();
-      res.put("status", "finished");
-      res.put("req", position);
-      res.put("command", "move");
-      res.put("position", getSituatedAgent().getCurrentPosition().getLocationId());
-      res.put("map", getSituatedAgent().getMap());
-      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res.toString()));
-    });
-    return responses;
+    Behaviour action = new Composer(this.agent, pickItem, new ConditionalBehaviour(this.agent, id, responses));
+
+    this.agent.addBehaviour(action);
   }
 
   private void updateMap(String body) {
@@ -195,13 +123,15 @@ public class MessageMapper extends OneShotBehaviour {
       }
       getSituatedAgent().setMap(map);
     } catch (Exception e) {
+      // e.printStackTrace();
+      // throw e;
     }
   }
 
   private void updateOntology(String body) {
     JSONObject parsedJson = new JSONObject(body);
     JSONObject data = parsedJson.getJSONObject("data");
-    this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, data.toString()));
+    this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, data));
   }
 
   private void pong(String body) {
@@ -212,16 +142,21 @@ public class MessageMapper extends OneShotBehaviour {
     for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : getSituatedAgent().observe()) {
       getSituatedAgent().addNode(currentPosition, neighbor.getLeft().getLocationId(), neighbor.getRight());
     }
-    SituatedAgent03 myself = (SituatedAgent03) this.agent;
     JSONObject response = new JSONObject();
     response.put("status", "suceess");
     response.put("command", "pong");
-    response.put("map", getSituatedAgent().getMap());
-    response.put("agentType", myself.getType());
-    response.put("position", currentPosition);
-    response.put("resourcesCapacity", getBackPackFreeSpace());
-    Behaviour pong = new MessageSender(this.agent, response.toString());
+    response.put("map", getSituatedAgent().clearBuffer());
+    response.put("agentType", this.agent.getType());
+    response.put("resourcesCapacity", Utils.getBackPackFreeSpace(this.agent));
+    Behaviour pong = new MessageSender(this.agent, response);
     this.agent.addBehaviour(pong);
+  }
+
+  private void noOp(String body) {
+    JSONObject res = new JSONObject();
+    res.put("command", "noop");
+    res.put("status", "success");
+    this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res));
   }
 
   @Override
@@ -232,10 +167,64 @@ public class MessageMapper extends OneShotBehaviour {
     actions.put("map", this::updateMap);
     actions.put("ontology", this::updateOntology);
     actions.put("ping", this::pong);
+    actions.put("noOp", this::noOp);
     this.myAgent.addBehaviour(new Listener(this.myAgent, actions));
   }
 
   private SituatedAgent03 getSituatedAgent() {
     return (SituatedAgent03) this.agent;
+  }
+
+  private HashMap<Integer, Runnable> mapResponses(String position) {
+    HashMap<Integer, Runnable> responses = new HashMap<>();
+    responses.put(0, () -> {
+      JSONObject res = new JSONObject();
+      res.put("status", "success");
+      res.put("map", getSituatedAgent().clearBuffer());
+      res.put("req", position);
+      res.put("command", "move");
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res));
+
+    });
+    responses.put(1, () -> {
+      JSONObject res = new JSONObject();
+      res.put("status", "error");
+      res.put("req", position);
+      res.put("command", "move");
+      res.put("map", getSituatedAgent().clearBuffer());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res));
+    });
+    responses.put(2, () -> {
+      JSONObject res = new JSONObject();
+      res.put("status", "finished");
+      res.put("req", position);
+      res.put("command", "move");
+      res.put("map", getSituatedAgent().clearBuffer());
+      this.agent.addBehaviour(new MessageSender(this.agent, ACLMessage.INFORM, res));
+
+    });
+    return responses;
+  }
+
+  private String observeCurrentNode() {
+    Map map = new Map();
+    final String currentPosition = this.agent.getCurrentPosition().toString();
+    for (Couple<Location, List<Couple<Observation, Integer>>> neighbor : this.agent.observe()) {
+      if (!neighbor.getLeft().toString().equals(currentPosition))
+        continue;
+      Node n = new Node(currentPosition, Node.Status.CLOSED, neighbor.getRight());
+      map.put(currentPosition, n);
+      String resource = null;
+      Integer amount = 0;
+
+      for (Couple<Observation, Integer> observation : neighbor.getRight()) {
+        if (observation.getLeft().getName().equals("Diamond") || observation.getLeft().getName().equals("Gold")) {
+          resource = observation.getLeft().getName().toLowerCase();
+          amount = observation.getRight();
+        }
+      }
+      this.agent.updateObs(currentPosition, new Couple<String, Integer>(resource, amount));
+    }
+    return map.stringifyNodes();
   }
 }

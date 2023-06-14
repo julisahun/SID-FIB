@@ -1,5 +1,6 @@
 package eu.su.mas.dedaleEtu.sid.grupo03.core;
 
+import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedaleEtu.sid.grupo03.BDIAgent03;
 import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
 import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.MessageSender;
@@ -116,14 +117,18 @@ public class Utils {
     return null;
   }
 
-  public static void updateMap(Map patchUpdate, MapaModel ontology, boolean debug) {
+  public static void updateMap(Map patchUpdate, MapaModel ontology) {
     for (String node : patchUpdate.keySet()) {
+      final Node.Status status = patchUpdate.get(node).getStatus();
       Node newNode = patchUpdate.get(node);
       ontology.addNode(node,
-          newNode.getStatus() == Node.Status.OPEN ? NodeType.Open : NodeType.Closed);
+          status == Node.Status.OPEN ? NodeType.Open : NodeType.Closed);
       for (String neighbor : newNode.getNeighbors()) {
         ontology.addAdjancency(node, neighbor);
       }
+      if (status == Node.Status.OPEN)
+        // only update observations if node is closed
+        continue;
       long diamondAmount = 0;
       long goldAmount = 0;
       long lockpickLevel = 0;
@@ -146,8 +151,28 @@ public class Utils {
             break;
         }
       }
-      ontology.addNodeInfo(node, newNode.getTimesVisited(), goldAmount, diamondAmount, lockpickLevel, strength, debug);
+      ontology.addNodeInfo(node, newNode.getTimesVisited(), goldAmount, diamondAmount, lockpickLevel, strength);
     }
+  }
+
+  public static HashSet<String> getTankers(Agent a) {
+    HashSet<String> tankers = new HashSet<String>();
+    DFAgentDescription template = new DFAgentDescription();
+    ServiceDescription templateSd = new ServiceDescription();
+    templateSd.setType("agentTanker");
+    template.addServices(templateSd);
+    try {
+      DFAgentDescription[] results = DFService.search(a, template);
+      if (results.length > 0) {
+        for (DFAgentDescription dfd : results) {
+          String result = dfd.getName().getLocalName();
+          tankers.add(result);
+        }
+      }
+    } catch (FIPAException e) {
+      e.printStackTrace();
+    }
+    return tankers;
   }
 
   public static String findAgent(Agent a, String name) {
@@ -193,5 +218,13 @@ public class Utils {
       }
     }
     return message;
+  }
+
+  public static JSONObject getBackPackFreeSpace(SituatedAgent03 agent) {
+    JSONObject resources = new JSONObject();
+    for (Couple<Observation, Integer> resource : agent.getBackPackFreeSpace()) {
+      resources.put(resource.getLeft().getName().toLowerCase(), resource.getRight());
+    }
+    return resources;
   }
 }

@@ -1,5 +1,7 @@
 package eu.su.mas.dedaleEtu.sid.grupo03.behaviours;
 
+import org.json.JSONObject;
+
 import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.Utils;
 import jade.core.Agent;
@@ -8,33 +10,33 @@ import jade.lang.acl.ACLMessage;
 
 public class MessageSender extends OneShotBehaviour {
 
-    private final String message;
+    private JSONObject message;
     private int performative = ACLMessage.INFORM;
     private final String[] receivers;
 
-    public MessageSender(Agent a, String message, String[] receivers) {
-        super(a);
+    public MessageSender(SituatedAgent03 agent, JSONObject message, String[] receivers) {
+        super(agent);
         this.message = message;
         this.receivers = receivers;
     }
 
-    public MessageSender(Agent a, String message) {
-        super(a);
+    public MessageSender(SituatedAgent03 agent, JSONObject message) {
+        super(agent);
         this.message = message;
-        String masterName = ((SituatedAgent03) a).master;
+        String masterName = agent.master;
         this.receivers = new String[] { masterName };
     }
 
-    public MessageSender(Agent a, int performative, String message) {
-        super(a);
+    public MessageSender(SituatedAgent03 agent, int performative, JSONObject message) {
+        super(agent);
         this.message = message;
-        String masterName = ((SituatedAgent03) a).master;
+        String masterName = agent.master;
         this.receivers = new String[] { masterName };
         this.performative = performative;
     }
 
-    public MessageSender(Agent a, int performative, String message, String[] receivers) {
-        super(a);
+    public MessageSender(SituatedAgent03 agent, int performative, JSONObject message, String[] receivers) {
+        super(agent);
         this.message = message;
         this.receivers = receivers;
         this.performative = performative;
@@ -42,10 +44,11 @@ public class MessageSender extends OneShotBehaviour {
 
     @Override
     public void action() {
+        message.put("position", ((SituatedAgent03) this.myAgent).getCurrentPosition().getLocationId());
         for (String receiver : this.receivers) {
             if (receiver == null)
                 continue;
-            Utils.sendMessage(this.myAgent, this.performative, this.message, receiver);
+            Utils.sendMessage(this.myAgent, this.performative, this.message.toString(), receiver);
         }
     }
 }

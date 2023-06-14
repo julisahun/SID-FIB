@@ -3,6 +3,7 @@ package eu.su.mas.dedaleEtu.sid.grupo03.plans;
 import static eu.su.mas.dedaleEtu.sid.grupo03.core.Constants.*;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Queue;
 
 import org.json.JSONArray;
@@ -158,21 +159,19 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 
 	private void updateOntology(String stringifiedOntology) {
 
-		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASH);
-		if (((Integer) currentOntologyHash.getValue()) == stringifiedOntology.hashCode())
+		Belief currentOntologyHash = getBeliefBase().getBelief(ONTOLOGY_HASHES);
+		HashSet<Integer> ontologyHashes = (HashSet<Integer>) currentOntologyHash.getValue();
+		if (ontologyHashes.contains(stringifiedOntology.hashCode()))
 			// avoid getting spammed by some agent
 			return;
+		ontologyHashes.add(stringifiedOntology.hashCode());
+		currentOntologyHash.setValue(ontologyHashes);
 
 		MapaModel newOntology = MapaModel.importOntology(stringifiedOntology);
-		if (((BDIAgent03) this.myAgent).situatedName.contains("4")) {
-			System.out.println("Ontology update");
-			System.out.println("Gold Nodes: " + newOntology.getResourceNodes("gold"));
-		}
 		Belief ontologyBelief = getBeliefBase().getBelief(ONTOLOGY);
 		MapaModel ontology = (MapaModel) ontologyBelief.getValue();
 		ontology.learnFromOtherOntology(newOntology);
 		ontologyBelief.setValue(ontology);
-		currentOntologyHash.setValue(ontology.getOntology().hashCode());
 
 		JSONObject newMap = new JSONObject();
 		JSONArray openNodes = new JSONArray();

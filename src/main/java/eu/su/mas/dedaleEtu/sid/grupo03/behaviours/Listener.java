@@ -50,7 +50,6 @@ public class Listener extends CyclicBehaviour {
 
       return new Couple<String, JSONObject>(keyValue.getLeft(), body);
     } catch (Exception e) {
-      e.printStackTrace();
       return new Couple<String, JSONObject>(keyValue.getLeft(), new JSONObject("{}"));
     }
   }
