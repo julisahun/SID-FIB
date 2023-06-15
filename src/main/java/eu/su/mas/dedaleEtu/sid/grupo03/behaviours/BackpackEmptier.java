@@ -19,29 +19,38 @@ public class BackpackEmptier extends TickerBehaviour {
   }
 
   public void onTick() {
+    SituatedAgent03 situated = (SituatedAgent03) this.myAgent;
+    List<Couple<Observation, Integer>> spaceBeforeDrop = situated.getBackPackFreeSpace();
+    if (situated.hasEmptyBackpack()) {
+      return;
+    }
     System.out.println("Emptying backpack");
     HashSet<String> tankerAgents = Utils.getTankers(this.myAgent);
-    SituatedAgent03 situated = (SituatedAgent03) this.myAgent;
     for (String tanker : tankerAgents) {
-      List<Couple<Observation, Integer>> spaceBeforeDrop = situated.getBackPackFreeSpace();
       Boolean b = situated.emptyMyBackPack(tanker);
       if (b) {
         List<Couple<Observation, Integer>> spaceAfterDrop = situated.getBackPackFreeSpace();
 
-        for (Couple<Observation, Integer> resourceBeforeDrop : spaceBeforeDrop) {
-          for (Couple<Observation, Integer> resourceAfterDrop : spaceAfterDrop) {
-            if (resourceBeforeDrop.getLeft().getName().equals(resourceAfterDrop.getLeft().getName())) {
-              if (resourceBeforeDrop.getRight() > resourceAfterDrop.getRight()) {
-                System.out.println("Dropped " + (resourceBeforeDrop.getRight() - resourceAfterDrop.getRight()) + " "
-                    + resourceBeforeDrop.getLeft().getName());
-                JSONObject msg = new JSONObject();
-                msg.put("resourcesCapacity", Utils.getBackPackFreeSpace(situated));
-                situated.addBehaviour(new MessageSender(situated, ACLMessage.INFORM, msg));
-              }
-            }
+        sendNewBackPackSpace(spaceBeforeDrop, spaceAfterDrop);
+        return;
+      }
+    }
+  }
+
+  private void sendNewBackPackSpace(List<Couple<Observation, Integer>> spaceBeforeDrop,
+      List<Couple<Observation, Integer>> spaceAfterDrop) {
+    for (Couple<Observation, Integer> resourceBeforeDrop : spaceBeforeDrop) {
+      for (Couple<Observation, Integer> resourceAfterDrop : spaceAfterDrop) {
+        if (resourceBeforeDrop.getLeft().getName().equals(resourceAfterDrop.getLeft().getName())) {
+          if (resourceBeforeDrop.getRight() > resourceAfterDrop.getRight()) {
+            System.out.println("Dropped " + (resourceBeforeDrop.getRight() - resourceAfterDrop.getRight()) + " "
+                + resourceBeforeDrop.getLeft().getName());
+            JSONObject msg = new JSONObject();
+            msg.put("resourcesCapacity", Utils.getBackPackFreeSpace((SituatedAgent03) this.myAgent));
+            msg.put("command", "drop");
+            this.myAgent.addBehaviour(new MessageSender((SituatedAgent03) this.myAgent, ACLMessage.INFORM, msg));
           }
         }
-        return;
       }
     }
   }

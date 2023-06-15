@@ -25,6 +25,11 @@ import javafx.util.Pair;
 public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 	private ACLMessage msgReceived;
 
+	@Parameter(direction = Parameter.Direction.IN)
+	public void setMessage(ACLMessage msgReceived) {
+		this.msgReceived = msgReceived;
+	}
+
 	@Override
 	public void action() {
 		try {
@@ -70,13 +75,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		}
 	}
 
-	private void addRejectedNode(String rejectedNode) {
-		Belief rejectedNodeBelief = getBeliefBase().getBelief(REJECTED_NODES);
-		HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) rejectedNodeBelief.getValue();
-		rejectedNodes.put(rejectedNode, 0);
-		rejectedNodeBelief.setValue(rejectedNodes);
-	}
-
 	private void handleInform(Message msg) {
 		final String content = msg.content;
 		JSONObject body = new JSONObject(content);
@@ -89,18 +87,12 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 			handleMoveInform(body);
 		} else if (command.equals("collect")) {
 			handleCollectInform(body);
+		} else if (command.equals("drop")) {
+			handleDropInform(body);
 		} else if (command.equals("pong")) {
 			handlePongInform(body);
 		}
 		updateCurrentPositionAndExit(body.getString("position"));
-	}
-
-	private void updateCurrentPositionAndExit(String position) {
-		Belief currentPosition = getBeliefBase().getBelief(CURRENT_SITUATED_POSITION);
-		currentPosition.setValue(position);
-
-		Belief commandSent = getBeliefBase().getBelief(SITUATED_COMMANDED);
-		commandSent.setValue(false);
 	}
 
 	private void handlePongInform(JSONObject body) {
@@ -129,6 +121,22 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		}
 		final String map = body.getString("map");
 		pushMapUpdate(map);
+	}
+
+	private void handleDropInform(JSONObject body) {
+		JSONObject resourcesCapacity = body.getJSONObject("resourcesCapacity");
+		for (String resource : resourcesCapacity.keySet()) {
+			Belief b = getBeliefBase().getBelief(resource + "Capacity");
+			b.setValue(resourcesCapacity.getInt(resource));
+		}
+	}
+
+	private void updateCurrentPositionAndExit(String position) {
+		Belief currentPosition = getBeliefBase().getBelief(CURRENT_SITUATED_POSITION);
+		currentPosition.setValue(position);
+
+		Belief commandSent = getBeliefBase().getBelief(SITUATED_COMMANDED);
+		commandSent.setValue(false);
 	}
 
 	private void updateResourcesCapacity(JSONObject resourcesCapacity) {
@@ -199,8 +207,10 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 				((BDIAgent03) this.myAgent).situatedName);
 	}
 
-	@Parameter(direction = Parameter.Direction.IN)
-	public void setMessage(ACLMessage msgReceived) {
-		this.msgReceived = msgReceived;
+	private void addRejectedNode(String rejectedNode) {
+		Belief rejectedNodeBelief = getBeliefBase().getBelief(REJECTED_NODES);
+		HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) rejectedNodeBelief.getValue();
+		rejectedNodes.put(rejectedNode, 0);
+		rejectedNodeBelief.setValue(rejectedNodes);
 	}
 }

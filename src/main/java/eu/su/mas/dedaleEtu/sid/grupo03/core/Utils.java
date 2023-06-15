@@ -117,8 +117,9 @@ public class Utils {
     return null;
   }
 
-  public static void updateMap(Map patchUpdate, MapaModel ontology) {
+  public static void updateMap(Map patchUpdate, MapaModel ontology, HashMap<String, Integer> rejectedNodes) {
     for (String node : patchUpdate.keySet()) {
+
       final Node.Status status = patchUpdate.get(node).getStatus();
       Node newNode = patchUpdate.get(node);
       ontology.addNode(node,
@@ -129,6 +130,8 @@ public class Utils {
       if (status == Node.Status.OPEN)
         // only update observations if node is closed
         continue;
+      if (rejectedNodes.containsKey(node))
+        rejectedNodes.remove(node);
       long diamondAmount = 0;
       long goldAmount = 0;
       long lockpickLevel = 0;

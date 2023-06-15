@@ -171,7 +171,10 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                     return;
                 Map updateMap = mapUpdates.poll();
                 MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
-                Utils.updateMap(updateMap, ontology);
+                HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getBelief(REJECTED_NODES)
+                        .getValue();
+                Utils.updateMap(updateMap, ontology, rejectedNodes);
+                getBelief(REJECTED_NODES).getKey().setValue(rejectedNodes);
                 JSONObject body = new JSONObject();
                 body.put("ontology", ontology.getOntology());
                 Utils.sendMessage(that, ACLMessage.INFORM, "map:" + body.toString(), situatedName);
@@ -248,7 +251,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         for (final String node : nodes) {
             if (!rejectedNodes.containsKey(node)) {
                 return node;
-            } else if (rejectedNodes.get(node) > WAITING_CYCLES) {
+            } else if (rejectedNodes.get(node) >= WAITING_CYCLES) {
                 // node rejected more than 3 times, remove from rejected nodes
                 rejectedNodes.remove(node);
                 return node;

@@ -20,7 +20,7 @@ public class Constants {
     public static String MAP_UPDATES = "mapUpdates";
     public static String CURRENT_SITUATED_POSITION = "currentSituatedPosition";
     public static String TIMES_VISITED = "timesVisited";
-    public static int WAITING_CYCLES = 3;
+    public static int WAITING_CYCLES = 1;
     public static String ONTOLOGY_HASHES = "ontologyHashes";
     public static String SITUATED_NAME = "SituatedAgent03";
     public static String MASTER_NAME = "BDIAgent03";

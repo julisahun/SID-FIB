@@ -26,6 +26,7 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
     private Map nodes;
     private HashSet<String> rejectedNodes = new HashSet<>();
     private HashMap<String, List<String>> messages;
+    private HashMap<String, Integer> backpackCapacity = new HashMap<>();
 
     private HashMap<String, Integer> behavioursStatus = new HashMap<>();
     private HashMap<String, Behaviour> behaviours = new HashMap<>();
@@ -39,6 +40,7 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
         super.setup();
         List<Behaviour> lb = new ArrayList<>();
         this.arguments = getArguments();
+        setStartingBackpackCapacity();
         lb.add(new RegisterToDF(this, this.getAID().getLocalName(), this.getType()));
         lb.add(new MessageMapper(this));
         if (this.getType().equals("agentCollect")) {
@@ -188,5 +190,22 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
             return "agentCollect";
 
         return "agentExplo";
+    }
+
+    public Boolean hasEmptyBackpack() {
+        HashMap<String, Integer> backpackSpace = this.backpackCapacity;
+        for (Couple<Observation, Integer> resource : this.getBackPackFreeSpace()) {
+            if (!resource.getRight().equals(backpackSpace.get(resource.getLeft().getName()))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void setStartingBackpackCapacity() {
+        for (Couple<Observation, Integer> resource : this.getBackPackFreeSpace()) {
+            this.backpackCapacity.put(resource.getLeft().getName(), resource.getRight());
+        }
+
     }
 }
