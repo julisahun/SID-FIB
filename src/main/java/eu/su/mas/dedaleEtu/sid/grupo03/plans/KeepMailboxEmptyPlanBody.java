@@ -43,17 +43,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 				// NO OP
 			} else if (performative == ACLMessage.REJECT_PROPOSAL) {
 				handleReject(message);
-			} else {
-				{ // dev code
-					if (performative == ACLMessage.NOT_UNDERSTOOD) {
-						BDIAgent03 agent = (BDIAgent03) this.myAgent;
-						agent.situatedName = "SituatedAgent0" + message.content;
-					}
-					if (performative == ACLMessage.CONFIRM) {
-						MapaModel mapa = (MapaModel) getBeliefBase().getBelief(ONTOLOGY).getValue();
-						mapa.exportOntology();
-					}
-				}
 			}
 		} catch (Exception e) {
 			System.out.println("Message Error " + e.getMessage());

@@ -183,13 +183,13 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         this.getCapability().setOptionGenerationFunction(new DefaultOptionGenerationFunction() {
             @Override
             public void generateGoals(GoalUpdateSet agentGoalUpdateSet) {
-                Boolean imRegistered = (Boolean) getBelief(I_AM_REGISTERED)
+                final Boolean imRegistered = (Boolean) getBelief(I_AM_REGISTERED)
                         .getValue();
-                Boolean isExplorerAlive = (Boolean) getBelief(EXPLORER_ALIVE)
+                final Boolean isExplorerAlive = (Boolean) getBelief(EXPLORER_ALIVE)
                         .getValue();
-                Boolean isCollectorAlive = (Boolean) getBelief(COLLECTOR_ALIVE)
+                final Boolean isCollectorAlive = (Boolean) getBelief(COLLECTOR_ALIVE)
                         .getValue();
-                Boolean isTankerAlive = (Boolean) getBelief(TANKER_ALIVE).getValue();
+                final Boolean isTankerAlive = (Boolean) getBelief(TANKER_ALIVE).getValue();
 
                 if (imRegistered) {
                     if (!isExplorerAlive && !isCollectorAlive && !isTankerAlive && situatedName != null) {
