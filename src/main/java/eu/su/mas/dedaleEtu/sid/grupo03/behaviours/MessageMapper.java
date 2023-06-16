@@ -148,6 +148,8 @@ public class MessageMapper extends OneShotBehaviour {
     response.put("map", getSituatedAgent().clearBuffer());
     response.put("agentType", this.agent.getType());
     response.put("resourcesCapacity", Utils.getBackPackFreeSpace(this.agent));
+    response.put("level", this.agent.getLevel());
+    response.put("strength", this.agent.getStrength());
     Behaviour pong = new MessageSender(this.agent, response);
     this.agent.addBehaviour(pong);
   }

@@ -106,12 +106,10 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
     }
 
     public void updateObs(String node, Couple<String, Integer> observation) {
-        System.out.println("Updating obs " + observation);
         if (!this.nodes.has(node))
             return;
         if (observation.getLeft() == null || observation.getLeft().equals("Gold")
                 || observation.getLeft().equals("Diamond")) {
-            System.out.println("Updating resource " + observation);
             this.nodes.get(node).updateResource(node, observation.getRight());
         }
     }
@@ -207,5 +205,23 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
             this.backpackCapacity.put(resource.getLeft().getName(), resource.getRight());
         }
 
+    }
+
+    public int getLevel() {
+        for (Couple<Observation, Integer> expertise : this.getMyExpertise()) {
+            if (expertise.getLeft().getName().equals("LockPicking")) {
+                return expertise.getRight();
+            }
+        }
+        return 0;
+    }
+
+    public int getStrength() {
+        for (Couple<Observation, Integer> expertise : this.getMyExpertise()) {
+            if (expertise.getLeft().getName().equals("Strength")) {
+                return expertise.getRight();
+            }
+        }
+        return 0;
     }
 }

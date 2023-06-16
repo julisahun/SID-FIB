@@ -3,22 +3,13 @@ package eu.su.mas.dedaleEtu.sid.grupo03.core;
 import eu.su.mas.dedale.env.Observation;
 import eu.su.mas.dedaleEtu.sid.grupo03.BDIAgent03;
 import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
-import eu.su.mas.dedaleEtu.sid.grupo03.behaviours.MessageSender;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.MapaModel.NodeType;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
-import java.util.function.Consumer;
-import java.util.function.Supplier;
-import java.net.URL;
 
 import static eu.su.mas.dedaleEtu.sid.grupo03.core.Constants.*;
-
-import java.io.File;
-import java.io.FileOutputStream;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 import jade.core.AID;
 import jade.core.Agent;
@@ -29,19 +20,13 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 
-import org.apache.jena.ontology.OntDocumentManager;
-import org.apache.jena.ontology.OntModel;
-import org.apache.jena.ontology.OntModelSpec;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.ModelFactory;
 import org.json.JSONObject;
 
-import bdi4jade.belief.Belief;
-import bdi4jade.core.SingleCapabilityAgent;
 import dataStructures.tuple.Couple;
 
 public class Utils {
@@ -51,8 +36,6 @@ public class Utils {
     SUCCEEDED,
     FAILED
   }
-
-  private final static String FILE_NAME = "mapa";
 
   public static String uuid() {
     return UUID.randomUUID().toString();
@@ -78,26 +61,6 @@ public class Utils {
     a.send(msg);
     if (to.equals("slave"))
       ((BDIAgent03) a).addMessage(msg);
-  }
-
-  public static HashSet<String> getNodesWith(Model model, String query) {
-    HashSet<String> nodes = new HashSet<String>();
-    String[] params = query.split(" ");
-    String baseQuery = "PREFIX mapa: <http://mapa#> SELECT ?x WHERE { ?x mapa:" + params[0] + " ?" + params[0]
-        + " . FILTER(?" + params[0] + " " + params[1] + " " + params[2] + ") }";
-    QueryExecution qexec = QueryExecutionFactory.create(baseQuery, model);
-    try {
-      ResultSet results = qexec.execSelect();
-      while (results.hasNext()) {
-        QuerySolution soln = results.nextSolution();
-        String result = soln.get("?x").toString();
-        String cleanResult = result.split("_")[1];
-        nodes.add(cleanResult);
-      }
-    } finally {
-      qexec.close();
-    }
-    return nodes;
   }
 
   public static String getLeastVisitedNode(Model model) {
@@ -195,13 +158,6 @@ public class Utils {
       e.printStackTrace();
     }
     return null;
-  }
-
-  public static OntModel getOntology(Agent a) {
-    SingleCapabilityAgent agent = (SingleCapabilityAgent) a;
-    Belief b = agent.getCapability().getBeliefBase().getBelief(ONTOLOGY);
-    Model model = (Model) b.getValue();
-    return (OntModel) model;
   }
 
   public static Message messageMiddleware(Agent a, ACLMessage msg) {

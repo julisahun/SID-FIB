@@ -29,4 +29,6 @@ public class Constants {
     public static Boolean IS_DEV = true;
     public static String FILE_NAME = "mapa";
     public static String FREE_SPACE = "freeSpace";
+    public static String STRENGTH = "strength";
+    public static String LEVEL = "level";
 }

@@ -18,7 +18,7 @@
     "backPackCapacityGold": 100,
     "backPackCapacityDiamond":-1, 
     "detectionRadius": 3,
-    "strengthExpertise": 1,
+    "strengthExpertise": 0,
     "lockPickingExpertise":1
   },
   { 

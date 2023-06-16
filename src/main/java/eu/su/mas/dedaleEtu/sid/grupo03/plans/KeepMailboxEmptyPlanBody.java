@@ -101,6 +101,12 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		b.setValue(true);
 		JSONObject resourcesCapacity = body.getJSONObject("resourcesCapacity");
 		updateResourcesCapacity(resourcesCapacity);
+		final Integer strength = body.getInt("strength");
+		Belief strengthBelief = getBeliefBase().getBelief(STRENGTH);
+		strengthBelief.setValue(strength);
+		final Integer level = body.getInt("level");
+		Belief levelBelief = getBeliefBase().getBelief(LEVEL);
+		levelBelief.setValue(level);
 		final String map = body.getString("map");
 		pushMapUpdate(map);
 	}

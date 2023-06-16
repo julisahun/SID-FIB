@@ -36,12 +36,14 @@ import static eu.su.mas.dedaleEtu.sid.grupo03.core.Constants.*;
 import java.lang.reflect.Array;
 import java.sql.Timestamp;
 import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Queue;
 import java.util.Random;
 import java.util.LinkedList;
+import java.util.List;
 
 public class BDIAgent03 extends SingleCapabilityAgent {
 
@@ -67,8 +69,6 @@ public class BDIAgent03 extends SingleCapabilityAgent {
     private void initBeliefs() {
         Belief<String, Boolean> iAmRegistered = new TransientPredicate<String>(I_AM_REGISTERED, false);
         Belief<String, MapaModel> ontology = new TransientBelief<String, MapaModel>(ONTOLOGY, new MapaModel());
-        Belief<String, HashMap<String, Integer>> timesVisited = new TransientBelief<String, HashMap<String, Integer>>(
-                TIMES_VISITED, new HashMap<>());
         Belief<String, Queue<Map>> mapUpdates = new TransientBelief<String, Queue<Map>>(MAP_UPDATES,
                 new LinkedList<>());
         Belief<String, Boolean> isExplorerAlive = new TransientPredicate<String>(EXPLORER_ALIVE, false);
@@ -79,9 +79,9 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         Belief<String, Boolean> situatedCommanded = new TransientPredicate<String>(SITUATED_COMMANDED, false);
 
         Belief<String, Integer> goldCapacity = new TransientBelief<String, Integer>(GOLD_CAPACITY, 0);
-        Belief<String, Integer> goldCarried = new TransientBelief<String, Integer>(GOLD_CARRIED, 0);
         Belief<String, Integer> diamondCapacity = new TransientBelief<String, Integer>(DIAMOND_CAPACITY, 0);
-        Belief<String, Integer> diamondCarried = new TransientBelief<String, Integer>(DIAMOND_CARRIED, 0);
+        Belief<String, Integer> strength = new TransientBelief<String, Integer>(STRENGTH, 0);
+        Belief<String, Integer> level = new TransientBelief<String, Integer>(LEVEL, 0);
 
         Belief<String, Boolean> isFullExplored = new TransientPredicate<String>(IS_FULL_EXPLORED, false);
 
@@ -93,19 +93,16 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         Belief<String, HashSet<Integer>> ontologyHash = new TransientBelief<String, HashSet<Integer>>(ONTOLOGY_HASHES,
                 new HashSet<>());
 
-        Belief<String, Integer> backPackFreeSpace = new TransientBelief<String, Integer>(FREE_SPACE, 0);
-
         getCapability().getBeliefBase().addBelief(iAmRegistered);
         getCapability().getBeliefBase().addBelief(ontology);
-        getCapability().getBeliefBase().addBelief(timesVisited);
         getCapability().getBeliefBase().addBelief(mapUpdates);
         getCapability().getBeliefBase().addBelief(isFullExplored);
         getCapability().getBeliefBase().addBelief(rejectedNodes);
 
         getCapability().getBeliefBase().addBelief(goldCapacity);
-        getCapability().getBeliefBase().addBelief(goldCarried);
         getCapability().getBeliefBase().addBelief(diamondCapacity);
-        getCapability().getBeliefBase().addBelief(diamondCarried);
+        getCapability().getBeliefBase().addBelief(strength);
+        getCapability().getBeliefBase().addBelief(level);
 
         getCapability().getBeliefBase().addBelief(isExplorerAlive);
         getCapability().getBeliefBase().addBelief(isCollectorAlive);
@@ -114,7 +111,6 @@ public class BDIAgent03 extends SingleCapabilityAgent {
         getCapability().getBeliefBase().addBelief(situatedCommanded);
         getCapability().getBeliefBase().addBelief(currentSituatedPosition);
         getCapability().getBeliefBase().addBelief(ontologyHash);
-        getCapability().getBeliefBase().addBelief(backPackFreeSpace);
     }
 
     private void initGoals() {
@@ -180,7 +176,6 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                 Utils.sendMessage(that, ACLMessage.INFORM, "map:" + body.toString(), situatedName);
             }
         });
-
     }
 
     private void overrideOptionGenerationFunction() {
@@ -221,7 +216,6 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                     Boolean situatedCommanded = (Boolean) getBelief(SITUATED_COMMANDED).getValue();
                     if (!situatedCommanded) {
                         final String command = getNextCollectorCommand();
-                        System.out.println("Collector command: " + command);
                         agentGoalUpdateSet.generateGoal(new CommandGoal(command));
 
                         Belief commandSent = getBelief(SITUATED_COMMANDED).getKey();
@@ -246,7 +240,6 @@ public class BDIAgent03 extends SingleCapabilityAgent {
 
     private String commandNotRejected(Set<String> nodes) {
         HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getBelief(REJECTED_NODES).getValue();
-        System.out.println("Nodes to go: " + nodes + " rejected nodes: " + rejectedNodes);
 
         for (final String node : nodes) {
             if (!rejectedNodes.containsKey(node)) {
@@ -322,20 +315,41 @@ public class BDIAgent03 extends SingleCapabilityAgent {
 
     private String getNextCollectorCommand() {
         final String resource = this.resourceToGet();
+        final Integer strength = (Integer) getBelief(STRENGTH).getValue();
+        final Integer level = (Integer) getBelief(LEVEL).getValue();
+
+        HashMap<String, Integer> rejectedNodes = (HashMap<String, Integer>) getBelief(REJECTED_NODES).getValue();
         MapaModel ontology = (MapaModel) getCapability().getBeliefBase().getBelief(ONTOLOGY).getValue();
-        String currentPosition = (String) getBelief(CURRENT_SITUATED_POSITION).getValue();
+        final String currentPosition = (String) getBelief(CURRENT_SITUATED_POSITION).getValue();
         NodeInfo nodeInfo = ontology.getCellInfo(currentPosition);
-        if (resource == null) {
+        if (resource == null)
             return this.commandNotRejected(ontology.getOpenNodes());
-        }
-        if (nodeInfo.hasResource(resource)) {
+
+        if (nodeInfo.hasResource(resource, strength, level))
             return "collect";
-        }
-        HashSet<String> nodes = ontology.getResourceNodes(resource);
-        if (nodes.size() == 0) {
+
+        HashSet<String> nodes = ontology.getResourceNodes(resource, strength, level);
+        if (nodes.size() > 0)
+            return this.commandNotRejected(nodes);
+
+        if (ontology.getOpenNodes().size() != 0 && !rejectedNodes.keySet().containsAll(ontology.getOpenNodes())) {
             return this.commandNotRejected(ontology.getOpenNodes());
         }
-        return this.commandNotRejected(nodes);
+
+        nodes = ontology.getResourceNodes(resource, Integer.MAX_VALUE, Integer.MAX_VALUE);
+        if (nodes.size() == 0)
+            return "noOp";
+        // go next to a node with resource
+        List<String> array = new ArrayList<String>(nodes);
+        Set<String> neighborNodes = array.stream()
+                .flatMap(node -> ontology.getNeighbors(node).stream())
+                .filter(node -> ontology.isNonBlockingNode(node))
+                .collect(Collectors.toSet());
+        if (neighborNodes.contains(currentPosition)) {
+            return "noOp";
+        }
+        return this.commandNotRejected(neighborNodes);
+
     }
 
     private String getNextTankerCommand() {

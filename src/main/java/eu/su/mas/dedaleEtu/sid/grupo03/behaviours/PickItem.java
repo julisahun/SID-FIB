@@ -51,7 +51,6 @@ public class PickItem extends SimpleBehaviour {
       status = 0;
 
     Utils.finishBehaviour(this.myAgent, this.id, status);
-    System.out.println("Picked " + this.amountPicked + " items");
     return status;
   }
 }

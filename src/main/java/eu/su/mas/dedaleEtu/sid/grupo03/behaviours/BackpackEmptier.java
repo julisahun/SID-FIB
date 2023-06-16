@@ -24,7 +24,6 @@ public class BackpackEmptier extends TickerBehaviour {
     if (situated.hasEmptyBackpack()) {
       return;
     }
-    System.out.println("Emptying backpack");
     HashSet<String> tankerAgents = Utils.getTankers(this.myAgent);
     for (String tanker : tankerAgents) {
       Boolean b = situated.emptyMyBackPack(tanker);

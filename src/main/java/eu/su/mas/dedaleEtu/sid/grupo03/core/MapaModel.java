@@ -27,6 +27,7 @@ import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryExecution;
 import org.apache.jena.query.QueryExecutionFactory;
 import org.apache.jena.query.QueryFactory;
+import org.apache.jena.query.QuerySolution;
 import org.apache.jena.query.ResultSet;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.ModelFactory;
@@ -80,7 +81,10 @@ public class MapaModel {
 			this.strength = strength;
 		}
 
-		public Boolean hasResource(String resourceType) {
+		public Boolean hasResource(String resourceType, long strength, long lockpickLevel) {
+			if (this.strength > strength || this.lockpickLevel > lockpickLevel) {
+				return false;
+			}
 			if (resourceType.equals("gold")) {
 				return goldAmount > 0;
 			}
@@ -669,7 +673,7 @@ public class MapaModel {
 		return returnedList;
 	}
 
-	private HashSet<String> getNeighbors(String nodeId) {
+	public HashSet<String> getNeighbors(String nodeId) {
 		return this.adjacencyCache.get(nodeId);
 	}
 
@@ -697,22 +701,34 @@ public class MapaModel {
 			for (String neighbor2 : neighbors) {
 				if (neighbor.equals(neighbor2))
 					continue;
-				Boolean canReach = this.canReach(neighbor, neighbor2, nodeId);
-				if (!this.canReach(neighbor, neighbor2, nodeId))
+				final Boolean canReach = this.canReach(neighbor, neighbor2, nodeId);
+				if (!canReach)
 					return false;
 			}
 		}
 		return true;
 	}
 
-	public HashSet<String> getResourceNodes(String resource) {
-		StmtIterator statements = model.listStatements((Resource) null,
-				model.getProperty(mapa(resource + "Amount")), (RDFNode) null);
+	public HashSet<String> getResourceNodes(String resource, long strength, long level) {
+		// StmtIterator statements = model.listStatements((Resource) null,
+		// model.getProperty(mapa(resource + "Amount")), (RDFNode) null);
+		Query query = QueryFactory.create(
+				"PREFIX mapa: <http://mapa#> " +
+						"SELECT" +
+						" ?Node" +
+						" WHERE {" +
+						" ?Node mapa:" + resource + "Amount ?amount ;" +
+						" mapa:strength ?strength ;" +
+						" mapa:lockpickLevel ?level ." +
+						" FILTER (?amount > 0 && ?strength <= " + strength + " && ?level <= " + level + ")" +
+						" }");
+		QueryExecution qexec = QueryExecutionFactory.create(query, model);
+		ResultSet result = qexec.execSelect();
 		HashSet<String> returnList = new HashSet<String>();
-		while (statements.hasNext()) {
-			Statement entry = statements.next();
-			Matcher matcher = patternIdCell.matcher(entry.getSubject().getURI());
-			if (matcher.find() && entry.getObject().asLiteral().getInt() > 0) {
+		while (result.hasNext()) {
+			QuerySolution entry = result.next();
+			Matcher matcher = patternIdCell.matcher(entry.getResource("Node").getURI());
+			if (matcher.find()) {
 				returnList.add(matcher.group(1));
 			}
 		}
