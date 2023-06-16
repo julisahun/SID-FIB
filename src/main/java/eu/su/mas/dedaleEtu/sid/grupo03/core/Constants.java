@@ -26,7 +26,7 @@ public class Constants {
     public static String MASTER_NAME = "BDIAgent03";
     public static String ONTOLOGY_NAME = "polydama-mapstate";
     public static String ONTOLOGY_PROTOCOL = "SHARE-ONTO";
-    public static Boolean IS_DEV = true;
+    public static Boolean IS_DEV = false;
     public static String FILE_NAME = "mapa";
     public static String FREE_SPACE = "freeSpace";
     public static String STRENGTH = "strength";

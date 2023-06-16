@@ -28,6 +28,7 @@ import jade.lang.acl.ACLMessage;
 
 import jade.lang.acl.MessageTemplate;
 import javafx.util.Pair;
+import weka.classifiers.functions.SGDText.Count;
 
 import org.json.JSONObject;
 
@@ -48,7 +49,7 @@ import java.util.List;
 public class BDIAgent03 extends SingleCapabilityAgent {
 
     private ArrayList<String> messages = new ArrayList<>();
-    public String situatedName;
+    public String situatedName = "SituatedAgent03";
     private Goal pingAgentGoal;
 
     public BDIAgent03() {
@@ -205,6 +206,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                     Boolean situatedCommanded = (Boolean) getBelief(SITUATED_COMMANDED).getValue();
                     if (!situatedCommanded) {
                         final String command = getNextExplorerCommand();
+                        System.out.println("Sending command: " + command);
                         agentGoalUpdateSet.generateGoal(new CommandGoal(command));
 
                         Belief commandSent = getBelief(SITUATED_COMMANDED).getKey();
@@ -264,7 +266,8 @@ public class BDIAgent03 extends SingleCapabilityAgent {
 
     private String getLeastVisitedNode() {
         MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
-        return Utils.getLeastVisitedNode(ontology.model);
+        final String currentPosition = (String) getBelief(CURRENT_SITUATED_POSITION).getValue();
+        return Utils.getLeastVisitedNode(ontology.model, currentPosition);
     }
 
     private Boolean isFullExplored() {

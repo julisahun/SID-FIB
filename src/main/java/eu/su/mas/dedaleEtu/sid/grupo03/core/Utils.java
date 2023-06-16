@@ -63,16 +63,17 @@ public class Utils {
       ((BDIAgent03) a).addMessage(msg);
   }
 
-  public static String getLeastVisitedNode(Model model) {
-    String query = "PREFIX mapa: <http://mapa#> SELECT ?x WHERE { ?x mapa:timesVisited ?timesVisited . FILTER(?timesVisited > 0) } ORDER BY ?timesVisited LIMIT 1";
+  public static String getLeastVisitedNode(Model model, String currentNode) {
+    String query = "PREFIX mapa: <http://mapa#> SELECT ?x WHERE { ?x mapa:timesVisited ?timesVisited . FILTER(?timesVisited > 0) } ORDER BY ?timesVisited LIMIT 2";
     QueryExecution qexec = QueryExecutionFactory.create(query, model);
     try {
       ResultSet results = qexec.execSelect();
       while (results.hasNext()) {
-        QuerySolution soln = results.nextSolution();
+        QuerySolution soln = results.next();
         String result = soln.get("?x").toString();
         String cleanResult = result.split("_")[1];
-        return cleanResult;
+        if (!cleanResult.equals(currentNode))
+          return cleanResult;
       }
     } finally {
       qexec.close();

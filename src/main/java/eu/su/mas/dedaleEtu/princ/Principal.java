@@ -224,10 +224,6 @@ public class Principal {
         // to agents in this list.
         AgentController[] agentsToAdd = new AgentController[] {
                 newAgent("SituatedAgent03", new String[] {},
-                        eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03.class),
-                newAgent("SituatedAgent04", new String[] {},
-                        eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03.class),
-                newAgent("SituatedAgent05", new String[] {},
                         eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03.class)
         };
 
@@ -242,16 +238,8 @@ public class Principal {
             AgentController nonDedaleAgent = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
                     .createNewAgent(
                             "BDIAgent03", BDIAgent03.class.getName(), new Object[] {});
-            AgentController nonDedaleAgent2 = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
-                    .createNewAgent(
-                            "BDIAgent04", BDIAgent03.class.getName(), new Object[] {});
-            AgentController nonDedaleAgent3 = containerList.get(ConfigurationFile.LOCAL_CONTAINER_NAME_MGMT)
-                    .createNewAgent(
-                            "BDIAgent05", BDIAgent03.class.getName(), new Object[] {});
 
             agentList.add(nonDedaleAgent);
-            agentList.add(nonDedaleAgent2);
-            agentList.add(nonDedaleAgent3);
         } catch (StaleProxyException e) {
             e.printStackTrace();
         }
