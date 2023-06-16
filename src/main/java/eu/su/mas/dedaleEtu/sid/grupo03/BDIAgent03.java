@@ -206,7 +206,6 @@ public class BDIAgent03 extends SingleCapabilityAgent {
                     Boolean situatedCommanded = (Boolean) getBelief(SITUATED_COMMANDED).getValue();
                     if (!situatedCommanded) {
                         final String command = getNextExplorerCommand();
-                        System.out.println("Sending command: " + command);
                         agentGoalUpdateSet.generateGoal(new CommandGoal(command));
 
                         Belief commandSent = getBelief(SITUATED_COMMANDED).getKey();
