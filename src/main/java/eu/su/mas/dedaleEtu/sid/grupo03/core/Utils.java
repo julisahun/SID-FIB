@@ -1,7 +1,6 @@
 package eu.su.mas.dedaleEtu.sid.grupo03.core;
 
 import eu.su.mas.dedale.env.Observation;
-import eu.su.mas.dedaleEtu.sid.grupo03.BDIAgent03;
 import eu.su.mas.dedaleEtu.sid.grupo03.SituatedAgent03;
 import eu.su.mas.dedaleEtu.sid.grupo03.core.MapaModel.NodeType;
 
@@ -20,11 +19,6 @@ import jade.domain.FIPAAgentManagement.DFAgentDescription;
 import jade.domain.FIPAAgentManagement.ServiceDescription;
 import jade.lang.acl.ACLMessage;
 
-import org.apache.jena.query.QueryExecution;
-import org.apache.jena.query.QueryExecutionFactory;
-import org.apache.jena.query.QuerySolution;
-import org.apache.jena.query.ResultSet;
-import org.apache.jena.rdf.model.Model;
 import org.json.JSONObject;
 
 import dataStructures.tuple.Couple;

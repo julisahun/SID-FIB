@@ -750,7 +750,7 @@ public class MapaModel {
     } finally {
       qexec.close();
     }
-    return "noOp";
+    return null;
   }
 
 	public void replaceModel(MapaModel mapa) {

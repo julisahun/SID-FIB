@@ -278,7 +278,11 @@ public class BDIAgent03 extends SingleCapabilityAgent {
             final String node = this.getOpenNode();
             return node;
         }
-        return this.getLeastVisitedNode();
+        String leastVisitedNode =  this.getLeastVisitedNode();
+        if (leastVisitedNode != null) {
+            return leastVisitedNode;
+        }
+        return this.getRandomClosedNode();
     }
 
     private String getRandomNode(ArrayList<String> nodes) {
