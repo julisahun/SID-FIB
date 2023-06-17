@@ -25,7 +25,6 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
     private MapRepresentation map;
     private Map nodes;
     private HashSet<String> rejectedNodes = new HashSet<>();
-    private HashMap<String, List<String>> messages;
     private HashMap<String, Integer> backpackCapacity = new HashMap<>();
 
     private HashMap<String, Integer> behavioursStatus = new HashMap<>();
@@ -47,7 +46,6 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
             lb.add(new BackpackEmptier(this));
         }
         addBehaviour(new startMyBehaviours(this, lb));
-        this.messages = new HashMap<>();
         this.nodes = new Map();
     }
 
@@ -116,17 +114,6 @@ public class SituatedAgent03 extends AbstractDedaleAgent {
 
     public Boolean isAlreadyRejected(String node) {
         return this.rejectedNodes.contains(node);
-    }
-
-    public void addMessage(String header, String message) {
-        if (!this.messages.containsKey(header)) {
-            this.messages.put(header, new ArrayList<>());
-        }
-        this.messages.get(header).add(message);
-    }
-
-    public boolean getResponse(String header) {
-        return this.messages.containsKey(header) && !this.messages.get(header).isEmpty();
     }
 
     public void registerBehaviour(String id, Behaviour b) {

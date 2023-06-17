@@ -735,6 +735,24 @@ public class MapaModel {
 		return returnList;
 	}
 
+	public String getLeastVisitedNode(String currentNode) {
+    String query = "PREFIX mapa: <http://mapa#> SELECT ?x WHERE { ?x mapa:timesVisited ?timesVisited . FILTER(?timesVisited > 0) } ORDER BY ?timesVisited LIMIT 10";
+    QueryExecution qexec = QueryExecutionFactory.create(query, this.model);
+    try {
+      ResultSet results = qexec.execSelect();
+      while (results.hasNext()) {
+        QuerySolution soln = results.next();
+        String result = soln.get("?x").toString();
+        String cleanResult = result.split("_")[1];
+        if (!cleanResult.equals(currentNode))
+          return cleanResult;
+      }
+    } finally {
+      qexec.close();
+    }
+    return "noOp";
+  }
+
 	public void replaceModel(MapaModel mapa) {
 		++revision;
 		this.model = mapa.model;

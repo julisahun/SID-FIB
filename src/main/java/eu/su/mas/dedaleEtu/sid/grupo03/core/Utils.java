@@ -59,26 +59,6 @@ public class Utils {
     msg.addReceiver(new AID(to, AID.ISLOCALNAME));
     msg.setContent(content);
     a.send(msg);
-    if (to.equals("slave"))
-      ((BDIAgent03) a).addMessage(msg);
-  }
-
-  public static String getLeastVisitedNode(Model model, String currentNode) {
-    String query = "PREFIX mapa: <http://mapa#> SELECT ?x WHERE { ?x mapa:timesVisited ?timesVisited . FILTER(?timesVisited > 0) } ORDER BY ?timesVisited LIMIT 2";
-    QueryExecution qexec = QueryExecutionFactory.create(query, model);
-    try {
-      ResultSet results = qexec.execSelect();
-      while (results.hasNext()) {
-        QuerySolution soln = results.next();
-        String result = soln.get("?x").toString();
-        String cleanResult = result.split("_")[1];
-        if (!cleanResult.equals(currentNode))
-          return cleanResult;
-      }
-    } finally {
-      qexec.close();
-    }
-    return null;
   }
 
   public static void updateMap(Map patchUpdate, MapaModel ontology, HashMap<String, Integer> rejectedNodes) {

@@ -28,7 +28,6 @@ import jade.lang.acl.ACLMessage;
 
 import jade.lang.acl.MessageTemplate;
 import javafx.util.Pair;
-import weka.classifiers.functions.SGDText.Count;
 
 import org.json.JSONObject;
 
@@ -266,7 +265,7 @@ public class BDIAgent03 extends SingleCapabilityAgent {
     private String getLeastVisitedNode() {
         MapaModel ontology = (MapaModel) getBelief(ONTOLOGY).getValue();
         final String currentPosition = (String) getBelief(CURRENT_SITUATED_POSITION).getValue();
-        return Utils.getLeastVisitedNode(ontology.model, currentPosition);
+        return ontology.getLeastVisitedNode(currentPosition);
     }
 
     private Boolean isFullExplored() {
@@ -364,20 +363,6 @@ public class BDIAgent03 extends SingleCapabilityAgent {
             return this.getRandomClosedNode();
         }
         return this.getRandomOpenNode();
-    }
-
-    public void addMessage(ACLMessage msg) {
-        String content = msg.getContent();
-        String sender = msg.getSender().getLocalName();
-        int performative = msg.getPerformative();
-        String timestamp = new Timestamp(System.currentTimeMillis()).toString();
-
-        JSONObject body = new JSONObject();
-        body.put("sender", sender);
-        body.put("performative", performative);
-        body.put("content", content);
-        body.put("timestamp", timestamp);
-        this.messages.add(body.toString());
     }
 
     private Pair<Belief, Object> getBelief(String beliefName) {

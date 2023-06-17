@@ -35,7 +35,6 @@ public class KeepMailboxEmptyPlanBody extends AbstractPlanBody {
 		try {
 			ACLMessage msg = this.msgReceived;
 			Message message = Utils.messageMiddleware(this.myAgent, msg);
-			((BDIAgent03) this.myAgent).addMessage(msg);
 			final int performative = message.performative;
 			if (performative == ACLMessage.INFORM) {
 				handleInform(message);
