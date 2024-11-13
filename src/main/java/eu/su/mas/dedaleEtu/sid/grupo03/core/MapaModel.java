@@ -38,6 +38,8 @@ import org.apache.jena.rdf.model.Statement;
 import org.apache.jena.rdf.model.StmtIterator;
 import org.apache.jena.rdf.model.impl.StatementImpl;
 
+import eu.su.mas.dedaleEtu.sid.grupo03.core.Constants;
+
 import javafx.application.Platform;
 import javafx.util.Pair;
 
@@ -679,6 +681,8 @@ public class MapaModel {
 
 	private Boolean canReach(String node1, String node2, String blockedNode) {
 		Queue<String> queue = new LinkedList<>();
+		HashMap<String, Integer> distance = new HashMap<>();
+		distance.put(node1, 0);
 		HashSet<String> visited = new HashSet<>();
 		queue.add(node1);
 		while (!queue.isEmpty()) {
@@ -687,9 +691,12 @@ public class MapaModel {
 				return true;
 			visited.add(node);
 			HashSet<String> neighbors = this.getNeighbors(node);
+			Integer dist = distance.get(node);
 			for (String neighbor : neighbors) {
-				if (!visited.contains(neighbor) && !neighbor.equals(blockedNode))
+				if (!visited.contains(neighbor) && !neighbor.equals(blockedNode) && dist < Constants.MAX_DISTANCE) {
 					queue.add(neighbor);
+					distance.put(neighbor, dist + 1);
+				}
 			}
 		}
 		return false;

@@ -21,6 +21,7 @@ public class Constants {
     final public static String CURRENT_SITUATED_POSITION = "currentSituatedPosition";
     final public static String TIMES_VISITED = "timesVisited";
     final public static int WAITING_CYCLES = 1;
+    final public static int MAX_DISTANCE = 5;
     final public static String ONTOLOGY_HASHES = "ontologyHashes";
     final public static String SITUATED_NAME = "SituatedAgent03";
     final public static String MASTER_NAME = "BDIAgent03";

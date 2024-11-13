@@ -1,6 +1,6 @@
 [
   { 
-    "agentType":"agentExplo",
+    "agentType":"agentTanker",
     "agentName": "situatedAgent03",
     "communicationRange": 3,
     "initialLocation": "20",
